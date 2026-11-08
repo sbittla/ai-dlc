@@ -60,6 +60,14 @@ class Derived(Computed):
     """A configured value that depends on unknown values (for example jsonencode() of an ARN)."""
 
 
+class KnownRef(Ref):
+    """A reference to an attribute the target sets in its configuration (a name): known in the plan."""
+
+    def __init__(self, address: str, attr: str, value: str):
+        super().__init__(address, attr)
+        self.value = value
+
+
 UNKNOWN = Computed()
 DERIVED = Derived()
 
@@ -75,7 +83,7 @@ HAS_ARN = {"aws_vpc", "aws_subnet", "aws_internet_gateway", "aws_eip", "aws_rout
            "aws_secretsmanager_secret", "aws_s3_bucket", "aws_ecr_repository", "aws_cloudwatch_log_group",
            "aws_ecs_cluster", "aws_ecs_task_definition", "aws_lb", "aws_lb_target_group", "aws_lb_listener",
            "aws_iam_role", "aws_iam_openid_connect_provider", "aws_budgets_budget", "aws_instance",
-           "aws_iam_user", "aws_service_discovery_private_dns_namespace", "aws_service_discovery_service"}
+           "aws_iam_user", "aws_iam_policy", "aws_service_discovery_private_dns_namespace", "aws_service_discovery_service"}
 EXTRA_COMPUTED = {
     "aws_vpc_endpoint": ["dns_entry", "network_interface_ids", "prefix_list_id"],
     "aws_security_group": ["ingress", "egress"],
@@ -112,6 +120,8 @@ def pol(*statements) -> str:
 
 def split(value):
     """(known value for `after`, unknown marker for `after_unknown`, or None when fully known)."""
+    if isinstance(value, KnownRef):
+        return value.value, None
     if isinstance(value, (Ref, Computed)):
         return None, True
     if isinstance(value, dict):
@@ -219,6 +229,8 @@ def fake_id(r: dict) -> str:
 
 
 def resolve(value, ids: dict):
+    if isinstance(value, KnownRef):
+        return value.value
     if isinstance(value, Ref):
         return ids.get(value.address, "unknown") + value.suffix
     if isinstance(value, Computed):
@@ -308,6 +320,18 @@ def rule(kind, name, group, port, peer=None, cidr=None, prefix=None, description
     return res(f"aws_vpc_security_group_{kind}_rule", name, **attrs)
 
 
+def own_account(resources_too: bool) -> str:
+    cond = {"aws:PrincipalAccount": ACCOUNT}
+    if resources_too:
+        cond["aws:ResourceAccount"] = ACCOUNT
+    return pol({"Sid": "ThisAccountOnly" if resources_too else "ThisAccountsPrincipalsOnly", "Effect": "Allow",
+                "Principal": "*", "Action": "*", "Resource": "*", "Condition": {"StringEquals": cond}})
+
+
+S3_LAYERS = pol({"Sid": "EcrImageLayersOnly", "Effect": "Allow", "Principal": "*", "Action": ["s3:GetObject"],
+                 "Resource": [f"arn:aws:s3:::prod-{REGION}-starport-layer-bucket/*"]})
+
+
 def endpoint(name, service, policy=None):
     attrs = {"vpc_id": Ref("aws_vpc.main"), "service_name": f"com.amazonaws.{REGION}.{service}",
              "vpc_endpoint_type": "Interface", "private_dns_enabled": True,
@@ -346,7 +370,62 @@ def service(name, count_var, subnets, groups, lb=False, registry=False):
 
 def role(name, trust):
     return res("aws_iam_role", name, name=f"{NAME}-{name.replace('_task', '').replace('_', '-')}",
-               assume_role_policy=trust, max_session_duration=3600)
+               assume_role_policy=trust, permissions_boundary=Ref("aws_iam_policy.boundary", "arn"),
+               max_session_duration=3600)
+
+
+BOUNDARY_ARN = f"arn:aws:iam::{ACCOUNT}:policy/{NAME}-boundary"
+OIDC_ARN = f"arn:aws:iam::{ACCOUNT}:oidc-provider/token.actions.githubusercontent.com"
+
+
+def boundary():
+    return res("aws_iam_policy", "boundary", name=f"{NAME}-boundary",
+               description="Maximum permissions of any Relay nonprod workload role", policy=pol(
+                   {"Effect": "Allow", "Action": ["rds-db:connect"],
+                    "Resource": f"arn:aws:rds-db:{REGION}:{ACCOUNT}:dbuser:*/relay_*"},
+                   {"Effect": "Allow", "Action": ["bedrock:InvokeModel", "bedrock:InvokeModelWithResponseStream"],
+                    "Resource": MODEL_ARN},
+                   {"Effect": "Allow", "Action": ["ecr:GetAuthorizationToken"], "Resource": "*"},
+                   {"Effect": "Allow",
+                    "Action": ["ecr:BatchGetImage", "ecr:GetDownloadUrlForLayer", "ecr:BatchCheckLayerAvailability"],
+                    "Resource": f"arn:aws:ecr:{REGION}:{ACCOUNT}:repository/relay*"},
+                   {"Effect": "Allow", "Action": ["logs:CreateLogStream", "logs:PutLogEvents"],
+                    "Resource": f"arn:aws:logs:{REGION}:{ACCOUNT}:log-group:/relay/nonprod/*:*"},
+                   {"Effect": "Allow", "Action": ["secretsmanager:GetSecretValue"],
+                    "Resource": f"arn:aws:secretsmanager:{REGION}:{ACCOUNT}:secret:relay/nonprod/*"},
+                   {"Effect": "Allow", "Action": ["kms:Decrypt"], "Resource": f"arn:aws:kms:{REGION}:{ACCOUNT}:key/*"}))
+
+
+APPLY_STATEMENTS = (
+    {"Effect": "Allow", "Action": ["ec2:*", "ecs:*", "elasticloadbalancing:*", "rds:*", "secretsmanager:*",
+                                   "kms:*", "logs:*", "ecr:*", "budgets:*", "s3:*", "servicediscovery:*",
+                                   "route53:*"], "Resource": "*"},
+    {"Sid": "BoundedRolesOnly", "Effect": "Allow",
+     "Action": ["iam:CreateRole", "iam:PutRolePolicy", "iam:AttachRolePolicy", "iam:PutRolePermissionsBoundary"],
+     "Resource": f"arn:aws:iam::{ACCOUNT}:role/{NAME}-*",
+     "Condition": {"StringEquals": {"iam:PermissionsBoundary": BOUNDARY_ARN}}},
+    {"Effect": "Allow",
+     "Action": ["iam:GetRole", "iam:GetRolePolicy", "iam:ListRolePolicies", "iam:ListAttachedRolePolicies",
+                "iam:ListInstanceProfilesForRole", "iam:TagRole", "iam:UntagRole", "iam:UpdateRole",
+                "iam:UpdateAssumeRolePolicy", "iam:DeleteRolePolicy", "iam:DetachRolePolicy", "iam:DeleteRole"],
+     "Resource": f"arn:aws:iam::{ACCOUNT}:role/{NAME}-*"},
+    {"Effect": "Allow", "Action": ["iam:PassRole"], "Resource": f"arn:aws:iam::{ACCOUNT}:role/{NAME}-*",
+     "Condition": {"StringEquals": {"iam:PassedToService": "ecs-tasks.amazonaws.com"}}},
+    {"Effect": "Allow",
+     "Action": ["iam:GetPolicy", "iam:GetPolicyVersion", "iam:ListPolicyVersions", "iam:GetOpenIDConnectProvider"],
+     "Resource": [BOUNDARY_ARN, OIDC_ARN]},
+    {"Effect": "Allow", "Action": ["iam:CreateServiceLinkedRole"],
+     "Resource": f"arn:aws:iam::{ACCOUNT}:role/aws-service-role/*",
+     "Condition": {"StringEquals": {"iam:AWSServiceName": ["ecs.amazonaws.com", "elasticloadbalancing.amazonaws.com",
+                                                           "rds.amazonaws.com"]}}},
+    {"Sid": "NeverTheCiRolesOrTheBoundary", "Effect": "Deny", "NotAction": ["iam:Get*", "iam:List*"],
+     "Resource": [f"arn:aws:iam::{ACCOUNT}:role/{NAME}-ci-*", BOUNDARY_ARN, OIDC_ARN]},
+    {"Sid": "NeverAdministratorPolicies", "Effect": "Deny", "Action": ["iam:AttachRolePolicy"], "Resource": "*",
+     "Condition": {"ArnLike": {"iam:PolicyARN": ["arn:aws:iam::aws:policy/AdministratorAccess",
+                                                 "arn:aws:iam::aws:policy/PowerUserAccess",
+                                                 "arn:aws:iam::aws:policy/IAMFullAccess"]}}},
+    {"Effect": "Deny", "Action": ["iam:DeleteRolePermissionsBoundary"], "Resource": "*"},
+)
 
 
 def nonprod() -> list[dict]:
@@ -365,13 +444,14 @@ def nonprod() -> list[dict]:
         res("aws_nat_gateway", "egress", allocation_id=Ref("aws_eip.nat"), subnet_id=Ref("aws_subnet.public_a"),
             connectivity_type="public"),
         res("aws_route_table", "private", vpc_id=Ref("aws_vpc.main"), route=UNKNOWN),
+        res("aws_route_table", "sandbox", vpc_id=Ref("aws_vpc.main"), route=UNKNOWN),
         res("aws_route_table", "egress", vpc_id=Ref("aws_vpc.main"),
             route=[{"cidr_block": "0.0.0.0/0", "nat_gateway_id": Ref("aws_nat_gateway.egress"), "gateway_id": ""}]),
         res("aws_route_table", "public", vpc_id=Ref("aws_vpc.main"),
             route=[{"cidr_block": "0.0.0.0/0", "nat_gateway_id": "", "gateway_id": Ref("aws_internet_gateway.main")}]),
     ]
     for s, table in (("app_a", "private"), ("app_b", "private"), ("data_a", "private"), ("data_b", "private"),
-                     ("sandbox_a", "private"), ("egress_a", "egress"), ("public_a", "public")):
+                     ("sandbox_a", "sandbox"), ("egress_a", "egress"), ("public_a", "public")):
         out.append(res(rt, s, subnet_id=Ref(f"aws_subnet.{s}"), route_table_id=Ref(f"aws_route_table.{table}")))
     out.append(res("aws_flow_log", "main", vpc_id=Ref("aws_vpc.main"), traffic_type="ALL",
                    log_destination_type="s3", log_destination=Ref("aws_s3_bucket.flow_logs", "arn")))
@@ -382,11 +462,12 @@ def nonprod() -> list[dict]:
                                   f"arn:aws:iam::{ACCOUNT}:role/{NAME}-sandbox"]},
             "Action": ["bedrock:InvokeModel", "bedrock:InvokeModelWithResponseStream"],
             "Resource": [MODEL_ARN]})),
-        endpoint("secretsmanager", "secretsmanager"), endpoint("logs", "logs"),
-        endpoint("ecr_api", "ecr.api"), endpoint("ecr_dkr", "ecr.dkr"),
+        endpoint("secretsmanager", "secretsmanager", own_account(True)), endpoint("logs", "logs", own_account(True)),
+        endpoint("ecr_api", "ecr.api", own_account(False)), endpoint("ecr_dkr", "ecr.dkr", own_account(False)),
         res("aws_vpc_endpoint", "s3", vpc_id=Ref("aws_vpc.main"), service_name=f"com.amazonaws.{REGION}.s3",
             vpc_endpoint_type="Gateway",
-            route_table_ids=[Ref("aws_route_table.private"), Ref("aws_route_table.egress")], policy=UNKNOWN),
+            route_table_ids=[Ref("aws_route_table.private"), Ref("aws_route_table.sandbox"),
+                             Ref("aws_route_table.egress")], policy=S3_LAYERS),
     ]
     out += [sg("alb", "Internal load balancer"), sg("service", "Relay HTTP service tasks"),
             sg("worker", "Relay triage worker tasks"),
@@ -402,9 +483,12 @@ def nonprod() -> list[dict]:
         rule("egress", "worker_to_db", "worker", 5432, peer="db"),
         rule("ingress", "db_from_service", "db", 5432, peer="service"),
         rule("ingress", "db_from_worker", "db", 5432, peer="worker"),
-        rule("ingress", "endpoints_from_vpc", "endpoints", 443, cidr="10.40.0.0/16"),
+        rule("ingress", "endpoints_from_tasks", "endpoints", 443, peer="tasks"),
+        rule("ingress", "endpoints_from_sandbox", "endpoints", 443, peer="sandbox"),
         rule("egress", "tasks_to_endpoints", "tasks", 443, peer="endpoints"),
         rule("egress", "tasks_to_s3", "tasks", 443, prefix="aws_vpc_endpoint.s3"),
+        rule("egress", "sandbox_to_endpoints", "sandbox", 443, peer="endpoints"),
+        rule("egress", "sandbox_to_s3", "sandbox", 443, prefix="aws_vpc_endpoint.s3"),
         rule("egress", "sandbox_to_proxy", "sandbox", 3128, peer="egress_proxy"),
         rule("ingress", "proxy_from_sandbox", "egress_proxy", 3128, peer="sandbox"),
         rule("egress", "proxy_https_internet", "egress_proxy", 443, cidr="0.0.0.0/0",
@@ -440,6 +524,7 @@ def nonprod() -> list[dict]:
             default_action=[{"type": "forward", "target_group_arn": Ref("aws_lb_target_group.service", "arn")}]),
     ]
     out += [
+        boundary(),
         role("execution", ecs_trust()),
         res("aws_iam_role_policy", "execution", name="pull-log-secret", role=Ref("aws_iam_role.execution"), policy=pol(
             {"Effect": "Allow", "Action": ["ecr:GetAuthorizationToken"], "Resource": "*"},
@@ -468,26 +553,26 @@ def nonprod() -> list[dict]:
             client_id_list=["sts.amazonaws.com"]),
         res("aws_iam_role", "ci_plan", name=f"{NAME}-ci-plan", max_session_duration=3600,
             assume_role_policy=oidc_trust("repo:relay-example/relay:pull_request")),
-        res("aws_iam_role_policy_attachment", "ci_plan_readonly", role=Ref("aws_iam_role.ci_plan", "name"),
+        res("aws_iam_role_policy_attachment", "ci_plan_readonly", role=KnownRef("aws_iam_role.ci_plan", "name",
+                                                                                 f"{NAME}-ci-plan"),
             policy_arn="arn:aws:iam::aws:policy/ReadOnlyAccess"),
         res("aws_iam_role_policy", "ci_plan_state", name="state-read-and-lock", role=Ref("aws_iam_role.ci_plan"),
             policy=pol(
                 {"Effect": "Allow", "Action": ["s3:ListBucket"], "Resource": f"arn:aws:s3:::relay-tofu-state-{ACCOUNT}"},
-                {"Effect": "Allow", "Action": ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"],
+                {"Effect": "Allow", "Action": ["s3:GetObject"],
                  "Resource": f"arn:aws:s3:::relay-tofu-state-{ACCOUNT}/nonprod/*"},
+                {"Effect": "Allow", "Action": ["s3:PutObject", "s3:DeleteObject"],
+                 "Resource": f"arn:aws:s3:::relay-tofu-state-{ACCOUNT}/nonprod/relay.tfstate.tflock"},
                 {"Effect": "Allow", "Action": ["kms:Decrypt", "kms:GenerateDataKey"],
                  "Resource": f"arn:aws:kms:{REGION}:{ACCOUNT}:key/*",
-                 "Condition": {"ForAnyValue:StringEquals": {"kms:ResourceAliases": "alias/relay-tofu-state"}}})),
+                 "Condition": {"ForAnyValue:StringEquals": {"kms:ResourceAliases": "alias/relay-tofu-state"}}},
+                {"Effect": "Deny", "Action": ["s3:GetObject"],
+                 "NotResource": [f"arn:aws:s3:::relay-tofu-state-{ACCOUNT}/nonprod/*"]},
+                {"Effect": "Deny", "Action": ["secretsmanager:GetSecretValue"], "Resource": "*"})),
         res("aws_iam_role", "ci_apply", name=f"{NAME}-ci-apply", max_session_duration=3600,
             assume_role_policy=oidc_trust("repo:relay-example/relay:environment:nonprod")),
         res("aws_iam_role_policy", "ci_apply", name="apply-relay-nonprod", role=Ref("aws_iam_role.ci_apply"),
-            policy=pol(
-                {"Effect": "Allow", "Action": ["ec2:*", "ecs:*", "elasticloadbalancing:*", "rds:*", "secretsmanager:*",
-                                               "kms:*", "logs:*", "ecr:*", "budgets:*", "s3:*", "servicediscovery:*",
-                                               "route53:*"], "Resource": "*"},
-                {"Effect": "Allow", "Action": ["iam:*"],
-                 "Resource": [f"arn:aws:iam::{ACCOUNT}:role/{NAME}-*",
-                              f"arn:aws:iam::{ACCOUNT}:oidc-provider/token.actions.githubusercontent.com"]})),
+            policy=pol(*APPLY_STATEMENTS)),
     ]
     out += [
         res("aws_kms_key", "relay", description="Relay nonprod: database, secrets, logs, images",
@@ -497,7 +582,10 @@ def nonprod() -> list[dict]:
                 {"Sid": "CloudWatchLogs", "Effect": "Allow", "Principal": {"Service": f"logs.{REGION}.amazonaws.com"},
                  "Action": ["kms:Encrypt", "kms:Decrypt", "kms:ReEncrypt*", "kms:GenerateDataKey*", "kms:Describe*"],
                  "Resource": "*", "Condition": {"ArnLike": {
-                     "kms:EncryptionContext:aws:logs:arn": f"arn:aws:logs:{REGION}:{ACCOUNT}:log-group:/relay/nonprod/*"}}})),
+                     "kms:EncryptionContext:aws:logs:arn": f"arn:aws:logs:{REGION}:{ACCOUNT}:log-group:/relay/nonprod/*"}}},
+                {"Sid": "VpcFlowLogDelivery", "Effect": "Allow", "Principal": {"Service": "delivery.logs.amazonaws.com"},
+                 "Action": ["kms:Encrypt", "kms:Decrypt", "kms:ReEncrypt*", "kms:GenerateDataKey*", "kms:DescribeKey"],
+                 "Resource": "*", "Condition": {"StringEquals": {"aws:SourceAccount": ACCOUNT}}})),
         res("aws_kms_alias", "relay", name=f"alias/{NAME}", target_key_id=Ref("aws_kms_key.relay", "key_id")),
         res("aws_db_subnet_group", "relay", name=NAME, subnet_ids=[Ref("aws_subnet.data_a"), Ref("aws_subnet.data_b")]),
         res("aws_db_parameter_group", "relay", name=f"{NAME}-pg16", family="postgres16",
@@ -507,8 +595,8 @@ def nonprod() -> list[dict]:
             storage_encrypted=True, kms_key_id=kms, db_name="relay", username="relay_admin",
             manage_master_user_password=True, master_user_secret_kms_key_id=kms,
             iam_database_authentication_enabled=True, multi_az=True, publicly_accessible=False,
-            db_subnet_group_name=Ref("aws_db_subnet_group.relay", "name"),
-            parameter_group_name=Ref("aws_db_parameter_group.relay", "name"),
+            db_subnet_group_name=KnownRef("aws_db_subnet_group.relay", "name", NAME),
+            parameter_group_name=KnownRef("aws_db_parameter_group.relay", "name", f"{NAME}-pg16"),
             vpc_security_group_ids=[Ref("aws_security_group.db")], port=5432, backup_retention_period=7,
             backup_window="03:00-04:00", copy_tags_to_snapshot=True, deletion_protection=True,
             skip_final_snapshot=False, final_snapshot_identifier=f"{NAME}-final", auto_minor_version_upgrade=True),
@@ -675,6 +763,12 @@ def seeded() -> list[tuple[dict, list[dict], dict]]:
     case("S15", "Port 22 opened to 0.0.0.0/0 in the console after apply (drift)", "violation", [],
          "The change is not in any plan, so no plan check can see it. Posture management of the live account does.",
          lambda rs: None)
+    case("S16", "The S3 gateway endpoint's policy is removed", "violation", ["POL004"],
+         "AWS then applies its default policy: any principal may reach any bucket, including an attacker's.",
+         set_attr("aws_vpc_endpoint.s3", policy=UNKNOWN))
+    case("S17", "The database's public flag comes from a value known only after apply", "unknown", ["POL002"],
+         "For example, read from a parameter created in the same change. The check cannot decide.",
+         set_attr("aws_db_instance.relay", publicly_accessible=DERIVED))
     case("C01", "Control: tags set only through the provider's default tags", "control", [],
          "Every resource in the clean plan already relies on default_tags; this control also removes the "
          "per-resource Name tags. A check that reads `tags` instead of `tags_all` raises false alarms here.",
@@ -758,7 +852,7 @@ RULES = {
     "POL001": ("high", "No ingress from the internet"),
     "POL002": ("high", "No public data endpoint"),
     "POL003": ("high", "No public compute or public model endpoint"),
-    "POL004": ("high", "Model calls go through a private endpoint with a restrictive policy"),
+    "POL004": ("high", "Private endpoints: model calls use one, and every endpoint has a restrictive policy"),
     "POL005": ("high", "Storage encrypted with a customer-managed key"),
     "POL006": ("medium", "Required tags present and valid"),
     "POL007": ("high", "No wildcard IAM in identity policies"),
@@ -793,12 +887,18 @@ POLICY = {
     "model_endpoint_services": ["bedrock-runtime"],
     "model_actions_prefix": "bedrock:Invoke",
     "oidc": {"host": "token.actions.githubusercontent.com", "audience": "sts.amazonaws.com"},
-    "waivers": [{"id": "W-001", "rule": "POL007", "address": "aws_iam_role_policy.ci_apply", "owner": "sam.o",
+    "boundary_required_for_services": ["ecs-tasks.amazonaws.com"],
+    "waivers": [{"id": "W-001", "rule": "POL007", "address": "aws_iam_role_policy.ci_apply",
+                 "message": ("allows ec2:*, ecs:*, elasticloadbalancing:*, rds:*, secretsmanager:*, kms:*, logs:*, "
+                             "ecr:*, budgets:*, s3:*, servicediscovery:*, route53:*"),
+                 "owner": "sam.o",
                  "expires": "2027-02-26",
-                 "reason": ("The apply role creates and deletes every resource type in this configuration. It is "
-                            "assumable only from the protected nonprod environment after a reviewer approves, "
-                            "and IAM actions are limited to this environment's roles. Narrow it from CloudTrail's "
-                            "record of the actions it used in its first month.")}],
+                 "reason": ("The apply role creates and deletes every resource type in this configuration, so its "
+                            "service permissions are broad within the account. It is assumable only from the "
+                            "protected nonprod environment after a reviewer approves. Its IAM permissions are not "
+                            "covered by this waiver: it may create and pass only roles that carry the permissions "
+                            "boundary, and cannot change the CI roles or the boundary. Narrow the service "
+                            "permissions from CloudTrail's record of the actions it used in its first month.")}],
 }
 
 

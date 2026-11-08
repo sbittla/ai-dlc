@@ -1,0 +1,13 @@
+{
+  "equivalent": [
+    {"id": "hours.py:44:18:CRP:True -> False",
+     "reason": "Zone becomes mutable; no code assigns to a Zone, so behaviour is unchanged",
+     "reviewed_by": "sam.o"},
+    {"id": "hours.py:154:15:ROR:< -> <=",
+     "reason": "When begin equals closes the extra branch subtracts a zero-length window, which changes nothing",
+     "reviewed_by": "sam.o"},
+    {"id": "delivery.py:72:94:CRP:False -> True",
+     "reason": "Escaping non-ASCII characters changes the bytes but not the JSON; the spec fixes neither, and the signature covers the bytes sent",
+     "reviewed_by": "aisha.r"}
+  ]
+}

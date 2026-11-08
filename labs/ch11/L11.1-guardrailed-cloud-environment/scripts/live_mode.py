@@ -1,9 +1,10 @@
 """OPTIONAL live mode for Lab 11.1: real `tofu plan`, `apply` and `destroy` in YOUR sandbox account.
 
-    python scripts/live_mode.py plan    --account-id 123456789012 --email you@example.com
-    python scripts/live_mode.py apply   --account-id 123456789012 --email you@example.com \
+    python scripts/live_mode.py plan    --account-id 123456789012 --email you@example.com --github-repository you/relay
+    python scripts/live_mode.py apply   --account-id 123456789012 --email you@example.com --github-repository you/relay \
         --max-usd 5 --hours 2 --i-accept-charges --execute
-    python scripts/live_mode.py destroy --account-id 123456789012 --email you@example.com --execute
+    python scripts/live_mode.py destroy --account-id 123456789012 --email you@example.com --github-repository you/relay \
+        --execute
 
 It costs money and the Core lab does not need it. Without --execute it only prints the commands
 it would run. With --execute it also requires:
@@ -13,6 +14,11 @@ it would run. With --execute it also requires:
   - for apply: --i-accept-charges, a ceiling --max-usd of at most 10, and a planned run time
     --hours of at most 4. The script estimates the real plan's fixed cost with the lab's own
     estimator (solution/cloudcheck) and refuses to apply if hours x hourly cost exceeds the ceiling.
+    The ceiling is an estimate checked before apply, not a cap on spending: nothing stops the
+    environment after --hours. Destroy it yourself, and set a budget action in the account.
+  - --github-repository: YOUR repository (owner/name). The CI roles trust exactly this repository;
+    the book's placeholder, relay-example/relay, is refused, because whoever controls that name on
+    GitHub could otherwise assume roles in your account.
 
 What it changes, so the ceiling holds: the three ECS services start with 0 tasks (no image is
 pushed), and the HTTPS listener is excluded (it needs a certificate). State is local, in
@@ -43,7 +49,7 @@ WORK = LAB / "evidence" / "live"
 MAX_CEILING_USD = 10.0
 MAX_HOURS = 4.0
 LIVE_VERSIONS = """terraform {
-  required_version = ">= 1.9.0"
+  required_version = ">= 1.10.0"
   required_providers {
     aws = {
       source  = "hashicorp/aws"
@@ -63,6 +69,7 @@ class Refused(Exception):
 
 def overrides(args) -> list[str]:
     return ["-var-file=nonprod.tfvars", f"-var=account_id={args.account_id}",
+            f"-var=github_repository={args.github_repository}",
             f"-var=budget_emails=[\"{args.email}\"]", "-var=service_desired_count=0",
             "-var=worker_desired_count=0", "-var=proxy_desired_count=0", "-exclude=aws_lb_listener.https"]
 
@@ -78,9 +85,13 @@ def commands(args) -> list[list[str]]:
             ["tofu", "show", "-json", "destroy.tfplan"], ["tofu", "apply", "-input=false", "destroy.tfplan"]]
 
 
-def preflight(args, env: dict, which=shutil.which) -> None:
+def preflight(args, env: dict, which=None) -> None:
+    which = which or shutil.which
     if not args.account_id.isdigit() or len(args.account_id) != 12 or args.account_id == "111122223333":
         raise Refused("--account-id must be your own 12-digit sandbox account, not the book's example")
+    repo = args.github_repository
+    if repo.count("/") != 1 or not all(repo.split("/")) or repo.lower() == "relay-example/relay" or "*" in repo:
+        raise Refused("--github-repository must be your own owner/name, not the book's placeholder")
     if not args.execute:
         return
     if env.get("LAB11_LIVE") != "1":
@@ -127,6 +138,7 @@ def run(args) -> int:  # pragma: no cover - never run in the lab's tests or CI
             if args.action == "apply":
                 ok, cost = within_ceiling(json.loads(out.stdout), args.hours, args.max_usd)
                 log({"estimate_usd": round(cost, 2), "ceiling_usd": args.max_usd, "hours": args.hours})
+                sys.stdout.write(f"estimated fixed cost for {args.hours:g} h: ${cost:.2f} (ceiling ${args.max_usd:g})\n")
                 if not ok:
                     sys.stderr.write(f"refused: estimated ${cost:.2f} for {args.hours:g} h exceeds ${args.max_usd:g}\n")
                     return 3
@@ -138,6 +150,7 @@ def main(argv: list[str] | None = None, env: dict | None = None) -> int:
     ap.add_argument("action", choices=["plan", "apply", "destroy"])
     ap.add_argument("--account-id", required=True)
     ap.add_argument("--email", required=True, help="where budget alerts go")
+    ap.add_argument("--github-repository", required=True, help="your repository, owner/name; the CI roles trust it")
     ap.add_argument("--max-usd", type=float)
     ap.add_argument("--hours", type=float, default=2.0)
     ap.add_argument("--i-accept-charges", action="store_true")

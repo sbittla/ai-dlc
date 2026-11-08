@@ -1,0 +1,267 @@
+{
+ "version": "relay-cloud-mapping-2026.11",
+ "as_of": "2026-11-30",
+ "dimensions": [
+  "identity",
+  "networking",
+  "quotas",
+  "pricing",
+  "guardrails",
+  "data"
+ ],
+ "equivalence_scale": {
+  "close": "same job, similar controls; configuration differs",
+  "partial": "same job, but a control, scope or pricing model differs in a way that changes the design",
+  "different": "no direct equivalent; the design must change"
+ },
+ "rows": [
+  {
+   "concern": "Account boundary",
+   "aws": "AWS account in an organizational unit",
+   "azure": "Subscription under a management group",
+   "gcp": "Project under a folder",
+   "equivalence": "partial",
+   "differences": [
+    {
+     "dimension": "guardrails",
+     "note": "AWS SCPs attach to the organization root, OUs or accounts; Azure Policy is assigned to management groups, subscriptions or resource groups; GCP organization policies to the organization, folders or projects."
+    },
+    {
+     "dimension": "identity",
+     "note": "AWS IAM roles live in each account and cross-account access is explicit; Azure role assignments and GCP IAM bindings are inherited down the hierarchy."
+    }
+   ],
+   "verify": true
+  },
+  {
+   "concern": "Organization guardrails",
+   "aws": "Service control policies (AWS Organizations)",
+   "azure": "Azure Policy (deny, audit, modify effects) and deny assignments",
+   "gcp": "Organization Policy constraints and IAM deny policies",
+   "equivalence": "partial",
+   "differences": [
+    {
+     "dimension": "guardrails",
+     "note": "SCPs filter API actions by principal and never grant; Azure Policy evaluates resource properties when resources are created or changed; GCP constraints restrict resource configuration, and IAM deny policies deny permissions to principals."
+    }
+   ],
+   "verify": true
+  },
+  {
+   "concern": "Workload identity",
+   "aws": "ECS task IAM role",
+   "azure": "User-assigned managed identity on the container app",
+   "gcp": "Service account attached to the Cloud Run service",
+   "equivalence": "close",
+   "differences": [
+    {
+     "dimension": "identity",
+     "note": "Each issues short-lived tokens to the running workload; permissions are role policies (AWS), role assignments at a scope (Azure) or IAM bindings on resources (GCP)."
+    }
+   ],
+   "verify": true
+  },
+  {
+   "concern": "CI federation (no stored keys)",
+   "aws": "IAM OIDC identity provider and a role trust policy",
+   "azure": "Microsoft Entra workload identity federation (federated credential)",
+   "gcp": "Workload Identity Federation (pool and provider)",
+   "equivalence": "close",
+   "differences": [
+    {
+     "dimension": "identity",
+     "note": "All three exchange the CI provider's OIDC token; AWS conditions on the token's sub claim, Azure matches a configured subject per federated credential, and GCP uses attribute mappings and conditions."
+    }
+   ],
+   "verify": true
+  },
+  {
+   "concern": "Network",
+   "aws": "VPC: regional, one subnet per availability zone",
+   "azure": "Virtual network: regional; subnets span the region's zones",
+   "gcp": "VPC network: global; subnets are regional and span zones",
+   "equivalence": "partial",
+   "differences": [
+    {
+     "dimension": "networking",
+     "note": "Two zones need two subnets on AWS and one on Azure or GCP; a GCP VPC can span regions without peering."
+    }
+   ],
+   "verify": true
+  },
+  {
+   "concern": "Stateful packet filter",
+   "aws": "Security groups (allow rules only)",
+   "azure": "Network security groups (allow and deny, by priority)",
+   "gcp": "VPC firewall rules and network firewall policies (allow and deny, by priority)",
+   "equivalence": "partial",
+   "differences": [
+    {
+     "dimension": "networking",
+     "note": "Security groups cannot deny; NSGs and GCP firewall rules can, and rule order matters, so a review must read priorities as well as rules."
+    }
+   ],
+   "verify": true
+  },
+  {
+   "concern": "Private access to the model API",
+   "aws": "Amazon Bedrock runtime interface VPC endpoint with an endpoint policy",
+   "azure": "Private endpoint for Azure OpenAI, public network access disabled",
+   "gcp": "Vertex AI through Private Google Access or a Private Service Connect endpoint, inside a VPC Service Controls perimeter",
+   "equivalence": "partial",
+   "differences": [
+    {
+     "dimension": "networking",
+     "note": "AWS and Azure place a private IP address for the service in your network; Private Google Access reaches Google APIs from internal addresses without one."
+    },
+    {
+     "dimension": "guardrails",
+     "note": "VPC Service Controls draws a perimeter around projects that limits which networks and identities can use an API; AWS combines endpoint policies with SCP conditions instead."
+    },
+    {
+     "dimension": "pricing",
+     "note": "AWS interface endpoints bill per zone per hour; an Azure private endpoint per endpoint per hour; Private Google Access has no hourly charge."
+    },
+    {
+     "dimension": "quotas",
+     "note": "Model throughput limits are set per account, region and model (AWS), per subscription, region and deployment (Azure), and per project, region and model (GCP)."
+    }
+   ],
+   "verify": true
+  },
+  {
+   "concern": "Private access to the database",
+   "aws": "RDS in private subnets",
+   "azure": "Flexible server with virtual network integration or a private endpoint",
+   "gcp": "Cloud SQL private IP through private services access",
+   "equivalence": "close",
+   "differences": [
+    {
+     "dimension": "networking",
+     "note": "Azure's virtual network integration needs a delegated subnet; Cloud SQL's private IP uses a peered network that Google manages."
+    }
+   ],
+   "verify": true
+  },
+  {
+   "concern": "Egress control",
+   "aws": "No internet route; an allowlisting proxy behind a NAT gateway (or AWS Network Firewall)",
+   "azure": "NAT gateway with Azure Firewall application rules, or a proxy",
+   "gcp": "Cloud NAT with Secure Web Proxy or Cloud NGFW FQDN rules, or a proxy",
+   "equivalence": "close",
+   "differences": [
+    {
+     "dimension": "pricing",
+     "note": "Managed name-based filtering is billed by the hour on all three; a small proxy container avoids that charge and becomes the team's to run."
+    }
+   ],
+   "verify": true
+  },
+  {
+   "concern": "Container runtime",
+   "aws": "Amazon ECS on AWS Fargate",
+   "azure": "Azure Container Apps (consumption plan)",
+   "gcp": "Cloud Run (instance-based billing)",
+   "equivalence": "partial",
+   "differences": [
+    {
+     "dimension": "pricing",
+     "note": "Fargate bills per vCPU and GB for each second a task runs; Container Apps per vCPU- and GiB-second with a monthly free grant; Cloud Run per vCPU- and GiB-second at a lower rate when billed per instance. The last two scale to zero without extra setup."
+    },
+    {
+     "dimension": "networking",
+     "note": "Container Apps and Cloud Run provide HTTPS ingress themselves; on ECS an internal Application Load Balancer is a separate, hourly-billed resource."
+    }
+   ],
+   "verify": true
+  },
+  {
+   "concern": "Managed PostgreSQL with a standby",
+   "aws": "Amazon RDS for PostgreSQL, Multi-AZ",
+   "azure": "Azure Database for PostgreSQL flexible server, zone-redundant high availability",
+   "gcp": "Cloud SQL for PostgreSQL, high availability (regional)",
+   "equivalence": "partial",
+   "differences": [
+    {
+     "dimension": "pricing",
+     "note": "A standby roughly doubles compute and storage on all three. Azure's burstable tier does not offer high availability, so the smallest highly available server is larger."
+    },
+    {
+     "dimension": "data",
+     "note": "All three replicate synchronously to a standby in another zone and fail over automatically; none protects against a bad write, which backups and point-in-time restore cover."
+    }
+   ],
+   "verify": true
+  },
+  {
+   "concern": "Secrets",
+   "aws": "AWS Secrets Manager",
+   "azure": "Azure Key Vault secrets",
+   "gcp": "Secret Manager",
+   "equivalence": "close",
+   "differences": [
+    {
+     "dimension": "pricing",
+     "note": "AWS charges per secret per month; Key Vault per 10,000 operations; Secret Manager per active secret version per month and per access."
+    }
+   ],
+   "verify": true
+  },
+  {
+   "concern": "Customer-managed keys",
+   "aws": "AWS KMS customer managed keys",
+   "azure": "Azure Key Vault keys (or Managed HSM)",
+   "gcp": "Cloud KMS",
+   "equivalence": "close",
+   "differences": [
+    {
+     "dimension": "pricing",
+     "note": "AWS charges per key per month; Key Vault standard keys per operation; Cloud KMS per active key version per month."
+    }
+   ],
+   "verify": true
+  },
+  {
+   "concern": "Budgets and alerts",
+   "aws": "AWS Budgets",
+   "azure": "Cost Management budgets",
+   "gcp": "Cloud Billing budgets",
+   "equivalence": "close",
+   "differences": [
+    {
+     "dimension": "guardrails",
+     "note": "None stops spending by default. AWS budget actions can apply a policy or stop some resources; Azure budgets can trigger action groups; GCP budgets publish to Pub/Sub, which automation can act on."
+    }
+   ],
+   "verify": true
+  },
+  {
+   "concern": "Posture management",
+   "aws": "AWS Security Hub with AWS Config rules",
+   "azure": "Microsoft Defender for Cloud (CSPM)",
+   "gcp": "Security Command Center",
+   "equivalence": "close",
+   "differences": [
+    {
+     "dimension": "guardrails",
+     "note": "Each finds drift in the live account that plan-time checks cannot see; the rule sets and their names differ."
+    }
+   ],
+   "verify": true
+  },
+  {
+   "concern": "Infrastructure as code provider",
+   "aws": "hashicorp/aws",
+   "azure": "hashicorp/azurerm (and azapi)",
+   "gcp": "hashicorp/google",
+   "equivalence": "different",
+   "differences": [
+    {
+     "dimension": "data",
+     "note": "Resource types, attribute names and defaults differ entirely; Lab 11.1's rules carry over, but every check must be rewritten against the other provider's plan."
+    }
+   ],
+   "verify": true
+  }
+ ]
+}

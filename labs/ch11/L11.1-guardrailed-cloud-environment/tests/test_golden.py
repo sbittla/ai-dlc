@@ -24,15 +24,16 @@ TEARDOWN = DATA_DIR / "teardown"
 
 def test_relay_nonprod_passes_with_one_waiver():
     findings = run_policy(NONPROD, POLICY, AS_OF)
-    assert len(resources(NONPROD)) == 95
-    assert [(f.rule, f.address, f.status) for f in findings] == [
-        ("POL007", "aws_iam_role_policy.ci_apply", "waived"), ("POL007", "aws_iam_role_policy.ci_apply", "waived")]
+    assert len(resources(NONPROD)) == 100
+    assert [(f.rule, f.address, f.status) for f in findings] == [("POL007", "aws_iam_role_policy.ci_apply", "waived")]
+    assert findings[0].message.startswith("allows ec2:*, ecs:*") and "12" not in findings[0].message
+    assert findings[0].message.split(" (waiver")[0].count(":*") == 12
     assert gate_status(findings) == 0
 
 
 def test_the_waiver_expires():
     findings = run_policy(NONPROD, POLICY, date(2027, 3, 1))
-    assert (sum(f.status == "fail" for f in findings), gate_status(findings)) == (2, 1)
+    assert (sum(f.status == "fail" for f in findings), gate_status(findings)) == (1, 1)
 
 
 def test_relay_nonprod_fixed_cost():
@@ -40,6 +41,8 @@ def test_relay_nonprod_fixed_cost():
     cats = {k: round(v * 730, 2) for k, v in est.by_category().items() if v}
     assert (round(est.hourly, 4), round(est.monthly, 2)) == (0.304, 221.9)
     assert cats == {"compute": 43.25, "database": 51.32, "network": 125.92, "security": 1.4}
+    hourly = {k: round(v, 4) for k, v in est.by_category().items() if v}
+    assert hourly == {"compute": 0.0592, "database": 0.0703, "network": 0.1725, "security": 0.0019}
     shares = {k: round(100 * v / est.hourly, 1) for k, v in est.by_category().items() if v}
     assert shares == {"compute": 19.5, "database": 23.1, "network": 56.7, "security": 0.6}
     text = render_cost(NONPROD, PRICES, "nonprod", None, 300, False)
@@ -55,8 +58,10 @@ def test_incident_environment():
                                                 "POL007": 1, "POL008": 2, "POL009": 1, "POL010": 1, "POL011": 3,
                                                 "POL012": 3}
     est = estimate(INCIDENT, PRICES)
-    assert (round(est.hourly, 2), round(est.hourly * 66, 2)) == (34.68, 2289.01)
+    assert (round(est.hourly, 2), round(est.hourly * 66, 2), round(est.monthly, 2)) == (34.68, 2289.01, 25317.82)
     assert round(100 * est.by_category()["compute"] / est.hourly, 1) == 93.9
+    top = max(est.lines, key=lambda x: x.hourly)
+    assert (top.address, round(top.hourly, 2)) == ("aws_instance.model[0]", 16.29)
     text = render_incident(load_json(DATA_DIR / "incident.json"), DATA_DIR / "incident.json", POLICY, PRICES, AS_OF)
     assert "to Mon 09 Nov 2026 10:15 UTC: 66 hours." in text
     assert "$34.68 per hour; $2,289.01 for the weekend" in text
@@ -68,12 +73,14 @@ def test_seeded_results():
     rows, summary = evaluate_seeded(NONPROD, DATA_DIR / "seeded", POLICY, AS_OF)
     assert {r["id"]: r["outcome"] for r in rows} == {
         **{f"S{n:02d}": "detected" for n in range(1, 13)}, "S13": "cannot check (fails closed)",
-        "S14": "missed", "S15": "missed", "C01": "clean (control)"}
-    assert summary == {"cases": 16, "violations": 14, "unknown": 1, "controls": 1, "detected": 12, "missed": 2,
-                       "cannot check": 1, "controls clean": 1, "false alarms": 0}
-    assert {r["id"]: r["gate"] for r in rows if r["id"] in ("S02", "S13", "S14")} == {"S02": 1, "S13": 2, "S14": 0}
-    assert [r["new_findings"] for r in rows if r["id"] in ("S04", "S08")] == [75, 2]
-    assert ("Seeded violations: 14; detected 12, missed 2. Unknown until apply: 1, failed closed 1. "
+        "S14": "missed", "S15": "missed", "S16": "detected", "S17": "cannot check (fails closed)",
+        "C01": "clean (control)"}
+    assert summary == {"cases": 18, "violations": 15, "unknown": 2, "controls": 1, "detected": 13, "missed": 2,
+                       "cannot check": 2, "controls clean": 1, "false alarms": 0}
+    assert {r["id"]: r["gate"] for r in rows if r["id"] in ("S02", "S13", "S14", "S16", "S17")} == {
+        "S02": 1, "S13": 2, "S14": 0, "S16": 1, "S17": 2}
+    assert [r["new_findings"] for r in rows if r["id"] in ("S04", "S08")] == [80, 2]
+    assert ("Seeded violations: 15; detected 13, missed 2. Unknown until apply: 2, failed closed 2. "
             "Controls clean: 1 of 1. False alarms: 0.") in render_seeded(rows, summary)
 
 

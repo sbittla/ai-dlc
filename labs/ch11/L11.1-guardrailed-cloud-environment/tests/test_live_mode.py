@@ -8,7 +8,7 @@ from conftest import LAB_ROOT
 spec = importlib.util.spec_from_file_location("live11", LAB_ROOT / "scripts" / "live_mode.py")
 live = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(live)
-OK = ["--account-id", "123456789012", "--email", "me@example.com"]
+OK = ["--account-id", "123456789012", "--email", "me@example.com", "--github-repository", "me/relay"]
 
 
 def test_dry_run_only_prints(capsys, monkeypatch):
@@ -17,10 +17,15 @@ def test_dry_run_only_prints(capsys, monkeypatch):
     out = capsys.readouterr().out
     assert "would run: tofu apply -input=false live.tfplan" in out
     assert "-var=service_desired_count=0" in out and "-exclude=aws_lb_listener.https" in out
+    assert "-var=github_repository=me/relay" in out
 
 
 @pytest.mark.parametrize("argv, env, reason", [
-    (["plan", "--account-id", "111122223333", "--email", "a@b.c"], {}, "the book's example"),
+    (["plan", "--account-id", "111122223333", "--email", "a@b.c", "--github-repository", "me/relay"], {},
+     "the book's example"),
+    (["plan", "--account-id", "123456789012", "--email", "a@b.c", "--github-repository", "relay-example/relay"], {},
+     "placeholder"),
+    (["plan", "--account-id", "123456789012", "--email", "a@b.c", "--github-repository", "me/*"], {}, "placeholder"),
     (["apply", *OK, "--execute"], {}, "LAB11_LIVE=1"),
     (["apply", *OK, "--execute", "--max-usd", "5"], {"LAB11_LIVE": "1"}, "--i-accept-charges"),
     (["apply", *OK, "--execute", "--i-accept-charges", "--max-usd", "50"], {"LAB11_LIVE": "1"}, "--max-usd"),
@@ -38,6 +43,11 @@ def test_refuses_without_opentofu(capsys, monkeypatch):
     monkeypatch.setattr(live.shutil, "which", lambda name: None)
     assert live.main(["plan", *OK, "--execute"], env={"LAB11_LIVE": "1"}) == 2
     assert "not on PATH" in capsys.readouterr().err
+
+
+def test_the_repository_is_required():
+    with pytest.raises(SystemExit):
+        live.main(["plan", "--account-id", "123456789012", "--email", "a@b.c"], env={})
 
 
 def test_ceiling_uses_the_lab_estimator():

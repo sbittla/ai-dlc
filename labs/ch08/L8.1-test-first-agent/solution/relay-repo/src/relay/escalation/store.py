@@ -145,6 +145,15 @@ class EscalationStore:
     def rollback(self) -> None:
         self.conn.execute("ROLLBACK")
 
+    def savepoint(self) -> None:
+        self.conn.execute("SAVEPOINT esc_rule")
+
+    def rollback_to_savepoint(self) -> None:
+        self.conn.execute("ROLLBACK TO SAVEPOINT esc_rule")
+
+    def release_savepoint(self) -> None:
+        self.conn.execute("RELEASE SAVEPOINT esc_rule")
+
     # ---------------------------------------------------------------- rules and audit
 
     def rule_document(self, rule_id: str) -> dict | None:

@@ -1,0 +1,77 @@
+{
+  "variants": [
+    {
+      "id": "H1-utc-windows",
+      "group": "hours",
+      "description": "Windows are read in UTC, not the rule's zone. ESC-AC12's own example still passes.",
+      "files": [
+        "src/relay/escalation/hours.py"
+      ]
+    },
+    {
+      "id": "H2-close-rolls-over",
+      "group": "hours",
+      "description": "A delay ending exactly at the close is due at the next opening instead.",
+      "files": [
+        "src/relay/escalation/hours.py"
+      ]
+    },
+    {
+      "id": "H3-weekends-count",
+      "group": "hours",
+      "description": "Every day is a business day, whatever the rule lists (D10 ignored).",
+      "files": [
+        "src/relay/escalation/hours.py"
+      ]
+    },
+    {
+      "id": "H4-no-daylight-saving",
+      "group": "hours",
+      "description": "Each zone keeps its standard offset all year (D11 ignored).",
+      "files": [
+        "src/relay/escalation/hours.py"
+      ]
+    },
+    {
+      "id": "H5-counts-before-opening",
+      "group": "hours",
+      "description": "Minutes before the window opens are counted as business minutes.",
+      "files": [
+        "src/relay/escalation/hours.py"
+      ]
+    },
+    {
+      "id": "D1-title-in-subject",
+      "group": "delivery",
+      "description": "The email subject carries the first 22 characters of the task's title.",
+      "files": [
+        "src/relay/escalation/delivery.py",
+        "src/relay/escalation/engine.py"
+      ]
+    },
+    {
+      "id": "D2-signs-other-bytes",
+      "group": "delivery",
+      "description": "The signature is computed over re-serialised JSON, not the bytes sent.",
+      "files": [
+        "src/relay/escalation/delivery.py"
+      ]
+    },
+    {
+      "id": "D3-event-per-target",
+      "group": "delivery",
+      "description": "One task.escalated event is sent per target instead of one per step.",
+      "files": [
+        "src/relay/escalation/engine.py"
+      ]
+    },
+    {
+      "id": "D4-project-link",
+      "group": "delivery",
+      "description": "The webhook event links to the project, not the task.",
+      "files": [
+        "src/relay/escalation/delivery.py"
+      ]
+    }
+  ]
+}

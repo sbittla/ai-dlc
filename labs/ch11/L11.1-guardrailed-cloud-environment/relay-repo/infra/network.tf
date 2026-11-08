@@ -97,6 +97,12 @@ resource "aws_route_table" "private" {
   vpc_id = aws_vpc.main.id
 }
 
+# The sandbox has a table of its own, so that what reaches it (only the S3 gateway
+# endpoint, under a policy that admits image layers) can be reviewed separately.
+resource "aws_route_table" "sandbox" {
+  vpc_id = aws_vpc.main.id
+}
+
 resource "aws_route_table" "egress" {
   vpc_id = aws_vpc.main.id
   route {
@@ -135,7 +141,7 @@ resource "aws_route_table_association" "data_b" {
 
 resource "aws_route_table_association" "sandbox_a" {
   subnet_id      = aws_subnet.sandbox_a.id
-  route_table_id = aws_route_table.private.id
+  route_table_id = aws_route_table.sandbox.id
 }
 
 resource "aws_route_table_association" "egress_a" {

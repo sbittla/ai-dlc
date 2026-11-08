@@ -39,7 +39,7 @@ def test_ESC_AC06_member_cannot_change_a_rule():
     before = to_document(rule)
     error = refused(rule, editor=MEMBER)
     assert error.code == "not_rule_editor"
-    assert to_document(rule) == before
+    assert to_document(rule) == before  # oracle: invariance - a refused rule is unchanged (B1)
 
 
 # ESC-R04: default steps at 10 and 20 minutes.
@@ -77,6 +77,38 @@ def test_ESC_AC10_range_boundaries(delay, accepted):
         assert refused(rule).code == "delay_out_of_range"
 
 
+def test_a_rule_without_steps_is_refused():
+    assert refused(Rule("R-ROT-P1", ROTTERDAM.id, "P1", ())).code == "no_steps"
+
+
+def test_steps_must_be_numbered_from_1():
+    assert refused(Rule("R-ROT-P1", ROTTERDAM.id, "P1", (Step(2, 10, (ADMIN.id,)),))).code == "steps_not_numbered"
+
+
+def test_a_target_outside_the_workspace_is_refused():
+    assert refused(p1_rule((10, (999,)))).code == "target_not_in_workspace"
+
+
+def test_a_rule_checked_against_another_project_is_a_programming_error():
+    from relay.models import Project
+    with pytest.raises(ValueError) as info:
+        validate_rule(default_rule(), ADMIN, Project(11, "Antwerp"), USERS)
+    assert not isinstance(info.value, RuleRejected)  # RuleRejected is a ValueError too: be exact
+
+
+def test_evaluate_refuses_mismatched_arguments():
+    with pytest.raises(ValueError):
+        evaluate(default_rule(), TASK, EscalationState(task_id=8), minutes(10))
+    with pytest.raises(ValueError):
+        evaluate(default_rule(), Task(7, 11, "Elsewhere"), p1_state(), minutes(10))
+    with pytest.raises(ValueError):
+        evaluate(default_rule(), TASK, p1_state(), minutes(10).replace(tzinfo=None))
+
+
+def test_equal_delays_are_refused():
+    assert refused(p1_rule((10, (ADMIN.id,)), (10, (ADMIN.id,)))).code == "delays_not_increasing"
+
+
 # Spec B1: checks run in a stated order, so every implementation refuses a bad rule with the same code.
 def test_validation_raises_the_first_failure_in_step_order():
     no_target_then_short = p1_rule((10, ()), (4, (ADMIN.id,)))
@@ -94,7 +126,7 @@ def test_p2_rule_without_business_hours_is_refused():
 @pytest.mark.parametrize("priority", ["P2", "P3", "P4"])
 def test_p2_to_p4_rules_with_business_hours_save(priority):
     rule = Rule(f"R-ROT-{priority}", ROTTERDAM.id, priority, (Step(1, 240, (ADMIN.id,)),), None, BERLIN_WEEKDAYS)
-    assert validate_rule(rule, ADMIN, ROTTERDAM, USERS) is rule
+    assert validate_rule(rule, ADMIN, ROTTERDAM, USERS) is rule  # oracle: identity - B1 returns the rule
 
 
 def test_p1_rule_with_business_hours_is_refused():

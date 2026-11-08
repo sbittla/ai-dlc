@@ -20,6 +20,9 @@
       "Condition": {
         "StringNotLike": {
           "rds:DatabaseClass": ["db.t4g.*", "db.m7g.large"]
+        },
+        "Null": {
+          "rds:DatabaseClass": "false"
         }
       }
     },

@@ -1,0 +1,36 @@
+{
+ "provider": "azure",
+ "region": "East US",
+ "as_of": "2026-11-30",
+ "status": "ASSUMPTIONS. On-demand list prices as the authors read them on the as-of date, one region, no discounts, credits or commitments. Verify every price before relying on a comparison.",
+ "containers": {
+  "billing": "per_second_with_grant",
+  "service": "Container Apps, consumption, active rate",
+  "vcpu_second": 2.4e-05,
+  "gib_second": 3e-06,
+  "free_vcpu_seconds": 180000,
+  "free_gib_seconds": 360000
+ },
+ "database": {
+  "service": "Database for PostgreSQL flexible server",
+  "class": "General Purpose D2ds_v5",
+  "class_hour": 0.178,
+  "ha_factor": 2,
+  "storage_gib_month": 0.115,
+  "storage_ha_factor": 2,
+  "note": "zone-redundant HA; burstable servers cannot use HA",
+  "without_ha": {
+   "class": "Burstable B1ms",
+   "class_hour": 0.0207
+  }
+ },
+ "private_endpoints": {
+  "billing": "per_service_hour",
+  "rate": 0.01
+ },
+ "nat_gateway_hour": 0.045,
+ "public_ipv4_hour": 0.005,
+ "internal_load_balancer_hour": 0.0,
+ "secret_month": 0.0,
+ "key_month": 0.0
+}

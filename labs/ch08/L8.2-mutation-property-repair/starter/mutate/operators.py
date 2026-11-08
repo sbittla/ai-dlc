@@ -1,0 +1,125 @@
+"""Mutation operators: small, deliberate faults put into a copy of the code (standard library only).
+
+Each mutant changes one node of a module's syntax tree. The operators are the
+classic ones that find weak assertions:
+
+    ROR  relational operator replacement   <  <=  >  >=  ==  !=  in  not in  is  is not
+    AOR  arithmetic operator replacement   +  -
+    CRP  constant replacement              an integer n becomes n + 1 and n - 1; True and False swap
+    LCR  logical connector replacement     and  or
+    NEG  negation removal                  `not x` becomes `x`
+    RSD  raise statement deletion          `raise ...` becomes `pass`
+
+Docstrings, annotations, `from __future__` lines and the arguments of raise
+statements are not mutated: a fault there changes no behaviour a test should see.
+What tools such as mutmut, Cosmic Ray or PIT add: many more operators, parallel
+runs, caching between runs, incremental runs on changed lines only, and HTML reports.
+"""
+
+from __future__ import annotations
+
+import ast
+import copy
+from dataclasses import dataclass
+
+ROR = {ast.Lt: [ast.LtE], ast.LtE: [ast.Lt], ast.Gt: [ast.GtE], ast.GtE: [ast.Gt], ast.Eq: [ast.NotEq],
+       ast.NotEq: [ast.Eq], ast.In: [ast.NotIn], ast.NotIn: [ast.In], ast.Is: [ast.IsNot], ast.IsNot: [ast.Is]}
+AOR = {ast.Add: ast.Sub, ast.Sub: ast.Add}
+SYMBOL = {ast.Lt: "<", ast.LtE: "<=", ast.Gt: ">", ast.GtE: ">=", ast.Eq: "==", ast.NotEq: "!=", ast.In: "in",
+          ast.NotIn: "not in", ast.Is: "is", ast.IsNot: "is not", ast.Add: "+", ast.Sub: "-", ast.And: "and",
+          ast.Or: "or"}
+
+
+@dataclass(frozen=True)
+class Mutant:
+    id: str  # "<file>:<line>:<col>:<operator>:<change>", stable across runs
+    file: str
+    line: int
+    operator: str
+    change: str
+    source: str  # the whole mutated module
+
+
+def _skipped_nodes(tree: ast.AST) -> set[int]:
+    """ids of nodes that are never mutated: docstrings, annotations, __future__ imports, raise arguments."""
+    skip: set[int] = set()
+
+    def mark(node):
+        for sub in ast.walk(node):
+            skip.add(id(sub))
+
+    for node in ast.walk(tree):
+        body = getattr(node, "body", None)
+        if isinstance(body, list) and body and isinstance(body[0], ast.Expr) \
+                and isinstance(body[0].value, ast.Constant) and isinstance(body[0].value.value, str):
+            mark(body[0])
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            for arg in node.args.args + node.args.kwonlyargs + node.args.posonlyargs:
+                if arg.annotation is not None:
+                    mark(arg.annotation)
+            if node.returns is not None:
+                mark(node.returns)
+        if isinstance(node, ast.AnnAssign):
+            mark(node.annotation)
+        if isinstance(node, ast.ImportFrom):
+            mark(node)
+        if isinstance(node, ast.Raise) and node.exc is not None:
+            mark(node.exc)
+    return skip
+
+
+def candidates(tree: ast.AST) -> list[tuple[int, str, str, object]]:
+    """(node index in ast.walk order, operator, change, replacement) for every mutation of `tree`.
+
+    Walk `ast.walk(tree)` with enumerate, skip the nodes `_skipped_nodes` returns,
+    and add one tuple per mutation, in this order within a node:
+
+    - ast.Compare: for each op k and each replacement in ROR[type(op)]:
+      ("ROR", "<sym> -> <sym>", ("cmp", k, NewOpClass))
+    - ast.BinOp whose op is in AOR: ("AOR", "+ -> -", ("binop", NewOpClass))
+    - ast.BoolOp: ("LCR", "and -> or", ("boolop", NewOpClass))
+    - ast.UnaryOp with ast.Not: ("NEG", "not x -> x", ("unnot",))
+    - ast.Raise: ("RSD", "raise -> pass", ("raise",))
+    - ast.Constant whose type is bool: ("CRP", "True -> False", ("const", not value))
+    - ast.Constant whose type is int: ("CRP", "n -> n+1", ("const", n + 1)), then the same for n - 1
+
+    Use SYMBOL for the change text, so `<` becomes "<" and ast.NotIn "not in".
+    """
+    raise NotImplementedError("TODO (Lab 8.2, step 2: generate the six operators' mutations)")
+
+
+def _apply(tree: ast.AST, index: int, replacement) -> ast.AST:
+    tree = copy.deepcopy(tree)
+    nodes = list(ast.walk(tree))
+    target = nodes[index]
+    kind = replacement[0]
+    if kind == "cmp":
+        target.ops[replacement[1]] = replacement[2]()
+    elif kind == "binop":
+        target.op = replacement[1]()
+    elif kind == "boolop":
+        target.op = replacement[1]()
+    elif kind == "const":
+        target.value = replacement[1]
+    elif kind in ("unnot", "raise"):
+        new = target.operand if kind == "unnot" else ast.Pass()
+        for parent in nodes:
+            for name, value in ast.iter_fields(parent):
+                if value is target:
+                    setattr(parent, name, new)
+                elif isinstance(value, list) and any(v is target for v in value):
+                    setattr(parent, name, [new if v is target else v for v in value])
+    return ast.fix_missing_locations(tree)
+
+
+def mutants(source: str, file: str) -> list[Mutant]:
+    """Every mutant of one module, in a stable order (by line, column, then operator and change)."""
+    tree = ast.parse(source)
+    nodes = list(ast.walk(tree))
+    found = []
+    for index, operator, change, replacement in candidates(tree):
+        node = nodes[index]
+        line, col = getattr(node, "lineno", 0), getattr(node, "col_offset", 0)
+        mutated = ast.unparse(_apply(tree, index, replacement))
+        found.append(Mutant(f"{file}:{line}:{col}:{operator}:{change}", file, line, operator, change, mutated))
+    return sorted(found, key=lambda m: (m.line, int(m.id.split(":")[2]), m.operator, m.change))

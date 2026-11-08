@@ -136,7 +136,7 @@ Risk: high
 Sensitive: yes
 Untrusted input: yes
 Tier: T2
-Why: The fuzz test for suggestions is seeded with Lab 2.1's injection ticket TK32, which is untrusted input, so the task is capped at T2.
+Why: The fuzz test for suggestions includes injected instructions modelled on Lab 2.1's ticket TK32, which is untrusted input, so the task is capped at T2.
 
 ### T14 — Messages for delivery
 Checks: ESC-AC15, ESC-AC17, ESC-AC27, SEC-06

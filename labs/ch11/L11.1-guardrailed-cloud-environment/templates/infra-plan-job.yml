@@ -1,0 +1,41 @@
+# A pull-request job for infra/ changes: plan with short-lived credentials, then the policy
+# checks and the cost estimate on the plan. Adapt it for Relay's .github/workflows/ci.yml and name
+# the job in branch protection's required status checks (Chapter 3), so a failing check blocks merge.
+#
+# ILLUSTRATIVE: the role ARN, versions and paths are this lab's. Pin every action by commit SHA in
+# a real workflow (Chapter 13); tags are shown here for readability.
+name: infra-plan
+on:
+  pull_request:
+    paths: ["infra/**", "deploy/**"]
+
+permissions:
+  contents: read
+  id-token: write          # lets the job request an OIDC token; no stored cloud keys exist
+
+jobs:
+  infra-plan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::111122223333:role/relay-nonprod-ci-plan   # read-only; sub = pull_request
+          aws-region: us-east-1
+          role-duration-seconds: 3600
+      - uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_version: 1.10.0
+      - name: Plan
+        working-directory: infra
+        run: |
+          tofu init -input=false
+          tofu plan -input=false -lock=false -var-file=nonprod.tfvars -out=nonprod.tfplan
+          tofu show -json nonprod.tfplan > nonprod.plan.json
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.11"}
+      - name: Policy checks (fail on exit 1 or 2)
+        run: python -m cloudcheck.report check infra/nonprod.plan.json --policy policy/cloud-policy-v1.json --gate
+      - name: Cost estimate (posted for the reviewer)
+        run: python -m cloudcheck.report cost infra/nonprod.plan.json --prices policy/aws-prices.json --budget 300
+      # The plan JSON can contain sensitive values in clear text. Do not upload it as an artifact.

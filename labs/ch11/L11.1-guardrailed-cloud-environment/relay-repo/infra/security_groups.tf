@@ -112,12 +112,20 @@ resource "aws_vpc_security_group_ingress_rule" "db_from_worker" {
   referenced_security_group_id = aws_security_group.worker.id
 }
 
-resource "aws_vpc_security_group_ingress_rule" "endpoints_from_vpc" {
-  security_group_id = aws_security_group.endpoints.id
-  ip_protocol       = "tcp"
-  from_port         = 443
-  to_port           = 443
-  cidr_ipv4         = var.vpc_cidr
+resource "aws_vpc_security_group_ingress_rule" "endpoints_from_tasks" {
+  security_group_id            = aws_security_group.endpoints.id
+  ip_protocol                  = "tcp"
+  from_port                    = 443
+  to_port                      = 443
+  referenced_security_group_id = aws_security_group.tasks.id
+}
+
+resource "aws_vpc_security_group_ingress_rule" "endpoints_from_sandbox" {
+  security_group_id            = aws_security_group.endpoints.id
+  ip_protocol                  = "tcp"
+  from_port                    = 443
+  to_port                      = 443
+  referenced_security_group_id = aws_security_group.sandbox.id
 }
 
 resource "aws_vpc_security_group_egress_rule" "tasks_to_endpoints" {
@@ -130,6 +138,24 @@ resource "aws_vpc_security_group_egress_rule" "tasks_to_endpoints" {
 
 resource "aws_vpc_security_group_egress_rule" "tasks_to_s3" {
   security_group_id = aws_security_group.tasks.id
+  ip_protocol       = "tcp"
+  from_port         = 443
+  to_port           = 443
+  prefix_list_id    = aws_vpc_endpoint.s3.prefix_list_id
+}
+
+# Agent sessions run with the sandbox group only, never the shared tasks group, so their
+# paths are exactly these three: the proxy, the endpoints and the S3 gateway (image layers).
+resource "aws_vpc_security_group_egress_rule" "sandbox_to_endpoints" {
+  security_group_id            = aws_security_group.sandbox.id
+  ip_protocol                  = "tcp"
+  from_port                    = 443
+  to_port                      = 443
+  referenced_security_group_id = aws_security_group.endpoints.id
+}
+
+resource "aws_vpc_security_group_egress_rule" "sandbox_to_s3" {
+  security_group_id = aws_security_group.sandbox.id
   ip_protocol       = "tcp"
   from_port         = 443
   to_port           = 443

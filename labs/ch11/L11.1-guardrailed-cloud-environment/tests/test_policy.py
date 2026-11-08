@@ -126,6 +126,33 @@ def test_model_endpoint_with_the_default_policy_or_no_private_dns():
         "endpoint uses the default full-access policy"]
 
 
+def test_unknown_exposure_flags_cannot_be_checked():
+    p = mkplan(rc("aws_db_instance", "db", {}, unknown={"publicly_accessible": True}),
+               rc("aws_lb", "lb", {}, unknown={"internal": True}),
+               rc("aws_ecs_service", "s", {"network_configuration": [{}]},
+                  unknown={"network_configuration": [{"assign_public_ip": True}]}))
+    assert rules(check_exposure(p, POLICY)) == [("POL002", "aws_db_instance.db", "cannot check"),
+                                                ("POL003", "aws_ecs_service.s", "cannot check"),
+                                                ("POL003", "aws_lb.lb", "cannot check")]
+
+
+def test_every_endpoint_needs_a_restrictive_policy():
+    def ep(name, policy=None, unknown=None, config=None):
+        after = {"service_name": "com.amazonaws.us-east-1.logs", "vpc_endpoint_type": "Interface"}
+        if policy is not None:
+            after["policy"] = policy
+        return rc("aws_vpc_endpoint", name, after, unknown=unknown, config=config)
+    open_all = doc({"Effect": "Allow", "Principal": "*", "Action": "*", "Resource": "*"})
+    own = doc({"Effect": "Allow", "Principal": "*", "Action": "*", "Resource": "*",
+               "Condition": {"StringEquals": {"aws:PrincipalAccount": "111122223333"}}})
+    p = mkplan(ep("default", unknown={"policy": True}), ep("open", open_all), ep("own", own),
+               ep("later", unknown={"policy": True}, config={"policy": {"references": ["x.y"]}}))
+    assert [(f.address, f.message, f.status) for f in check_exposure(p, POLICY)] == [
+        ("aws_vpc_endpoint.default", "endpoint uses the default full-access policy", "fail"),
+        ("aws_vpc_endpoint.open", "endpoint policy allows any principal any action on any resource", "fail"),
+        ("aws_vpc_endpoint.later", "the endpoint policy is unknown until apply", "cannot check")]
+
+
 def test_no_model_grant_means_no_endpoint_needed():
     assert check_exposure(mkplan(rc("aws_iam_role_policy", "r", {"policy": doc(
         {"Effect": "Allow", "Action": ["logs:PutLogEvents"], "Resource": "arn:log"})})), POLICY) == []
@@ -198,7 +225,7 @@ def test_wildcards_in_identity_policies():
     p = mkplan(
         rc("aws_iam_role_policy", "star", {"policy": doc({"Effect": "Allow", "Action": "*", "Resource": "*"})}),
         rc("aws_iam_role_policy", "service_star", {"policy": doc(
-            {"Effect": "Allow", "Action": ["bedrock:*"], "Resource": "arn:model"})}),
+            {"Effect": "Allow", "Action": ["bedrock:*", "s3:GetObject", "kms:*"], "Resource": "arn:model"})}),
         rc("aws_iam_role_policy", "not_action", {"policy": doc(
             {"Effect": "Allow", "NotAction": ["iam:*"], "Resource": "*"})}),
         rc("aws_iam_role_policy", "any_resource", {"policy": doc(
@@ -208,7 +235,7 @@ def test_wildcards_in_identity_policies():
             {"Effect": "Deny", "Action": "*", "Resource": "*"})}),
         rc("aws_iam_role_policy_attachment", "admin", {"policy_arn": "arn:aws:iam::aws:policy/AdministratorAccess"}))
     assert [(f.address, f.message) for f in check_identity(p, POLICY)] == [
-        ("aws_iam_role_policy.star", "allows *"), ("aws_iam_role_policy.service_star", "allows bedrock:*"),
+        ("aws_iam_role_policy.star", "allows *"), ("aws_iam_role_policy.service_star", "allows bedrock:*, kms:*"),
         ("aws_iam_role_policy.not_action", "allows everything except iam:*"),
         ("aws_iam_role_policy.any_resource", "allows s3:GetObject on any resource"),
         ("aws_iam_role_policy_attachment.admin", "attaches AdministratorAccess")]
@@ -230,6 +257,14 @@ def test_long_lived_credentials_and_oidc_trust():
         ("aws_iam_access_key.k", "long-lived credentials: an access key"),
         ("aws_iam_role.wide", "OIDC subject not pinned to one repository and context"),
         ("aws_iam_role.no_aud", "OIDC audience not pinned")]
+
+
+def test_task_roles_need_a_permissions_boundary():
+    trust = doc({"Effect": "Allow", "Principal": {"Service": "ecs-tasks.amazonaws.com"}, "Action": "sts:AssumeRole"})
+    p = mkplan(rc("aws_iam_role", "bare", {"assume_role_policy": trust}),
+               rc("aws_iam_role", "bounded", {"assume_role_policy": trust}, unknown={"permissions_boundary": True}))
+    assert [(f.address, f.message) for f in check_identity(p, POLICY)] == [
+        ("aws_iam_role.bare", "role has no permissions boundary")]
 
 
 def test_unknown_policy_document_cannot_be_checked():
@@ -276,11 +311,14 @@ def test_regions_and_sizes():
 
 # ---------------------------------------------------------------- provided: waivers and the gate
 
-def test_waiver_applies_until_it_expires():
-    f = [Finding("POL007", "aws_iam_role_policy.ci_apply", "allows ec2:*")]
+def test_waiver_applies_until_it_expires_and_only_to_its_own_finding():
+    waived = POLICY["waivers"][0]["message"]
+    f = [Finding("POL007", "aws_iam_role_policy.ci_apply", waived)]
     assert apply_waivers(f, POLICY, date(2027, 2, 26))[0].status == "waived"
     late = apply_waivers(f, POLICY, date(2027, 2, 27))[0]
     assert late.status == "fail" and late.message.endswith("(waiver W-001 expired 2027-02-26)")
+    widened = [Finding("POL007", "aws_iam_role_policy.ci_apply", waived + ", lambda:*")]
+    assert apply_waivers(widened, POLICY, date(2027, 1, 1))[0].status == "fail"
 
 
 def test_gate_exit_codes():

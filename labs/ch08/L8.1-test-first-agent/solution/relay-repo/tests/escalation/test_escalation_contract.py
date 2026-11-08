@@ -6,6 +6,7 @@ Spec version: 1.1.0
 
 import dataclasses
 import re
+from datetime import timedelta, timezone
 
 import pytest
 import json
@@ -15,7 +16,7 @@ from escalation_fixtures import (ADMIN, MEMBER, ROTTERDAM, SCHEMA, SPEC_DIR, TAS
 
 from relay import escalation
 from relay.escalation import model, rule_from_document, to_document, to_rule_document, validate, validate_rule
-from relay.escalation.delivery import escalation_email, escalation_event
+from relay.escalation.delivery import escalation_email, escalation_event, utc_minute
 from relay.escalation.hours import ZONES
 from relay.escalation.model import RuleRejected
 
@@ -55,7 +56,7 @@ def test_documents_the_slice_produces_conform():
     with pytest.raises(RuleRejected) as info:
         validate_rule(default_rule(), MEMBER, ROTTERDAM, USERS)
     assert check(to_document(info.value.rejection), "Rejection") == []
-    assert validate_rule(default_rule(), ADMIN, ROTTERDAM, USERS)
+    assert validate_rule(default_rule(), ADMIN, ROTTERDAM, USERS)  # oracle: predicate - accepted, not refused
 
 
 def test_rule_documents_round_trip_and_conform():
@@ -112,3 +113,9 @@ def test_enum_and_const_compare_types_as_well_as_values():
     assert validate(1, {"enum": [True]}) == ["$: 1 is not one of [True]"]
     assert validate(True, {"const": 1}) == ["$: must be 1"]
     assert validate(False, {"enum": [0, 1]}) != [] and validate(1, {"enum": [0, 1]}) == []
+
+
+def test_message_times_must_be_utc():
+    assert utc_minute(minutes(0)) == "2026-11-24 02:30 UTC"
+    with pytest.raises(ValueError):
+        utc_minute(minutes(0).astimezone(timezone(timedelta(hours=1))))

@@ -154,26 +154,40 @@ def _grants_model_calls(rs: list[Resource], prefix: str) -> list[str]:
     return out
 
 
-def check_exposure(plan: dict, policy: dict) -> list[Finding]:
-    """POL002 no public data endpoint; POL003 no public compute or model endpoint; POL004 model calls
-    go through a private endpoint with a restrictive policy.
+def _unrestricted(statement: dict) -> bool:
+    """An Allow statement open to any principal, for any action, on any resource, with no condition."""
+    return (statement.get("Effect") == "Allow" and _public_principal(statement) and "*" in statement.get("Action", [])
+            and "*" in statement.get("Resource", []) and not statement.get("Condition"))
 
-    POL002: an aws_db_instance with publicly_accessible true; an aws_s3_bucket with no
-      aws_s3_bucket_public_access_block (referring to it through `bucket`) that sets all four
-      block/ignore/restrict flags to true; an aws_s3_bucket_policy with an Allow statement whose
-      Principal is "*" (or {"AWS": "*"}) and no Condition.
+
+def check_exposure(plan: dict, policy: dict) -> list[Finding]:
+    """POL002 no public data endpoint; POL003 no public compute or model endpoint; POL004 private
+    endpoints: model calls use one, and every endpoint has a restrictive policy.
+
+    A flag that decides exposure and is unknown until apply gives a "cannot check" finding
+    (cannot(rule, r, "<attribute>")), never a pass.
+    POL002: an aws_db_instance with publicly_accessible true (unknown: cannot check); an
+      aws_s3_bucket with no aws_s3_bucket_public_access_block (referring to it through `bucket`) that
+      sets all four block/ignore/restrict flags to true; an aws_s3_bucket_policy with an Allow
+      statement whose Principal is "*" (or {"AWS": "*"}) and no Condition.
     POL003: an aws_instance with associate_public_ip_address true; an aws_ecs_service with any
-      network_configuration block's assign_public_ip true; an aws_lb with internal false.
-    POL004: if any identity policy allows a 'bedrock:' action, the plan must have an Interface
-      aws_vpc_endpoint whose service_name ends with one of policy["model_endpoint_services"]
-      (".bedrock-runtime"), with private_dns_enabled true and a known endpoint policy (unset means
-      AWS's full-access default) with no statement whose Principal is "*" and Action "*".
-      One finding per problem; address the endpoint, or "(plan)" if there is none.
+      network_configuration block's assign_public_ip true; an aws_lb with internal false. Each of
+      these unknown: cannot check.
+    POL004, model access: if any identity policy allows a 'bedrock:' action, the plan must have an
+      Interface aws_vpc_endpoint whose service_name ends with one of policy["model_endpoint_services"]
+      (".bedrock-runtime") with private_dns_enabled true ("(plan)" if there is none).
+    POL004, every aws_vpc_endpoint: a policy that is unknown and not configured means AWS's default
+      full-access policy ("endpoint uses the default full-access policy"); configured but unknown is
+      "cannot check"; a known policy fails if any statement is _unrestricted
+      ("endpoint policy allows any principal any action on any resource").
+    One finding per problem, in the order above.
     """
     rs = resources(plan)
     out: list[Finding] = []
     for r in of_type(rs, "aws_db_instance"):
-        if get(r, "publicly_accessible") is True:
+        if is_unknown(r, "publicly_accessible"):
+            out.append(cannot("POL002", r, "publicly_accessible"))
+        elif get(r, "publicly_accessible") is True:
             out.append(fail("POL002", r, "database is publicly accessible"))
     for r in of_type(rs, "aws_s3_bucket"):
         blocks = referring(rs, "aws_s3_bucket_public_access_block", "bucket", r.address)
@@ -190,13 +204,20 @@ def check_exposure(plan: dict, policy: dict) -> list[Finding]:
             out.append(fail("POL002", r, "bucket policy allows anyone"))
 
     for r in of_type(rs, "aws_instance"):
-        if get(r, "associate_public_ip_address") is True:
+        if is_unknown(r, "associate_public_ip_address"):
+            out.append(cannot("POL003", r, "associate_public_ip_address"))
+        elif get(r, "associate_public_ip_address") is True:
             out.append(fail("POL003", r, "instance gets a public IP address"))
     for r in of_type(rs, "aws_ecs_service"):
-        if any(b.get("assign_public_ip") is True for b in get(r, "network_configuration", default=[])):
+        blocks = get(r, "network_configuration", default=[])
+        if any(is_unknown(r, "network_configuration", i, "assign_public_ip") for i in range(len(blocks))):
+            out.append(cannot("POL003", r, "assign_public_ip"))
+        elif any(b.get("assign_public_ip") is True for b in blocks):
             out.append(fail("POL003", r, "tasks get public IP addresses"))
     for r in of_type(rs, "aws_lb"):
-        if get(r, "internal") is False:
+        if is_unknown(r, "internal"):
+            out.append(cannot("POL003", r, "internal"))
+        elif get(r, "internal") is False:
             out.append(fail("POL003", r, "load balancer is internet-facing"))
 
     if _grants_model_calls(rs, policy["model_actions_prefix"]):
@@ -210,11 +231,14 @@ def check_exposure(plan: dict, policy: dict) -> list[Finding]:
                 out.append(fail("POL004", r, "model endpoint is not an interface endpoint"))
             if get(r, "private_dns_enabled") is not True:
                 out.append(fail("POL004", r, "private DNS is off, so clients resolve the public model endpoint"))
-            doc = policy_document(r)
-            if doc is None:
-                out.append(fail("POL004", r, "endpoint uses the default full-access policy"))
-            elif any(_public_principal(s) and "*" in s.get("Action", []) for s in statements(doc)):
-                out.append(fail("POL004", r, "endpoint policy allows any principal any action"))
+    for r in of_type(rs, "aws_vpc_endpoint"):
+        doc = policy_document(r)
+        if doc is None and is_unknown(r, "policy") and configured(r, "policy"):
+            out.append(cannot("POL004", r, "the endpoint policy"))
+        elif doc is None:
+            out.append(fail("POL004", r, "endpoint uses the default full-access policy"))
+        elif any(_unrestricted(s) for s in statements(doc)):
+            out.append(fail("POL004", r, "endpoint policy allows any principal any action on any resource"))
     return out
 
 
@@ -330,13 +354,16 @@ def check_identity(plan: dict, policy: dict) -> list[Finding]:
 
     POL007, for each identity policy resource (IDENTITY_POLICIES; its `policy` attribute; unknown
     gives "cannot check"), one finding per Allow statement that has any of:
-      an Action "*" or "<service>:*"          -> "allows <action>"           (first such action)
+      Actions "*" or "<service>:*"            -> "allows <a1>, <a2>, ..."    (every such action, in order)
       a NotAction                              -> "allows everything except <NotAction list>"
       a Resource "*" for an action not in policy["wildcard_resource_actions"]
                                                -> "allows <first action> on any resource"
     Check in that order and report only the first that applies to the statement. Also, for each
     policy attachment (ATTACHMENTS) whose policy_arn is in policy["admin_managed_policies"]:
       "attaches <policy name>" (the part after the last '/').
+    And every aws_iam_role trusted by a service in policy["boundary_required_for_services"] (a
+    Principal {"Service": ...} in its assume_role_policy) needs permissions_boundary set, known or
+    unknown: "role has no permissions boundary".
     POL008:
       every aws_iam_user and aws_iam_access_key -> "long-lived credentials: an IAM user" / "... an access key"
       every aws_iam_role whose assume_role_policy has a statement with a Federated principal
@@ -359,7 +386,7 @@ def check_identity(plan: dict, policy: dict) -> list[Finding]:
             actions = s.get("Action", [])
             star = [a for a in actions if a == "*" or a.endswith(":*")]
             if star:
-                out.append(fail("POL007", r, f"allows {star[0]}"))
+                out.append(fail("POL007", r, "allows " + ", ".join(star)))
             elif "NotAction" in s:
                 out.append(fail("POL007", r, "allows everything except " + ", ".join(s["NotAction"])))
             elif "*" in s.get("Resource", []) and any(a not in allowed_star for a in actions):
@@ -369,6 +396,17 @@ def check_identity(plan: dict, policy: dict) -> list[Finding]:
         arn = get(r, "policy_arn", default="")
         if arn in policy["admin_managed_policies"]:
             out.append(fail("POL007", r, f"attaches {arn.rsplit('/', 1)[-1]}"))
+
+    bounded = set(policy.get("boundary_required_for_services", []))
+    for r in of_type(rs, "aws_iam_role"):
+        doc = policy_document(r, "assume_role_policy")
+        services = set()
+        for s in statements(doc) if doc else []:
+            svc = (s.get("Principal") or {}).get("Service", []) if isinstance(s.get("Principal"), dict) else []
+            services |= set(svc if isinstance(svc, list) else [svc])
+        has_boundary = get(r, "permissions_boundary") is not None or is_unknown(r, "permissions_boundary")
+        if services & bounded and not has_boundary:
+            out.append(fail("POL007", r, "role has no permissions boundary"))
 
     for r in of_type(rs, "aws_iam_user"):
         out.append(fail("POL008", r, "long-lived credentials: an IAM user"))
@@ -459,11 +497,13 @@ def check_guardrails(plan: dict, policy: dict) -> list[Finding]:
 # ----------------------------------------------------------------- provided: run, waivers, gate
 
 def apply_waivers(findings: list[Finding], policy: dict, as_of: date) -> list[Finding]:
-    """A failing finding covered by an unexpired waiver (same rule and address) becomes "waived".
-    An expired waiver changes nothing except the message, so the expiry is visible."""
+    """A failing finding covered by an unexpired waiver becomes "waived". A waiver names the rule,
+    the address and, if it has one, the exact message, so a new problem at the same address (another
+    wildcard, say) is not waived silently. An expired waiver changes nothing except the message."""
     out = []
     for f in findings:
-        w = next((w for w in policy.get("waivers", []) if w["rule"] == f.rule and w["address"] == f.address), None)
+        w = next((w for w in policy.get("waivers", []) if w["rule"] == f.rule and w["address"] == f.address
+                  and w.get("message", f.message) == f.message), None)
         if f.status == "fail" and w is not None:
             if as_of <= date.fromisoformat(w["expires"]):
                 f = Finding(f.rule, f.address, f"{f.message} (waiver {w['id']}, owner {w['owner']}, "

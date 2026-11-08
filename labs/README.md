@@ -45,3 +45,7 @@ labs/chNN/LN.M-<slug>/
 | [L6.2](ch06/L6.2-fitness-functions-ci/) | Fitness functions in CI | Stretch | 3 h |
 | [L7.1](ch07/L7.1-triage-eval-gate/) | Triage eval suite and CI gate | Core | 4 h |
 | [L7.2](ch07/L7.2-judge-calibration/) | Calibrate an LLM judge against human labels | Stretch | 3 h |
+| [L8.1](ch08/L8.1-test-first-agent/) | Test-first feature with an agent | Core | 4 h |
+| [L8.2](ch08/L8.2-mutation-property-repair/) | Mutation and property-based test repair | Stretch | 4 h |
+| [L11.1](ch11/L11.1-guardrailed-cloud-environment/) | Guardrailed, budget-capped cloud environment with IaC | Core | 5 h |
+| [L11.2](ch11/L11.2-azure-gcp-mapping/) | Azure and GCP mapping with cost comparison | Stretch | 2 h |

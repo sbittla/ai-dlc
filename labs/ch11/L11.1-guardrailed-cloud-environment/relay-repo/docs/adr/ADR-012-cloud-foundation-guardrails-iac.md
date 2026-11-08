@@ -37,8 +37,8 @@ endpoint, IAM users and access keys, and switching off the audit trail. The acco
 (`cloud-policy-v1`, twelve rules) and a cost estimate, and apply only from a protected CI environment after a
 person approves.
 
-Lab 11.1 measures the checks on 16 seeded plans: they detect 12 of 14 seeded violations, fail closed on the
-one change whose values are unknown until apply, raise no false alarm on the control, and miss two by design
+Lab 11.1 measures the checks on 18 seeded plans: they detect 13 of 15 seeded violations, fail closed on the
+two changes whose values are unknown until apply, raise no false alarm on the control, and miss two by design
 (a wrong but specific permission, and drift made in the console after apply).
 
 ## Consequences
@@ -51,8 +51,12 @@ one change whose values are unknown until apply, raise no false alarm on the con
   filter misses untagged spend. Budgets alert; they do not stop spending.
 - CI uses OpenID Connect federation: a plan role for pull requests and an apply role for the protected
   environment, both pinned to `repo:relay-example/relay`. No stored cloud keys exist.
-- The apply role's policy is broad and carries waiver W-001 (owner sam.o, expires 2027-02-26) until it is
-  narrowed from the actions CloudTrail records.
+- The apply role's service permissions are broad and carry waiver W-001 (owner sam.o, expires 2027-02-26),
+  bound to the exact finding, until they are narrowed from the actions CloudTrail records. Its IAM permissions
+  are bounded: it can create, change and pass only roles that carry the permissions boundary, only to ECS tasks,
+  and cannot change the CI roles, the OIDC provider or the boundary.
+- A clean account therefore needs a bootstrap: the platform team creates those resources first
+  (`infra/runbooks/bootstrap.md`) and applies any later change to them.
 - Plan-time checks do not see drift. Posture management of the live account (AWS Config rules or Security Hub
   controls) is the second control; enabling it is part of the account baseline, not of this repository.
 

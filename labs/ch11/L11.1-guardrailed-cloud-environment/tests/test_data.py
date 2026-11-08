@@ -73,7 +73,7 @@ def test_the_opentofu_files_declare_exactly_the_planned_resources():
     declared = sorted(f"{t}.{n}" for t, n in re.findall(r'^resource "(\w+)" "(\w+)"', text, re.M))
     planned = sorted(r["address"] for r in PLAN["configuration"]["root_module"]["resources"])
     assert declared == planned
-    assert len(planned) == 95
+    assert len(planned) == 100
 
 
 def test_tfvars_match_the_plan_variables():
@@ -95,6 +95,11 @@ def test_guardrails_and_policy_agree():
     assert len(list((INFRA / "org").glob("scp-*.json"))) == 4  # plus FullAWSAccess: the limit of five
 
 
+def test_every_endpoint_in_the_plan_has_a_known_policy():
+    eps = [r for r in PLAN["resource_changes"] if r["type"] == "aws_vpc_endpoint"]
+    assert len(eps) == 6 and all(isinstance(r["change"]["after"].get("policy"), str) for r in eps)
+
+
 def test_the_one_allowlisted_egress_rule_is_the_proxy():
     assert [a["security_group"] for a in POLICY["egress_allowlist"]] == ["aws_security_group.egress_proxy"]
     rule = next(r for r in PLAN["configuration"]["root_module"]["resources"]
@@ -110,5 +115,5 @@ def test_prices_are_dated_assumptions():
 def test_seeded_manifest_is_complete():
     manifest = json.loads((DATA_DIR / "seeded" / "manifest.json").read_text(encoding="utf-8"))
     ids = [c["id"] for c in manifest["cases"]]
-    assert ids == [f"S{n:02d}" for n in range(1, 16)] + ["C01"]
+    assert ids == [f"S{n:02d}" for n in range(1, 18)] + ["C01"]
     assert all((DATA_DIR / "seeded" / f"{i}.overlay.json").is_file() for i in ids)

@@ -12,8 +12,10 @@ How a mutant is run:
 2. For each mutant, every `relay` and test module is unloaded, an import hook
    supplies the mutated source for the target module only, and the tests that
    execute the mutated line run until one fails. A test that fails or crashes
-   kills the mutant. One that runs more than `STEP_LIMIT` lines in the target
-   module is stopped and also kills it (a timeout, usually an endless loop).
+   kills the mutant. One that makes more than `STEP_LIMIT` calls into the target
+   module is stopped and also kills it (a timeout, usually an endless loop). Tests
+   that fail on the original code are excluded. Tests that killed recent mutants
+   run first, then the cheapest; the order changes speed, never the outcome.
 3. A mutant that every covering test passes has survived. A mutant on a line
    no test executes is reported as not covered, and counts as surviving.
 """
@@ -24,12 +26,14 @@ import importlib.abc
 import importlib.util
 import itertools
 import sys
+import tempfile
+import time
 from dataclasses import dataclass, field
 from pathlib import Path
 
 from .operators import Mutant
 
-STEP_LIMIT = 2_000_000
+STEP_LIMIT = 5_000_000  # calls into the target module during one test
 
 
 class MutantTimeout(Exception):
@@ -64,6 +68,8 @@ class Suite:
     coverage: dict[str, set[int]] = field(default_factory=dict)
     import_lines: set[int] = field(default_factory=set)
     baseline_failures: list[str] = field(default_factory=list)
+    durations: dict[str, float] = field(default_factory=dict)
+    killers: list[str] = field(default_factory=list)  # tests that killed mutants, most recent last
 
 
 class _MutantFinder(importlib.abc.MetaPathFinder, importlib.abc.Loader):
@@ -84,10 +90,16 @@ class _MutantFinder(importlib.abc.MetaPathFinder, importlib.abc.Loader):
 
 
 def _unload(test_files: list[Path]) -> None:
-    stems = {p.stem for p in test_files} | {"escalation_fixtures", "props"}
-    for name in list(sys.modules):
-        if name == "relay" or name.startswith("relay.") or name in stems:
+    """Forget relay, the test modules and anything imported from their folders, so the next import is fresh."""
+    folders = {str(p.parent.resolve()) for p in test_files} | {str(Path(f).resolve()) for f in SUPPORT}
+    for name, module in list(sys.modules.items()):
+        where = str(Path(getattr(module, "__file__", None) or "").resolve().parent) if getattr(
+            module, "__file__", None) else ""
+        if name == "relay" or name.startswith("relay.") or where in folders:
             del sys.modules[name]
+
+
+SUPPORT: list[str] = []  # extra test-helper folders on sys.path, unloaded with the tests
 
 
 def _collect(test_files: list[Path]) -> tuple[list[TestCase], list[str]]:
@@ -121,21 +133,29 @@ def _collect(test_files: list[Path]) -> tuple[list[TestCase], list[str]]:
 
 
 def _run(case: TestCase, target_path: str, record: set[int] | None = None) -> str | None:
-    """None if the test passes; otherwise a short reason. Traces the target module's lines."""
+    """None if the test passes; otherwise a short reason.
+
+    With `record`, every line the test executes in the target module is added
+    to it (line tracing, slow, done once). Without it, only calls into the
+    target module are counted, which is cheap and enough to stop an endless
+    loop that calls anything in the module.
+    """
     steps = itertools.count()
 
-    def local(frame, event, arg):
+    def lines(frame, event, arg):
         if event == "line":
-            if record is not None:
-                record.add(frame.f_lineno)
+            record.add(frame.f_lineno)
+        return lines
+
+    def calls(frame, event, arg):
+        if frame.f_code.co_filename == target_path:
             if next(steps) > STEP_LIMIT:
                 raise MutantTimeout()
-        return local
+            return lines if record is not None else None
+        return None
 
-    def tracer(frame, event, arg):
-        return local if frame.f_code.co_filename == target_path else None
-
-    sys.settrace(tracer)
+    sys.settrace(calls)
+    start = time.perf_counter()
     try:
         case.func(*case.args)
     except MutantTimeout:
@@ -148,14 +168,20 @@ def _run(case: TestCase, target_path: str, record: set[int] | None = None) -> st
         return "assertion" if type(exc).__name__ == "Failed" else f"error: {type(exc).__name__}"
     finally:
         sys.settrace(None)
+        DURATIONS[case.id] = time.perf_counter() - start
     return None
+
+
+DURATIONS: dict[str, float] = {}
 
 
 def load_suite(src: Path, test_files: list[Path], target_module: str) -> Suite:
     """Load the suite against the original source and record per-test coverage of the target module."""
     target_path = (src / Path(*target_module.split("."))).with_suffix(".py")
     suite = Suite(src, list(test_files), target_module, target_path)
-    sys.dont_write_bytecode = True
+    # Cache compiled modules outside the source tree, so that re-importing for each mutant is cheap
+    # and no __pycache__ folders appear in the lab's data.
+    sys.pycache_prefix = str(Path(tempfile.gettempdir()) / "relay-mutate-pycache")
     for folder in {str(src)} | {str(p.parent) for p in test_files}:
         if folder not in sys.path:
             sys.path.insert(0, folder)
@@ -182,13 +208,17 @@ def load_suite(src: Path, test_files: list[Path], target_module: str) -> Suite:
         if _run(case, str(target_path), lines) is not None:
             suite.baseline_failures.append(case.id)
         suite.coverage[case.id] = lines
+        suite.durations[case.id] = DURATIONS[case.id]
     return suite
 
 
 def run_mutant(suite: Suite, mutant: Mutant) -> Outcome:
     """Kill or survive: run the tests that execute the mutant's line, stopping at the first failure."""
-    covering = [c for c in suite.cases
-                if mutant.line in suite.coverage[c.id] or mutant.line in suite.import_lines]
+    covering = [c for c in suite.cases if c.id not in suite.baseline_failures
+                and (mutant.line in suite.coverage[c.id] or mutant.line in suite.import_lines)]
+    # Tests that killed a recent mutant first, then the cheapest: neighbouring mutants usually die to the same test.
+    recent = {test: rank for rank, test in enumerate(reversed(suite.killers))}
+    covering.sort(key=lambda c: (recent.get(c.id, len(recent)), suite.durations.get(c.id, 0.0)))
     if not covering:
         return Outcome(mutant, "not_covered")
     finder = _MutantFinder(suite.target_module, suite.target_path, mutant.source)
@@ -203,6 +233,9 @@ def run_mutant(suite: Suite, mutant: Mutant) -> Outcome:
         for n, case in enumerate(covering, 1):
             reason = _run(by_id[case.id], str(suite.target_path))
             if reason is not None:
+                if case.id in suite.killers:
+                    suite.killers.remove(case.id)
+                suite.killers.append(case.id)
                 return Outcome(mutant, "killed", f"{case.id} ({reason})", n)
         return Outcome(mutant, "survived", None, len(covering))
     finally:

@@ -133,6 +133,24 @@
    "note": "The change is not in any plan, so no plan check can see it. Posture management of the live account does."
   },
   {
+   "id": "S16",
+   "change": "The S3 gateway endpoint's policy is removed",
+   "kind": "violation",
+   "expected_rules": [
+    "POL004"
+   ],
+   "note": "AWS then applies its default policy: any principal may reach any bucket, including an attacker's."
+  },
+  {
+   "id": "S17",
+   "change": "The database's public flag comes from a value known only after apply",
+   "kind": "unknown",
+   "expected_rules": [
+    "POL002"
+   ],
+   "note": "For example, read from a parameter created in the same change. The check cannot decide."
+  },
+  {
    "id": "C01",
    "change": "Control: tags set only through the provider's default tags",
    "kind": "control",

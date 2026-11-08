@@ -52,6 +52,7 @@ class PassResult:
     held: int = 0
     events: int = 0
     summaries: int = 0
+    cannot_evaluate: int = 0  # (task, rule) pairs skipped this pass because their timing raised an error
 
 
 # -------------------------------------------------------------------- rules (B4)
@@ -165,7 +166,9 @@ def run_pass(store: EscalationStore, tasks: Mapping[int, Task], projects: Mappin
              config: EngineConfig, now: datetime) -> PassResult:
     """Fire every due step once, write its messages to the outbox, and send summaries whose hour has ended.
 
-    One transaction per pass. For each fired step: one escalation email per
+    One transaction per pass, with a savepoint per task and rule: a rule whose
+    timing raises ValueError is rolled back alone, recorded once on the task as
+    `cannot_evaluate`, counted, and skipped; the others still fire. For each fired step: one escalation email per
     target, unless the target has had 20 in the past hour (then the email is
     held and the task's activity says so), and one signed task.escalated event
     if the workspace has a webhook. Webhook events are not capped.
@@ -180,7 +183,15 @@ def run_pass(store: EscalationStore, tasks: Mapping[int, Task], projects: Mappin
             if task is None or project is None:
                 continue
             for rule in rules_for(store, project_id):
-                _fire_rule(store, rule, task, project, config, now, result)
+                # Each (task, rule) is isolated: one that cannot be timed, such as a business-hours delay
+                # running past the zone table (ADR-010), is skipped and recorded, and every other rule fires.
+                store.savepoint()
+                try:
+                    _fire_rule(store, rule, task, project, config, now, result)
+                except ValueError as exc:
+                    store.rollback_to_savepoint()
+                    _cannot_evaluate(store, task, rule, now, exc, result)
+                store.release_savepoint()
         _send_summaries(store, config, now, result)
         store.commit()
     except Exception:
@@ -218,6 +229,13 @@ def _fire_rule(store, rule, task, project, config, now, result) -> None:
             store.add_outbox(f"webhook:{task.id}:{rule.rule_id}:{decision.step}", now, "webhook", "task.escalated",
                              config.webhook.url, headers, body.decode("utf-8"))
             result.events += 1
+
+
+def _cannot_evaluate(store, task, rule, now, exc, result) -> None:
+    result.cannot_evaluate += 1
+    already = any(a["kind"] == "cannot_evaluate" and a.get("rule_id") == rule.rule_id for a in store.activity(task.id))
+    if not already:
+        store.add_activity(task.id, now, "cannot_evaluate", {"rule_id": rule.rule_id, "reason": str(exc)[:200]})
 
 
 def _send_summaries(store, config, now, result) -> None:

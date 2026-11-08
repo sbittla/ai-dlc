@@ -4,7 +4,10 @@
     def test_something(delay, zone): ...
 
 Each run draws arguments from seeded generators, so a failure reproduces
-exactly. On failure the helper shrinks the example, trying simpler values one
+exactly. The price is that each property checks the same fixed set of
+examples on every run. Set PROPS_SEED to try others: a nightly job can pass a
+new seed each night and print it, so any failure it finds can be replayed.
+On failure the helper shrinks the example, trying simpler values one
 argument at a time, and reports the smallest failing case it found.
 
 What a real library such as Hypothesis adds: many more generators, smarter
@@ -15,6 +18,7 @@ Relay's suite keeps no third-party dependency (ADR-008, AR5).
 
 from __future__ import annotations
 
+import os
 import random
 from datetime import datetime, timedelta
 
@@ -55,11 +59,12 @@ def lists(gen: Gen, min_size: int, max_size: int) -> Gen:
 def for_all(*gens: Gen, runs: int = 200, seed: int = 20261130):
     def decorate(test):
         def wrapper():
-            rng = random.Random(seed)
+            used = int(os.environ.get("PROPS_SEED", seed))
+            rng = random.Random(used)
             for run in range(runs):
                 args = [g.draw(rng) for g in gens]
                 if _fails(test, args):
-                    raise AssertionError(f"property failed on run {run + 1} of {runs} (seed {seed}); "
+                    raise AssertionError(f"property failed on run {run + 1} of {runs} (seed {used}); "
                                          f"smallest failing example: {_shrink(test, gens, args)!r}")
         # Copy the name but not the signature: pytest must not treat the test's parameters as fixtures.
         wrapper.__name__, wrapper.__qualname__, wrapper.__doc__ = test.__name__, test.__qualname__, test.__doc__

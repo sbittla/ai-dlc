@@ -154,21 +154,33 @@ def _grants_model_calls(rs: list[Resource], prefix: str) -> list[str]:
     return out
 
 
-def check_exposure(plan: dict, policy: dict) -> list[Finding]:
-    """POL002 no public data endpoint; POL003 no public compute or model endpoint; POL004 model calls
-    go through a private endpoint with a restrictive policy.
+def _unrestricted(statement: dict) -> bool:
+    """An Allow statement open to any principal, for any action, on any resource, with no condition."""
+    return (statement.get("Effect") == "Allow" and _public_principal(statement) and "*" in statement.get("Action", [])
+            and "*" in statement.get("Resource", []) and not statement.get("Condition"))
 
-    POL002: an aws_db_instance with publicly_accessible true; an aws_s3_bucket with no
-      aws_s3_bucket_public_access_block (referring to it through `bucket`) that sets all four
-      block/ignore/restrict flags to true; an aws_s3_bucket_policy with an Allow statement whose
-      Principal is "*" (or {"AWS": "*"}) and no Condition.
+
+def check_exposure(plan: dict, policy: dict) -> list[Finding]:
+    """POL002 no public data endpoint; POL003 no public compute or model endpoint; POL004 private
+    endpoints: model calls use one, and every endpoint has a restrictive policy.
+
+    A flag that decides exposure and is unknown until apply gives a "cannot check" finding
+    (cannot(rule, r, "<attribute>")), never a pass.
+    POL002: an aws_db_instance with publicly_accessible true (unknown: cannot check); an
+      aws_s3_bucket with no aws_s3_bucket_public_access_block (referring to it through `bucket`) that
+      sets all four block/ignore/restrict flags to true; an aws_s3_bucket_policy with an Allow
+      statement whose Principal is "*" (or {"AWS": "*"}) and no Condition.
     POL003: an aws_instance with associate_public_ip_address true; an aws_ecs_service with any
-      network_configuration block's assign_public_ip true; an aws_lb with internal false.
-    POL004: if any identity policy allows a 'bedrock:' action, the plan must have an Interface
-      aws_vpc_endpoint whose service_name ends with one of policy["model_endpoint_services"]
-      (".bedrock-runtime"), with private_dns_enabled true and a known endpoint policy (unset means
-      AWS's full-access default) with no statement whose Principal is "*" and Action "*".
-      One finding per problem; address the endpoint, or "(plan)" if there is none.
+      network_configuration block's assign_public_ip true; an aws_lb with internal false. Each of
+      these unknown: cannot check.
+    POL004, model access: if any identity policy allows a 'bedrock:' action, the plan must have an
+      Interface aws_vpc_endpoint whose service_name ends with one of policy["model_endpoint_services"]
+      (".bedrock-runtime") with private_dns_enabled true ("(plan)" if there is none).
+    POL004, every aws_vpc_endpoint: a policy that is unknown and not configured means AWS's default
+      full-access policy ("endpoint uses the default full-access policy"); configured but unknown is
+      "cannot check"; a known policy fails if any statement is _unrestricted
+      ("endpoint policy allows any principal any action on any resource").
+    One finding per problem, in the order above.
     """
     raise NotImplementedError("TODO 1: check_exposure")
 
@@ -223,13 +235,16 @@ def check_identity(plan: dict, policy: dict) -> list[Finding]:
 
     POL007, for each identity policy resource (IDENTITY_POLICIES; its `policy` attribute; unknown
     gives "cannot check"), one finding per Allow statement that has any of:
-      an Action "*" or "<service>:*"          -> "allows <action>"           (first such action)
+      Actions "*" or "<service>:*"            -> "allows <a1>, <a2>, ..."    (every such action, in order)
       a NotAction                              -> "allows everything except <NotAction list>"
       a Resource "*" for an action not in policy["wildcard_resource_actions"]
                                                -> "allows <first action> on any resource"
     Check in that order and report only the first that applies to the statement. Also, for each
     policy attachment (ATTACHMENTS) whose policy_arn is in policy["admin_managed_policies"]:
       "attaches <policy name>" (the part after the last '/').
+    And every aws_iam_role trusted by a service in policy["boundary_required_for_services"] (a
+    Principal {"Service": ...} in its assume_role_policy) needs permissions_boundary set, known or
+    unknown: "role has no permissions boundary".
     POL008:
       every aws_iam_user and aws_iam_access_key -> "long-lived credentials: an IAM user" / "... an access key"
       every aws_iam_role whose assume_role_policy has a statement with a Federated principal
@@ -269,11 +284,13 @@ def check_guardrails(plan: dict, policy: dict) -> list[Finding]:
 # ----------------------------------------------------------------- provided: run, waivers, gate
 
 def apply_waivers(findings: list[Finding], policy: dict, as_of: date) -> list[Finding]:
-    """A failing finding covered by an unexpired waiver (same rule and address) becomes "waived".
-    An expired waiver changes nothing except the message, so the expiry is visible."""
+    """A failing finding covered by an unexpired waiver becomes "waived". A waiver names the rule,
+    the address and, if it has one, the exact message, so a new problem at the same address (another
+    wildcard, say) is not waived silently. An expired waiver changes nothing except the message."""
     out = []
     for f in findings:
-        w = next((w for w in policy.get("waivers", []) if w["rule"] == f.rule and w["address"] == f.address), None)
+        w = next((w for w in policy.get("waivers", []) if w["rule"] == f.rule and w["address"] == f.address
+                  and w.get("message", f.message) == f.message), None)
         if f.status == "fail" and w is not None:
             if as_of <= date.fromisoformat(w["expires"]):
                 f = Finding(f.rule, f.address, f"{f.message} (waiver {w['id']}, owner {w['owner']}, "

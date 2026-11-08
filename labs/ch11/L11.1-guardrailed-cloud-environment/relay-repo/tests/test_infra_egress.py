@@ -38,6 +38,18 @@ def test_proxy_denies_everything_it_does_not_allow():
     assert allows == ["http_access allow CONNECT allowed_domains"]
 
 
+def test_ip_literals_cannot_match_through_reverse_lookups():
+    text = (PROXY / "squid.conf").read_text(encoding="utf-8")
+    assert re.search(r'^acl allowed_domains dstdomain -n "/etc/squid/allowlist.txt"$', text, re.M)
+
+
+def test_the_s3_gateway_admits_only_image_layer_reads():
+    text = (ROOT / "infra" / "endpoints.tf").read_text(encoding="utf-8")
+    block = text[text.index('resource "aws_vpc_endpoint" "s3"'):]
+    assert 'Action    = ["s3:GetObject"]' in block and "starport-layer-bucket/*" in block
+    assert text.count("policy") >= 6  # every endpoint has one
+
+
 def test_only_the_sandbox_subnet_and_port_443():
     text = (PROXY / "squid.conf").read_text(encoding="utf-8")
     assert re.search(r"^acl sandbox src 10\.40\.21\.0/24$", text, re.M)

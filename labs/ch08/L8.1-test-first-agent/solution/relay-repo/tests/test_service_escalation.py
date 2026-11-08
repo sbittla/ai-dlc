@@ -28,11 +28,23 @@ def test_SEC07_every_route_refuses(template, method, path, token, body, status, 
     assert send(app, method, path, token, body)[0] == status, why
 
 
-def test_SEC07_the_matrix_covers_every_route_with_401_and_403():
+def test_SEC07_the_matrix_covers_every_route_with_401_403_and_404():
+    """401 and 404 for every route; 403 wherever a role can be refused (B7). Anyone who can view a
+    project may read a task's escalation and acknowledge it, so those two routes have no 403."""
     from relay.service.escalation_routes import ROUTES
+    no_role_rule = {"/v1/projects/{pid}/tasks/{tid}/escalation", "/v1/projects/{pid}/tasks/{tid}/acknowledge"}
     for _method, template in ROUTES:
         statuses = {row[5] for row in MATRIX if row[0] == template}
-        assert {401, 403, 404} <= statuses, template
+        assert {401, 404} <= statuses, template
+        assert template in no_role_rule or 403 in statuses, template
+
+
+def test_SEC07_an_unviewable_project_is_indistinguishable_from_a_missing_one():
+    app, _ = make_app()
+    for path in ("/v1/projects/11/escalation-rules", "/v1/projects/11/tasks/102/escalation"):
+        hidden = call(app, "GET", path, "demo-guest")
+        missing = call(app, "GET", path.replace("/11/", "/99/"), "demo-guest")
+        assert (hidden[0], hidden[2]) == (missing[0], missing[2]) == (404, {"error": "not found"})
 
 
 def test_SEC07_a_missing_content_length_is_refused():

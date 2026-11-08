@@ -1,0 +1,73 @@
+{
+ "version": "agent-draft",
+ "as_of": "2026-11-30",
+ "dimensions": [
+  "identity",
+  "networking",
+  "quotas",
+  "pricing",
+  "guardrails",
+  "data"
+ ],
+ "rows": [
+  {
+   "concern": "Account boundary",
+   "aws": "AWS account",
+   "azure": "Subscription",
+   "gcp": "Project",
+   "equivalence": "close",
+   "differences": [],
+   "verify": true
+  },
+  {
+   "concern": "Organization guardrails",
+   "aws": "Service control policies",
+   "azure": "Azure Policy",
+   "gcp": "Organization Policy",
+   "equivalence": "close",
+   "differences": [],
+   "verify": true
+  },
+  {
+   "concern": "Workload identity",
+   "aws": "ECS task IAM role",
+   "azure": "Managed identity",
+   "gcp": "",
+   "equivalence": "close",
+   "differences": [],
+   "verify": true
+  },
+  {
+   "concern": "Private access to the model API",
+   "aws": "Bedrock VPC endpoint",
+   "azure": "Azure OpenAI private endpoint",
+   "gcp": "Vertex AI private endpoint",
+   "equivalence": "partial",
+   "differences": [],
+   "verify": true
+  },
+  {
+   "concern": "Container runtime",
+   "aws": "ECS on Fargate",
+   "azure": "Azure Container Apps",
+   "gcp": "Cloud Run",
+   "equivalence": "close",
+   "differences": [
+    {
+     "dimension": "cost",
+     "note": "Serverless containers are cheaper."
+    }
+   ],
+   "verify": true
+  },
+  {
+   "concern": "Container runtime",
+   "aws": "ECS on Fargate",
+   "azure": "Azure Kubernetes Service",
+   "gcp": "Google Kubernetes Engine",
+   "equivalence": "close",
+   "differences": [],
+   "verify": true
+  }
+ ]
+}

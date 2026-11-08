@@ -69,7 +69,22 @@ def _skipped_nodes(tree: ast.AST) -> set[int]:
 
 
 def candidates(tree: ast.AST) -> list[tuple[int, str, str, object]]:
-    """(node index in ast.walk order, operator, change, replacement) for every mutation of `tree`."""
+    """(node index in ast.walk order, operator, change, replacement) for every mutation of `tree`.
+
+    Walk `ast.walk(tree)` with enumerate, skip the nodes `_skipped_nodes` returns,
+    and add one tuple per mutation, in this order within a node:
+
+    - ast.Compare: for each op k and each replacement in ROR[type(op)]:
+      ("ROR", "<sym> -> <sym>", ("cmp", k, NewOpClass))
+    - ast.BinOp whose op is in AOR: ("AOR", "+ -> -", ("binop", NewOpClass))
+    - ast.BoolOp: ("LCR", "and -> or", ("boolop", NewOpClass))
+    - ast.UnaryOp with ast.Not: ("NEG", "not x -> x", ("unnot",))
+    - ast.Raise: ("RSD", "raise -> pass", ("raise",))
+    - ast.Constant whose type is bool: ("CRP", "True -> False", ("const", not value))
+    - ast.Constant whose type is int: ("CRP", "n -> n+1", ("const", n + 1)), then the same for n - 1
+
+    Use SYMBOL for the change text, so `<` becomes "<" and ast.NotIn "not in".
+    """
     skip = _skipped_nodes(tree)
     out = []
     for index, node in enumerate(ast.walk(tree)):

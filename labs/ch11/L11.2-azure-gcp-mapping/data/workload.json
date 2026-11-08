@@ -1,0 +1,43 @@
+{
+ "name": "relay-nonprod",
+ "source": "Lab 11.1, relay-repo/infra/ (Relay 4.21.0)",
+ "hours_per_month": 730,
+ "containers": [
+  {
+   "name": "service",
+   "vcpu": 0.5,
+   "gib": 1.0,
+   "count": 2,
+   "schedulable": true
+  },
+  {
+   "name": "worker",
+   "vcpu": 0.25,
+   "gib": 0.5,
+   "count": 1,
+   "schedulable": false
+  },
+  {
+   "name": "egress-proxy",
+   "vcpu": 0.25,
+   "gib": 0.5,
+   "count": 1,
+   "schedulable": false
+  }
+ ],
+ "database": {
+  "engine": "postgresql",
+  "high_availability": true,
+  "storage_gib": 20
+ },
+ "private_endpoints": {
+  "services": 5,
+  "zones": 2
+ },
+ "nat_gateways": 1,
+ "public_ipv4": 1,
+ "internal_load_balancer": true,
+ "secrets": 1,
+ "keys": 1,
+ "not_compared": "Usage-based charges (data processed, requests, logs, storage growth, model tokens)"
+}

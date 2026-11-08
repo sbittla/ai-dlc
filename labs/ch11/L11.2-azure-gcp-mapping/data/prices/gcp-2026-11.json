@@ -1,0 +1,30 @@
+{
+ "provider": "gcp",
+ "region": "us-central1",
+ "as_of": "2026-11-30",
+ "status": "ASSUMPTIONS. On-demand list prices as the authors read them on the as-of date, one region, no discounts, credits or commitments. Verify every price before relying on a comparison.",
+ "containers": {
+  "billing": "per_second",
+  "service": "Cloud Run, instance-based billing",
+  "vcpu_second": 1.8e-05,
+  "gib_second": 2e-06
+ },
+ "database": {
+  "service": "Cloud SQL for PostgreSQL, Enterprise edition",
+  "class": "1 vCPU, 3.75 GB",
+  "class_hour": 0.06755,
+  "ha_factor": 2,
+  "storage_gib_month": 0.17,
+  "storage_ha_factor": 2,
+  "note": "regional HA"
+ },
+ "private_endpoints": {
+  "billing": "none",
+  "rate": 0.0
+ },
+ "nat_gateway_hour": 0.0014,
+ "public_ipv4_hour": 0.005,
+ "internal_load_balancer_hour": 0.0,
+ "secret_month": 0.06,
+ "key_month": 0.06
+}

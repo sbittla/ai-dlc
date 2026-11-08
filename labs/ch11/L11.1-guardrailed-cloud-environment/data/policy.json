@@ -16,7 +16,7 @@
   },
   "POL004": {
    "severity": "high",
-   "title": "Model calls go through a private endpoint with a restrictive policy"
+   "title": "Private endpoints: model calls use one, and every endpoint has a restrictive policy"
   },
   "POL005": {
    "severity": "high",
@@ -127,14 +127,18 @@
   "host": "token.actions.githubusercontent.com",
   "audience": "sts.amazonaws.com"
  },
+ "boundary_required_for_services": [
+  "ecs-tasks.amazonaws.com"
+ ],
  "waivers": [
   {
    "id": "W-001",
    "rule": "POL007",
    "address": "aws_iam_role_policy.ci_apply",
+   "message": "allows ec2:*, ecs:*, elasticloadbalancing:*, rds:*, secretsmanager:*, kms:*, logs:*, ecr:*, budgets:*, s3:*, servicediscovery:*, route53:*",
    "owner": "sam.o",
    "expires": "2027-02-26",
-   "reason": "The apply role creates and deletes every resource type in this configuration. It is assumable only from the protected nonprod environment after a reviewer approves, and IAM actions are limited to this environment's roles. Narrow it from CloudTrail's record of the actions it used in its first month."
+   "reason": "The apply role creates and deletes every resource type in this configuration, so its service permissions are broad within the account. It is assumable only from the protected nonprod environment after a reviewer approves. Its IAM permissions are not covered by this waiver: it may create and pass only roles that carry the permissions boundary, and cannot change the CI roles or the boundary. Narrow the service permissions from CloudTrail's record of the actions it used in its first month."
   }
  ]
 }

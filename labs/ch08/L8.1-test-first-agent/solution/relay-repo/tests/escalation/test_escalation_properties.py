@@ -4,13 +4,14 @@ Spec: ESC-SPEC-1
 Spec version: 1.1.0
 
 Three kinds of independent oracle: a slow, obvious reference implementation
-(minute-by-minute counting, a differential test); invariants the spec states
-(a due time lies in a window; a step fires once, never early); and a model
-of the evaluation state machine. The generators avoid windows that contain a
-daylight-saving change, which the examples in test_escalation_hours.py cover.
+(minute-by-minute counting, a differential test, whose offsets come from each
+zone's daylight-saving law, not from hours.py's table); invariants the spec
+states (a due time lies in a window; a step fires once, never early); and a
+model of the evaluation state machine. The generators avoid windows that
+contain a clock change, which the examples in test_escalation_hours.py cover.
 """
 
-from datetime import timedelta
+from datetime import date, datetime, timedelta, timezone
 
 from escalation_fixtures import ADMIN, GUEST_INVITED, MEMBER, ROTTERDAM, TASK, USERS, utc
 from props import for_all, integers, lists, minutes_between, sampled_from
@@ -34,20 +35,74 @@ def hours(zone, opening, length, days):
                          days)
 
 
+def sunday(year, month, n):
+    """The n-th Sunday of a month (n = -1 for the last), from the calendar alone."""
+    if n > 0:
+        first = date(year, month, 1)
+        return first + timedelta(days=(6 - first.weekday()) % 7 + 7 * (n - 1))
+    last = (date(year, month + 1, 1) if month < 12 else date(year + 1, 1, 1)) - timedelta(days=1)
+    return last - timedelta(days=(last.weekday() + 1) % 7)
+
+
+def at(day, hour, minus_minutes=0):
+    return datetime(day.year, day.month, day.day, hour, tzinfo=timezone.utc) - timedelta(minutes=minus_minutes)
+
+
+FIXED = {"Pacific/Pago_Pago": -660, "Pacific/Honolulu": -600, "UTC": 0, "Asia/Kolkata": 330, "Asia/Tokyo": 540,
+         "Pacific/Tongatapu": 780, "Pacific/Kiritimati": 840}
+STANDARD = {"Europe/London": 0, "Europe/Berlin": 60, "America/New_York": -300, "America/Los_Angeles": -480,
+            "Australia/Sydney": 600, "Pacific/Auckland": 720, "Pacific/Chatham": 765}
+
+
+def law_changes(zone, year):
+    """(daylight time starts, daylight time ends) in UTC for `year`, from each zone's law, not from a table."""
+    std = STANDARD[zone]
+    if zone in ("Europe/London", "Europe/Berlin"):        # last Sunday of March to last Sunday of October, 01:00 UTC
+        return at(sunday(year, 3, -1), 1), at(sunday(year, 10, -1), 1)
+    if zone in ("America/New_York", "America/Los_Angeles"):  # second Sunday of March to first of November, 02:00
+        return at(sunday(year, 3, 2), 2, std), at(sunday(year, 11, 1), 2, std + 60)
+    if zone == "Australia/Sydney":                         # first Sunday of October to first Sunday of April
+        return at(sunday(year, 10, 1), 2, std), at(sunday(year, 4, 1), 3, std + 60)
+    shift = 0 if zone == "Pacific/Auckland" else 45      # New Zealand and Chatham: last Sunday of September
+    return (at(sunday(year, 9, -1), 2, std) + timedelta(minutes=shift),
+            at(sunday(year, 4, 1), 3, std + 60) + timedelta(minutes=shift))
+
+
+def law_offset(zone, t):
+    """Minutes east of UTC at `t` from the zone's daylight-saving law."""
+    if zone in FIXED:
+        return FIXED[zone]
+    starts, ends = law_changes(zone, t.year)
+    in_daylight = starts <= t < ends if starts < ends else not (ends <= t < starts)  # southern zones wrap the year
+    return STANDARD[zone] + (60 if in_daylight else 0)
+
+
+def test_the_zone_table_agrees_with_the_law_every_day_and_at_every_change():
+    instants = [utc(2026, 1, 1, 12) + timedelta(days=n) for n in range(730)]
+    for zone in STANDARD:
+        for year in (2026, 2027):
+            for change in law_changes(zone, year):
+                instants += [change - timedelta(minutes=1), change]
+    for zone in ZONES:
+        for t in instants:
+            assert offset_at(zone, t) == law_offset(zone, t), (zone, t)
+
+
 def counted_minutes(start, end, bh):
     """The slow oracle: step through every minute from start to end and count those inside a window."""
     opening = int(bh.start[:2]) * 60 + int(bh.start[3:])
     closing = int(bh.end[:2]) * 60 + int(bh.end[3:])
     count, t = 0, start
     while t < end:
-        local = t + timedelta(minutes=offset_at(bh.time_zone, t))
+        local = t + timedelta(minutes=law_offset(bh.time_zone, t))
         if local.isoweekday() in bh.days and opening <= local.hour * 60 + local.minute < closing:
             count += 1
         t += timedelta(minutes=1)
     return count
 
 
-@for_all(STARTS, DELAYS, ZONE_NAMES, OPENINGS, LENGTHS, DAY_SETS, runs=120)
+@for_all(STARTS, DELAYS, ZONE_NAMES, OPENINGS, integers(180, 18 * 60), sampled_from([(1, 2, 3, 4, 5), (1, 3, 5),
+                                                                                    (1, 2, 3, 4, 5, 6, 7)]), runs=60)
 def test_differential_fast_arithmetic_agrees_with_counting_minutes(start, delay, zone, opening, length, days):
     bh = hours(zone, opening, length, days)
     due = add_business_minutes(start, delay, bh)

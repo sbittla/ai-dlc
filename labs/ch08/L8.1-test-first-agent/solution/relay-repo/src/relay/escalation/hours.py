@@ -133,12 +133,15 @@ def add_business_minutes(start: datetime, minutes: int, hours: BusinessHours) ->
 
     Windows are walked day by day in the rule's local calendar, starting on the
     local date of `start`. Exactly at a window's close counts as inside the
-    window, so a delay that ends at the close is due at the close.
+    window, so a delay that ends at the close is due at the close. A delay that
+    would run past 2027 raises ValueError, from offset_at, rather than guess.
     """
     if start.utcoffset() != timedelta(0):
         raise ValueError("start must be an aware UTC datetime")
     if type(minutes) is not int or minutes < 0:
         raise ValueError("minutes must be a whole number, 0 or more")
+    if not hours.days:
+        raise ValueError("business hours must apply on at least one day")
     remaining = timedelta(minutes=minutes)
     day = to_local(hours.time_zone, start).date()
     while True:
@@ -150,6 +153,4 @@ def add_business_minutes(start: datetime, minutes: int, hours: BusinessHours) ->
                 return begin + remaining
             if begin < closes:
                 remaining -= closes - begin
-        day += timedelta(days=1)
-        if datetime.combine(day, time(), UTC) - timedelta(days=1) >= COVERED_UNTIL:
-            raise ValueError("the delay runs past the years the zone table covers (2026-2027)")
+        day += timedelta(days=1)  # a listed day comes within a week; past 2027, offset_at raises

@@ -11,6 +11,9 @@ The contract is `specs/001-escalation-rules/contracts/escalation-api.openapi.jso
 Every rule change is checked on the server twice: against the JSON Schema
 contract, then by `validate_rule` (SEC-01, SEC-02). Every refusal of a rule
 change is audited. Error bodies name the fields that failed, never their values.
+A project the caller cannot view answers 404, like one that does not exist, so
+a Guest cannot discover other projects' IDs; 403 means a visible project whose
+action the caller's role does not allow.
 """
 
 from __future__ import annotations
@@ -87,7 +90,9 @@ class EscalationRoutes:
         project = self.app.directory.projects.get(project_id)
         if project is None:
             return None, error(404, "not found")
-        if user.role not in roles or not self.app.can_view(user, project):
+        if not self.app.can_view(user, project):
+            return None, error(404, "not found")  # do not reveal that a project the caller cannot view exists
+        if user.role not in roles:
             return None, error(403, "forbidden")
         return project, None
 
@@ -143,10 +148,8 @@ class EscalationRoutes:
             task = self.app.tasks.get(task_id)
         except KeyError:
             return error(404, "not found")
-        if task.project_id != project.id:
-            return error(404, "not found")
-        if not self.app.can_view(user, project):
-            return error(403, "forbidden")
+        if task.project_id != project.id or not self.app.can_view(user, project):
+            return error(404, "not found")  # an unviewable project's tasks look like no tasks at all
         try:
             if action == "priority":
                 body, problem = read_json(environ)

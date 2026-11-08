@@ -33,6 +33,9 @@ step is ever timed with a guessed offset. A test checks that the table's mid-Nov
 ## Consequences
 
 - No new dependency; tests stay identical on every platform.
+- A delay that would run past 2027 raises an error. `run_pass` isolates each task and rule in a savepoint, so
+  such a rule is skipped, recorded once on the task as `cannot_evaluate` and counted, and every other rule,
+  including every P1 rule, still fires (`test_a_rule_that_cannot_be_timed_does_not_stop_other_escalations`).
 - The table is data that someone must extend before 2028 or replace with IANA data; the revisit date says when.
 - Windows that contain a clock change (only rules whose hours include 01:00 to 03:45 local time in the zones that
   change) are covered by the to_utc rule and by examples, not by the property tests' generators.

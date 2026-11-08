@@ -9,10 +9,14 @@ Berlin is UTC+1 in November; it moved to UTC+2 at 01:00 UTC on 28 March 2027
 and back to UTC+1 at 01:00 UTC on 25 October 2026. New York is UTC-5 in November.
 """
 
+from datetime import datetime, timedelta, timezone
+
 import pytest
 from escalation_fixtures import BERLIN_EVERY_DAY, BERLIN_WEEKDAYS, TASK, p2_rule, utc
 
 from relay.escalation import BusinessHours, EscalationState, add_business_minutes, evaluate
+
+BERLIN_NOVEMBER = timezone(timedelta(hours=1))
 
 NEW_YORK_WEEKDAYS = BusinessHours("06:00", "22:00", "America/New_York", (1, 2, 3, 4, 5))
 
@@ -76,7 +80,22 @@ def test_outside_the_covered_years_it_refuses_to_guess():
         add_business_minutes(utc(2028, 1, 4, 9), 60, BERLIN_WEEKDAYS)
 
 
-def test_a_naive_start_is_refused():
-    from datetime import datetime
+@pytest.mark.parametrize("start", [datetime(2026, 11, 24, 20), datetime(2026, 11, 24, 21, tzinfo=BERLIN_NOVEMBER)])
+def test_a_start_that_is_not_utc_is_refused(start):
     with pytest.raises(ValueError):
-        add_business_minutes(datetime(2026, 11, 24, 20), 240, BERLIN_WEEKDAYS)
+        add_business_minutes(start, 240, BERLIN_WEEKDAYS)
+
+
+@pytest.mark.parametrize("minutes", [-1, 240.0, True])
+def test_a_delay_that_is_not_a_whole_number_of_minutes_is_refused(minutes):
+    with pytest.raises(ValueError):
+        add_business_minutes(utc(2026, 11, 24, 9), minutes, BERLIN_WEEKDAYS)
+
+
+def test_hours_with_no_days_are_refused_rather_than_looping():
+    with pytest.raises(ValueError):
+        add_business_minutes(utc(2026, 11, 24, 9), 60, BusinessHours("06:00", "22:00", "Europe/Berlin", ()))
+
+
+def test_zero_minutes_at_the_close_is_the_close():
+    assert add_business_minutes(utc(2026, 11, 24, 21), 0, BERLIN_WEEKDAYS) == utc(2026, 11, 24, 21)

@@ -22,7 +22,7 @@ ADDED = [
     "infra/budget.tf", "infra/org/main.tf", "infra/org/scp-deny-regions.json",
     "infra/org/scp-deny-instance-types.json", "infra/org/scp-protect-baseline.json",
     "infra/org/scp-private-models-and-tags.json", "infra/db/roles.sql", "infra/runbooks/teardown.md",
-    "infra/runbooks/restore-test.md", "deploy/Containerfile", "deploy/requirements.txt",
+    "infra/runbooks/restore-test.md", "infra/runbooks/bootstrap.md", "deploy/Containerfile", "deploy/requirements.txt",
     "deploy/egress-proxy/Containerfile", "deploy/egress-proxy/squid.conf", "deploy/egress-proxy/allowlist.txt",
 ]
 
@@ -42,7 +42,7 @@ def test_relay_suite_passes():
     out = subprocess.run([sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider"], cwd=RELAY,
                          capture_output=True, text=True, timeout=600, env=env)
     assert out.returncode == 0, out.stdout[-2000:]
-    assert re.search(r"\b146 passed\b", out.stdout), out.stdout[-500:]
+    assert re.search(r"\b147 passed\b", out.stdout), out.stdout[-500:]
 
 
 def test_relay_lint_passes():

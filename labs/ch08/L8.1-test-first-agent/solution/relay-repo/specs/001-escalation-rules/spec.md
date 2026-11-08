@@ -128,14 +128,14 @@ Requirements: ESC-R01, ESC-R02, ESC-R03, ESC-N03, ESC-N05
 
 | Route | Who | Success | Refusals |
 | --- | --- | --- | --- |
-| `GET /v1/projects/{pid}/escalation-rules` | Owner, Admin, Member | 200 | 401; 403 Guest or project not visible; 404; 429 |
+| `GET /v1/projects/{pid}/escalation-rules` | Owner, Admin, Member | 200 | 401; 403 Guest; 404 unknown or not visible; 429 |
 | `GET /v1/projects/{pid}/escalation-rules/{rid}` | Owner, Admin, Member | 200 | 401; 403; 404 unknown rule or another project's; 429 |
 | `PUT /v1/projects/{pid}/escalation-rules/{rid}` | Owner, Admin | 201 created, 200 replaced | 400 bad JSON or contract; 401; 403 not an editor; 404; 409 rule ID in use; 411; 413; 422 refused by B1; 429 |
-| `GET /v1/projects/{pid}/tasks/{tid}/escalation` | Anyone who can view the project | 200 | 401; 403; 404; 429 |
+| `GET /v1/projects/{pid}/tasks/{tid}/escalation` | Anyone who can view the project | 200 | 401; 404 unknown, other project's or not visible; 429 |
 | `POST /v1/projects/{pid}/tasks/{tid}/priority` | Owner, Admin, Member who can view the project | 200 | 400; 401; 403; 404; 411; 413; 429 |
-| `POST /v1/projects/{pid}/tasks/{tid}/acknowledge` | Anyone who can view the project | 200 | 401; 403; 404; 429 |
+| `POST /v1/projects/{pid}/tasks/{tid}/acknowledge` | Anyone who can view the project | 200 | 401; 404 as above; 429 |
 
-A `PUT` is checked in this order: authentication, rate limit, project, role (403, audited), body (411, 413, 400), contract (400, audited), path and body agree (400, audited), then `save_rule`. A 422 body is a `Rejection` document. Error bodies never echo request values.
+A project the caller cannot view answers 404, like one that does not exist; 403 means a visible project and a role that may not act. A `PUT` is checked in this order: authentication, rate limit, project, role (403, audited), body (411, 413, 400), contract (400, audited), path and body agree (400, audited), then `save_rule`. A 422 body is a `Rejection` document. Error bodies never echo request values.
 
 ### Terms at this boundary
 
@@ -163,7 +163,7 @@ The document contract is a JSON Schema (2020-12) with eight definitions: `Rule`,
 
 The route contract is `contracts/escalation-api.openapi.json`, an OpenAPI 3.1 description of B7 whose request and response bodies reference the JSON Schema's definitions. A contract test compares it with the service's routes and status codes.
 
-Changes in 1.1.0 are MINOR by caller compatibility: `Rule.priority` widens from P1 to P1–P4; `Rule.name` and `Rule.business_hours` are optional; the rejection codes, definitions and routes are new. Every rule 1.0.0 accepted is accepted, and evaluated, exactly as before. A P2 rule without business hours, refused in 1.0.0 with `unsupported_priority`, is now refused with `business_hours_required`.
+Changes in 1.1.0 are MINOR by caller compatibility: `Rule.priority` widens from P1 to P1–P4; `Rule.name` and `Rule.business_hours` are optional; the rejection codes, definitions and routes are new. Every rule 1.0.0 accepted is accepted, and evaluated, exactly as before; the only change in the output for accepted input is the version stamp `Evaluation.spec_version`, which callers may read and log but must not pin, because it changes with every version. A P2 rule without business hours, refused in 1.0.0 with `unsupported_priority`, is now refused with `business_hours_required`.
 
 ## Data rules
 

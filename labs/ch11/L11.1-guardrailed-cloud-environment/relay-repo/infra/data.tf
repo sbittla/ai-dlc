@@ -25,6 +25,15 @@ resource "aws_kms_key" "relay" {
         Resource  = "*"
         Condition = { ArnLike = { "kms:EncryptionContext:aws:logs:arn" = "arn:aws:logs:${var.region}:${var.account_id}:log-group:/relay/${var.env}/*" } }
       },
+      {
+        # VPC flow logs are delivered to the SSE-KMS bucket by the log delivery service.
+        Sid       = "VpcFlowLogDelivery"
+        Effect    = "Allow"
+        Principal = { Service = "delivery.logs.amazonaws.com" }
+        Action    = ["kms:Encrypt", "kms:Decrypt", "kms:ReEncrypt*", "kms:GenerateDataKey*", "kms:DescribeKey"]
+        Resource  = "*"
+        Condition = { StringEquals = { "aws:SourceAccount" = var.account_id } }
+      },
     ]
   })
 }

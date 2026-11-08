@@ -27,6 +27,10 @@ jobs:
           - labs/ch06/L6.2-fitness-functions-ci
           - labs/ch07/L7.1-triage-eval-gate
           - labs/ch07/L7.2-judge-calibration
+          - labs/ch08/L8.1-test-first-agent
+          - labs/ch08/L8.2-mutation-property-repair
+          - labs/ch11/L11.1-guardrailed-cloud-environment
+          - labs/ch11/L11.2-azure-gcp-mapping
     defaults:
       run:
         working-directory: ${{ matrix.lab }}
@@ -58,6 +62,14 @@ jobs:
         if: matrix.lab == 'labs/ch05/L5.1-spec-first-delivery'
         working-directory: labs/ch03/L3.1-accountable-workspace/solution
         run: python -m audit.report --policy ../data/policy.json --as-of 2026-11-24 --fail-on high ../../../ch05/L5.1-spec-first-delivery/solution/relay-repo
+      - name: Relay 4.21.0 passes the workspace audit (Lab 11.1 only)
+        if: matrix.lab == 'labs/ch11/L11.1-guardrailed-cloud-environment'
+        working-directory: labs/ch03/L3.1-accountable-workspace/solution
+        run: python -m audit.report --policy ../data/policy.json --as-of 2026-11-30 --fail-on high ../../../ch11/L11.1-guardrailed-cloud-environment/relay-repo
+      - name: Relay 4.20.0 passes the workspace audit (Lab 8.1 only)
+        if: matrix.lab == 'labs/ch08/L8.1-test-first-agent'
+        working-directory: labs/ch03/L3.1-accountable-workspace/solution
+        run: python -m audit.report --policy ../data/policy.json --as-of 2026-12-04 --fail-on high ../../../ch08/L8.1-test-first-agent/solution/relay-repo
 
   relay-baseline:
     name: canonical Relay 4.19.0 (${{ matrix.os }})

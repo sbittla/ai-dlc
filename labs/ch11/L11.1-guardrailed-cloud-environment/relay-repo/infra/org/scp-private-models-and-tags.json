@@ -4,7 +4,7 @@
     {
       "Sid": "ModelCallsOnlyThroughAVpcEndpoint",
       "Effect": "Deny",
-      "Action": ["bedrock:InvokeModel", "bedrock:InvokeModelWithResponseStream", "bedrock:Converse", "bedrock:ConverseStream"],
+      "Action": ["bedrock:InvokeModel", "bedrock:InvokeModelWithResponseStream"],
       "Resource": "*",
       "Condition": {
         "Null": {

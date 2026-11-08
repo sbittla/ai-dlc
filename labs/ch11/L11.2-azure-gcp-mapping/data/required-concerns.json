@@ -1,0 +1,20 @@
+{
+ "concerns": [
+  "Account boundary",
+  "Organization guardrails",
+  "Workload identity",
+  "CI federation (no stored keys)",
+  "Network",
+  "Stateful packet filter",
+  "Private access to the model API",
+  "Private access to the database",
+  "Egress control",
+  "Container runtime",
+  "Managed PostgreSQL with a standby",
+  "Secrets",
+  "Customer-managed keys",
+  "Budgets and alerts",
+  "Posture management",
+  "Infrastructure as code provider"
+ ]
+}

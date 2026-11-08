@@ -215,3 +215,19 @@ def test_open_question_p1_is_capped_like_any_other_priority_until_lena_k_decides
     flood(store, GUEST_INVITED.id, 20, minutes(1))
     set_priority(store, TASK, ROTTERDAM, MEMBER, "P1", minutes(0))
     assert run(store, minutes(10)).held == 1
+
+
+def test_a_rule_that_cannot_be_timed_does_not_stop_other_escalations():
+    # A P2 set at 21:00 Berlin on Friday 31 Dec 2027 is due in 2028, past the zone table (ADR-010).
+    late = Task(8, ROTTERDAM.id, "Year-end stock count")
+    store = engine(p2_rule())
+    save_rule(store, default_rule(), ADMIN, ROTTERDAM, USERS, minutes(-60))
+    set_priority(store, late, ROTTERDAM, MEMBER, "P2", utc(2027, 12, 31, 20))
+    set_priority(store, TASK, ROTTERDAM, MEMBER, "P1", utc(2027, 12, 31, 20))
+    tasks = {TASK.id: TASK, late.id: late}
+    first = run(store, utc(2027, 12, 31, 20, 10), tasks)
+    assert (first.steps_fired, first.cannot_evaluate) == (1, 1)   # the P1 step fires; the P2 task is skipped
+    run(store, utc(2027, 12, 31, 20, 11), tasks)
+    kinds = [a["kind"] for a in escalation_view(store, late, ROTTERDAM, MEMBER)["activity"]]
+    assert kinds.count("cannot_evaluate") == 1                     # recorded once, not on every pass
+    assert email_targets(store) == [(GUEST_INVITED.id, "escalation")]

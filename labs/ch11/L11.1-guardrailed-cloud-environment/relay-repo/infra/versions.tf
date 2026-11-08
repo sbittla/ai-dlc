@@ -10,7 +10,7 @@
 # a person has reviewed the plan. Agents never run apply or destroy (AGENTS.md).
 
 terraform {
-  required_version = ">= 1.8.0"
+  required_version = ">= 1.10.0" # S3 use_lockfile needs 1.10
 
   required_providers {
     aws = {

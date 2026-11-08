@@ -29,8 +29,12 @@ Option A. The app, data and sandbox subnets have no route beyond the VPC. The se
 APIs through interface endpoints (Secrets Manager, CloudWatch Logs, ECR) and an S3 gateway endpoint. The
 worker and agent sandboxes reach the model through a Bedrock runtime interface endpoint with private DNS and an
 endpoint policy that admits two roles and one model. Background agent sessions run as Fargate tasks in
-`sandbox_a`; their only way out is the egress proxy (`deploy/egress-proxy/`), which forwards HTTPS CONNECT to
-five reviewed domains and refuses everything else. The proxy's HTTPS rule to 0.0.0.0/0 is the only such rule in
+`sandbox_a`, with their own route table and security group; their only way to the internet is the egress proxy
+(`deploy/egress-proxy/`), which forwards HTTPS CONNECT to five reviewed domains and refuses everything else.
+Every endpoint carries a policy: the interface endpoints admit only this account's principals (Secrets Manager
+and Logs only its resources too), and the S3 gateway admits only reads of ECR's image-layer bucket. Without
+those policies the endpoints themselves would be a way out, with an attacker's credentials or to an attacker's
+bucket. The proxy's HTTPS rule to 0.0.0.0/0 is the only such rule in
 the configuration, and the policy checks allow exactly that rule. Nothing has a public IP address except the NAT
 gateway, and the load balancer is internal, reachable only from the company VPN range.
 
@@ -39,15 +43,16 @@ month; network items are 56.7% of it, and the five interface endpoints alone 32.
 
 ## Consequences
 
-- Chapter 3's open-egress residual risk is closed for background agent sessions, which now run in the cloud
-  sandbox. Agent sessions on a laptop's dev container keep open egress; the team's rule is that any task that
+- Chapter 3's open-egress residual risk is narrowed, not closed, for background agent sessions, which now run
+  in the cloud sandbox; the two gaps below remain. Agent sessions on a laptop's dev container keep open egress; the team's rule is that any task that
   reads untrusted content (tickets, issues, web pages) runs as a background session. sam.o keeps the narrowed
   residual risk, with a review date of 2027-01-31.
 - DNS queries to the VPC resolver bypass security groups and the proxy. A steered agent could encode data in
   lookups of names it controls. This is a residual risk (owner sam.o); Route 53 Resolver DNS Firewall is the
   planned control.
-- The proxy filters by name and does not decrypt TLS. An allowlisted domain that serves attacker-controlled
-  content (a public repository, a package) is still reachable. Chapter 12 tests this path.
+- The proxy filters by name and does not decrypt TLS, so it sees names, not paths. An allowlisted domain that
+  serves attacker-controlled content (a public repository, a package) is still reachable, and a content network
+  that serves an allowlisted name may front other sites. Chapter 12 tests this path.
 - Interface endpoints cost by the hour in every zone, whatever the traffic. This is the price of no internet
   route, and the cost estimate shows it on every plan.
 - When TB3 and TB4 arrive, the worker's egress goes through the same proxy pattern with its own allowlist and

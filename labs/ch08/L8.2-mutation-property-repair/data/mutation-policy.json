@@ -1,0 +1,16 @@
+{
+  "policy": "relay-mutation-v1",
+  "agreed_by": ["sam.o", "aisha.r"],
+  "agreed_on": "2026-11-30",
+  "targets": ["relay.escalation.rules", "relay.escalation.evaluate", "relay.escalation.hours",
+              "relay.escalation.delivery"],
+  "operators": ["ROR", "AOR", "CRP", "LCR", "NEG", "RSD"],
+  "threshold": 0.9,
+  "equivalent": "equivalent-mutants.json",
+  "rules": [
+    "The score is killed / (mutants - equivalent), per module, and must be at least the threshold.",
+    "A mutant on a line no test executes counts as surviving.",
+    "An equivalent mutant needs a reason and a named reviewer; the report also prints the score with no equivalence claims.",
+    "Every surviving mutant is listed in the pull request, with a test added or a reason recorded."
+  ]
+}

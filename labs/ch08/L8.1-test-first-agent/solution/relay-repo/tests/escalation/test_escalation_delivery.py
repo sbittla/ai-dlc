@@ -89,9 +89,10 @@ def test_ESC_AC27_no_part_of_the_title_in_emails_or_the_webhook_and_both_carry_t
         assert LINK in payload
 
 
-def test_ESC_AC27_the_link_is_the_only_place_the_task_id_appears_in_the_subject():
+def test_subjects_are_one_line_and_carry_no_number_from_the_title():
     for email in emails(fire(two_target_rule(), 10)):
-        assert "4471" not in email["subject"] and "\n" not in email["subject"]
+        assert "4471" not in email["subject"]
+        assert "\n" not in email["subject"] and "\r" not in email["subject"]
 
 
 def test_messages_carry_user_ids_not_addresses():
