@@ -1,0 +1,10 @@
+[project]
+name = "relay"
+version = "4.17.2"
+requires-python = ">=3.11"
+dependencies = []  # standard library only
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-ra -p no:cacheprovider"

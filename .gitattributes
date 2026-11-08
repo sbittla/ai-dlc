@@ -1,0 +1,2 @@
+# Generated lab data must stay byte-identical across platforms
+labs/**/data/** -text

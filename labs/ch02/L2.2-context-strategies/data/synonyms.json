@@ -1,0 +1,116 @@
+{
+  "80": [
+    "50"
+  ],
+  "auditors": [
+    "audit"
+  ],
+  "bin": [
+    "trash"
+  ],
+  "calls": [
+    "requests"
+  ],
+  "came": [
+    "signature"
+  ],
+  "check": [
+    "verify",
+    "signature"
+  ],
+  "code": [
+    "http"
+  ],
+  "deadlines": [
+    "due",
+    "dates"
+  ],
+  "down": [
+    "p1"
+  ],
+  "download": [
+    "export",
+    "exports"
+  ],
+  "freelancer": [
+    "contractors",
+    "guest"
+  ],
+  "halfway": [
+    "mid",
+    "cycle"
+  ],
+  "history": [
+    "log",
+    "retained"
+  ],
+  "hour": [
+    "minutes"
+  ],
+  "list": [
+    "directory"
+  ],
+  "login": [
+    "audit",
+    "log"
+  ],
+  "pay": [
+    "charged",
+    "prorated"
+  ],
+  "people": [
+    "seats"
+  ],
+  "production": [
+    "p1",
+    "incidents"
+  ],
+  "purged": [
+    "permanently",
+    "deleted"
+  ],
+  "quarter": [
+    "15"
+  ],
+  "saturday": [
+    "train",
+    "weekday"
+  ],
+  "ship": [
+    "deploy",
+    "hotfixes"
+  ],
+  "signed": [
+    "logged",
+    "session",
+    "sso"
+  ],
+  "staff": [
+    "member",
+    "directory"
+  ],
+  "status": [
+    "http"
+  ],
+  "sync": [
+    "integration",
+    "tokens"
+  ],
+  "urgent": [
+    "hotfixes"
+  ],
+  "woken": [
+    "page",
+    "on",
+    "call"
+  ],
+  "year": [
+    "400",
+    "days"
+  ],
+  "zealand": [
+    "auckland",
+    "time",
+    "zone"
+  ]
+}

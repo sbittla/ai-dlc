@@ -1,0 +1,129 @@
+{
+  "policy_version": "workspace-policy-v1",
+  "instructions": {
+    "files": [
+      "AGENTS.md",
+      "CLAUDE.md"
+    ],
+    "required_sections": [
+      "Project overview",
+      "Commands",
+      "Architecture",
+      "Conventions",
+      "Boundaries"
+    ],
+    "commands_section": "Commands",
+    "required_commands": [
+      "Test",
+      "Lint"
+    ],
+    "max_lines": 150
+  },
+  "secrets": {
+    "patterns": [
+      {
+        "id": "private-key",
+        "regex": "-----BEGIN [A-Z ]*PRIVATE KEY-----"
+      },
+      {
+        "id": "aws-access-key-id",
+        "regex": "\\b(AKIA|ASIA)[0-9A-Z]{16}\\b"
+      },
+      {
+        "id": "relay-token",
+        "regex": "\\brly_(live|test)_[0-9a-f]{32}\\b"
+      },
+      {
+        "id": "github-token",
+        "regex": "\\bgh[pousr]_[A-Za-z0-9]{36}\\b"
+      },
+      {
+        "id": "url-credentials",
+        "regex": "\\b[a-z][a-z0-9+.-]*://[^/\\s:@'\\\"]+:[^/\\s@'\\\"]+@"
+      },
+      {
+        "id": "env-assignment",
+        "regex": "^\\s*(export\\s+)?[A-Z0-9_]*(PASSWORD|SECRET|API_KEY|TOKEN)[A-Z0-9_]*\\s*=\\s*[^\\s$#'\\\"]{8,}"
+      }
+    ],
+    "forbidden_files": [
+      ".env",
+      ".env.*",
+      "*.pem",
+      "*.key",
+      "*.p12",
+      "id_rsa*",
+      "id_ed25519*",
+      ".netrc"
+    ],
+    "allowed_files": [
+      ".env.example"
+    ],
+    "skip_dirs": [
+      ".git",
+      "__pycache__",
+      ".pytest_cache",
+      ".venv",
+      "node_modules"
+    ]
+  },
+  "sandbox": {
+    "file": ".devcontainer/devcontainer.json",
+    "forbidden_mount_fragments": [
+      ".aws",
+      ".ssh",
+      ".config/gcloud",
+      ".azure",
+      ".kube",
+      ".docker",
+      "docker.sock",
+      ".gnupg",
+      ".netrc"
+    ],
+    "forbidden_run_args": [
+      "--privileged",
+      "--network",
+      "--pid",
+      "--ipc",
+      "--cap-add"
+    ],
+    "require_image_digest": true
+  },
+  "branch_protection": {
+    "file": "governance/branch-protection.json",
+    "codeowners": [
+      ".github/CODEOWNERS",
+      "CODEOWNERS",
+      "docs/CODEOWNERS"
+    ],
+    "min_approving_reviews": 1,
+    "require_code_owner_reviews": true,
+    "required_status_checks": [
+      "tests",
+      "secret-scan"
+    ],
+    "enforce_admins": true,
+    "allow_force_pushes": false
+  },
+  "mcp": {
+    "file": ".mcp.json",
+    "allowlist": {
+      "relay-db-readonly": {
+        "command": "python",
+        "args": [
+          "-m",
+          "relaymcp.server",
+          "--db",
+          "data/relay-test.sql"
+        ]
+      }
+    }
+  },
+  "waivers": {
+    "file": "governance/waivers.json",
+    "waivable_severities": [
+      "low",
+      "medium"
+    ]
+  }
+}

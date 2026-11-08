@@ -1,0 +1,46 @@
+{"id": "Q01", "type": "keyword", "question": "How many API requests per minute does a workspace token allow?", "answer": "600", "source": "api-rate-limits.md"}
+{"id": "Q02", "type": "keyword", "question": "How many requests does a single bulk task import count as against the rate limit?", "answer": "10 requests", "source": "api-rate-limits.md"}
+{"id": "Q03", "type": "keyword", "question": "How many times is a failed webhook delivery retried?", "answer": "8 times", "source": "webhook-delivery.md"}
+{"id": "Q04", "type": "keyword", "question": "Which header carries the webhook signature?", "answer": "X-Relay-Signature", "source": "webhook-delivery.md"}
+{"id": "Q05", "type": "keyword", "question": "How long do deleted tasks stay in the trash?", "answer": "30 days", "source": "data-retention.md"}
+{"id": "Q06", "type": "keyword", "question": "How long are audit logs retained on the Team plan?", "answer": "90 days", "source": "data-retention.md"}
+{"id": "Q07", "type": "keyword", "question": "What is the shortest SSO session length an admin can configure?", "answer": "15 minutes", "source": "sso-setup.md"}
+{"id": "Q08", "type": "keyword", "question": "What happens to SSO logins when the SAML certificate expires?", "answer": "all SSO logins fail", "source": "sso-setup.md"}
+{"id": "Q09", "type": "keyword", "question": "At what time does the production deploy train run?", "answer": "15:00 UTC", "source": "deploy-schedule.md"}
+{"id": "Q10", "type": "keyword", "question": "Within how many working days must a post-incident review follow a hotfix?", "answer": "5 working days", "source": "deploy-schedule.md"}
+{"id": "Q11", "type": "keyword", "question": "After how many minutes does an unacknowledged P1 page escalate to the secondary on-call?", "answer": "10 minutes", "source": "oncall-escalation.md"}
+{"id": "Q12", "type": "keyword", "question": "Within what time must suspected data exposure be reported to the security lead?", "answer": "1 hour", "source": "oncall-escalation.md"}
+{"id": "Q13", "type": "keyword", "question": "What discount does annual billing include?", "answer": "15%", "source": "billing-proration.md"}
+{"id": "Q14", "type": "keyword", "question": "What happens to the workspace after the third failed card payment?", "answer": "read-only", "source": "billing-proration.md"}
+{"id": "Q15", "type": "keyword", "question": "What is the maximum number of tasks in a single export?", "answer": "50,000", "source": "export-limits.md"}
+{"id": "Q16", "type": "keyword", "question": "Why might an export miss tasks changed in the final minute?", "answer": "during a deploy", "source": "export-limits.md"}
+{"id": "Q17", "type": "keyword", "question": "What happens to personal API tokens when the user's password is reset?", "answer": "revokes", "source": "api-tokens.md"}
+{"id": "Q18", "type": "keyword", "question": "Which kind of token survives password changes?", "answer": "service tokens", "source": "api-tokens.md"}
+{"id": "Q19", "type": "keyword", "question": "In which release is the early due-date display fix scheduled?", "answer": "4.18", "source": "timezones.md"}
+{"id": "Q20", "type": "keyword", "question": "Whose time zone do recurring tasks use?", "answer": "the person who created the recurrence", "source": "timezones.md"}
+{"id": "Q21", "type": "keyword", "question": "Which role can see the Billing tab?", "answer": "only the Owner", "source": "roles-permissions.md"}
+{"id": "Q22", "type": "keyword", "question": "Which role does Relay recommend for contractors?", "answer": "Guest role", "source": "roles-permissions.md"}
+{"id": "Q23", "type": "keyword", "question": "For how long does Relay suppress emails after a user marks them as spam?", "answer": "30 days", "source": "notifications.md"}
+{"id": "Q24", "type": "keyword", "question": "Can workspace admins override a user's own notification settings?", "answer": "cannot override", "source": "notifications.md"}
+{"id": "P01", "type": "paraphrase", "question": "If our integration sends too many calls, what status code comes back?", "answer": "HTTP 429", "source": "api-rate-limits.md"}
+{"id": "P02", "type": "paraphrase", "question": "How do I check that a webhook call really came from Relay?", "answer": "HMAC-SHA256", "source": "webhook-delivery.md"}
+{"id": "P03", "type": "paraphrase", "question": "Once something is purged from the bin, how long until it is also gone from backups?", "answer": "35 days", "source": "data-retention.md"}
+{"id": "P04", "type": "paraphrase", "question": "Our auditors want a full year of login history. Which plan keeps it long enough?", "answer": "Business plan", "source": "data-retention.md"}
+{"id": "P05", "type": "paraphrase", "question": "Why do people on our team keep getting signed out a quarter of an hour after signing in?", "answer": "15 minutes", "source": "sso-setup.md"}
+{"id": "P06", "type": "paraphrase", "question": "Can we ship an urgent fix on a Saturday night?", "answer": "approval from the on-call engineer", "source": "deploy-schedule.md"}
+{"id": "P07", "type": "paraphrase", "question": "Who gets woken up first when production is completely down?", "answer": "platform on-call engineer", "source": "oncall-escalation.md"}
+{"id": "P08", "type": "paraphrase", "question": "We added five people halfway through the month. When do we pay for them?", "answer": "charged immediately", "source": "billing-proration.md"}
+{"id": "P09", "type": "paraphrase", "question": "Our project has 80,000 tasks. Can we download them all at once?", "answer": "date ranges", "source": "export-limits.md"}
+{"id": "P10", "type": "paraphrase", "question": "Our nightly sync broke after someone changed their password. What should the integration use instead?", "answer": "service tokens", "source": "api-tokens.md"}
+{"id": "P11", "type": "paraphrase", "question": "Customers in New Zealand see deadlines a day early. Is this known?", "answer": "4.18", "source": "timezones.md"}
+{"id": "P12", "type": "paraphrase", "question": "Can a freelancer be kept out of our staff list?", "answer": "cannot see the member directory", "source": "roles-permissions.md"}
+{"id": "H01", "type": "heldout", "question": "What's the most we can call the API each minute?", "answer": "600", "source": "api-rate-limits.md"}
+{"id": "H02", "type": "heldout", "question": "Do webhook payloads carry the files people attached?", "answer": "only attachment IDs", "source": "webhook-delivery.md"}
+{"id": "H03", "type": "heldout", "question": "How many days do we have to restore something we deleted by mistake?", "answer": "30 days", "source": "data-retention.md"}
+{"id": "H04", "type": "heldout", "question": "When will Relay warn us before our identity provider certificate runs out?", "answer": "30 days and 7 days", "source": "sso-setup.md"}
+{"id": "H05", "type": "heldout", "question": "Is there a period at the end of the year when you don't release changes?", "answer": "20 December to 2 January", "source": "deploy-schedule.md"}
+{"id": "H06", "type": "heldout", "question": "How fast must a medium-severity issue be picked up by a team?", "answer": "4 business hours", "source": "oncall-escalation.md"}
+{"id": "H07", "type": "heldout", "question": "If we drop seats in the middle of a billing period, do we get money back?", "answer": "credited to the next invoice", "source": "billing-proration.md"}
+{"id": "H08", "type": "heldout", "question": "How long do finished exports stay available to grab?", "answer": "7 days", "source": "export-limits.md"}
+{"id": "H09", "type": "heldout", "question": "Can two people share ownership of a workspace?", "answer": "ownership can be transferred but not shared", "source": "roles-permissions.md"}
+{"id": "H10", "type": "heldout", "question": "Will Relay keep emailing someone who flagged its messages as junk?", "answer": "suppresses further emails", "source": "notifications.md"}

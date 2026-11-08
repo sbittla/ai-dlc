@@ -1,0 +1,32 @@
+change: RLY-412
+claim: "Due dates display as stored for viewers in every supported time zone"
+spec: tickets/RLY-412@2026-11-06   # due dates are calendar dates, not instants
+autonomy_tier: T2
+author_of_record: priya.n
+agent:
+  tool: coding-agent
+  instructions: AGENTS.md@a91c2e
+  session_log: evidence/agent-session.md
+checks:
+  - name: failing test first
+    command: python -m pytest -q
+    commit: 3b0c9e1
+    result: "5 failed, 24 passed"
+  - name: full suite after the fix
+    command: python -m pytest -q
+    commit: 4f7e1d2
+    result: "29 passed"
+  - name: lint
+    command: python tools/lint.py
+    result: "0 problems"
+  - name: workspace audit
+    command: python -m audit.report --policy ../data/policy.json relay-repo
+    result: "0 open; 1 low waived (WS023, owner sam.o, expires 2027-01-31)"
+  - name: code review
+    reviewer: sam.o
+    date: 2026-11-09
+    result: approved after one revision
+release:
+  merged_commit: 4f7e1d2
+  note: support tickets from Pacific/Auckland about early due dates stop
+accepted_by: sam.o

@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+*.egg-info/
+# learner deliverables stay local unless submitting
+labs/**/evidence/*
+!labs/**/evidence/.gitkeep
+~$*.docx

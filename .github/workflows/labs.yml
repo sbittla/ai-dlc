@@ -1,0 +1,41 @@
+name: labs
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  solutions:
+    name: ${{ matrix.lab }} (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        lab:
+          - labs/ch01/L1.1-value-stream-baseline
+          - labs/ch01/L1.2-productivity-claim-audit
+          - labs/ch02/L2.1-model-eval-harness
+          - labs/ch02/L2.2-context-strategies
+          - labs/ch03/L3.1-accountable-workspace
+          - labs/ch03/L3.2-constrained-mcp-server
+    defaults:
+      run:
+        working-directory: ${{ matrix.lab }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install
+        run: python -m pip install -e ".[dev]"
+      - name: Data is reproducible from its generator
+        shell: bash
+        run: |
+          if [ -f scripts/generate_data.py ]; then python scripts/generate_data.py; fi
+          if [ -f scripts/build_corpus.py ]; then python scripts/build_corpus.py; fi
+          git diff --exit-code -- data
+      - name: Reference solution passes
+        env:
+          LAB_TARGET: solution
+        run: python -m pytest -q
