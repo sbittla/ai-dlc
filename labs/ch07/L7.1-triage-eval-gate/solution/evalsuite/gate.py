@@ -194,4 +194,8 @@ def points(x: float) -> str:
 def _interval(c: Comparison) -> str:
     return (f"{c.baseline_accuracy:.1%} -> {c.candidate_accuracy:.1%}, difference {points(c.diff)} points "
             f"(95% paired interval {points(c.low)} to {points(c.high)}); "
-            f"{c.worse} worse, {c.better} better, McNemar p={c.p_value:.3f}")
+            f"{c.worse} worse, {c.better} better, McNemar {p_text(c.p_value)}")
+
+
+def p_text(p: float) -> str:
+    return "p<0.001" if p < 0.001 else f"p={p:.3f}"

@@ -34,6 +34,22 @@ CHECKS: dict[str, tuple[str, str, str]] = {
     "RQ080": ("high", "approval", "Not approved by the named product owner"),
 }
 
+# The gate policy (Chapter 4, worked example 2). Blocking checks give an exact
+# answer from the PRD text: a quote is in its source or not, a link resolves or
+# not, two declared values differ or not. Warnings depend on word lists whose
+# held-out recall Lab 4.2 measured at 43% (vague terms) and 50% (untestable
+# wording), with precision intervals too wide to justify blocking a merge.
+BLOCKING = frozenset({
+    "RQ001", "RQ002", "RQ003", "RQ004",            # provenance
+    "RQ020", "RQ021",                              # criteria present, in Given/When/Then form
+    "RQ030",                                       # declared values that differ
+    "RQ050",                                       # NFR categories covered
+    "RQ060", "RQ061", "RQ062", "RQ063", "RQ064", "RQ065",  # traceability
+    "RQ071",                                       # quote from flagged source text
+    "RQ080",                                       # approval record complete
+})
+WARNING = frozenset(CHECKS) - BLOCKING             # RQ010-RQ012, RQ040-RQ041: word lists
+
 AREAS = ("provenance", "clarity", "testability", "criteria", "consistency", "dependencies",
          "coverage", "traceability", "security", "approval")
 

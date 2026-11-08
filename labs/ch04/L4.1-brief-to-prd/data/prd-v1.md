@@ -36,6 +36,8 @@ Urgent tasks in Relay can sit unacknowledged for hours, because nothing tells an
 ## Open questions
 
 - Business hours across a daylight-saving change need real time-zone data; Relay 4.17.2 uses a fixed offset table. Owner: sam.o.
+- Whether P1 escalations are exempt from the flood cap in ESC-N04; as written, a P1 escalation over the cap waits for the hourly summary, which works against G1. Owner: lena.k.
+- Whether business hours include weekends (ESC-R07 does not say). Owner: lena.k.
 
 ## Goals
 
@@ -63,7 +65,7 @@ Source: INT-3 | Titles can contain customer data, so keep them out of anything t
 
 ### D1 — First P1 step at 10 minutes by default, configurable
 Resolves: INT-1 asks for 15 minutes; INT-2 and DOC-ONCALL use 10 and 20 minutes
-Decision: New P1 rules start with Relay's on-call timings, 10 and 20 minutes. Each step's delay is configurable from 5 to 240 minutes, so the INT-1 customer can choose 15.
+Decision: New P1 rules start with Relay's on-call timings, 10 and 20 minutes. Each step's delay is configurable from 5 to 240 minutes, so the INT-1 customer can choose 15. Each later step must have a longer delay than the step before it, so that steps fire in order.
 Decided by: lena.k
 
 ### D2 — Only Owners and Admins edit rules
@@ -98,7 +100,12 @@ Decided by: lena.k
 
 ### D8 — Numeric targets that no source states
 Resolves: INT-2 and INT-3 ask for acknowledgement, calibration, loud rule changes and stall alerts, and name no numbers
-Decision: G2's 80%, ESC-N02's 90% calibration, ESC-N06's 5 minutes and ESC-N09's 95% within 60 seconds and 5-minute stall alert are the product owner's choices for the pilot, agreed with tomas.b and aisha.r. Each is reviewed after the pilot's first month.
+Decision: G2's 80%, ESC-N02's calibration tolerance (10 points, in bands of at least 30 suggestions), ESC-N06's 5 minutes and ESC-N09's 95% within 60 seconds and 5-minute stall alert are the product owner's choices for the pilot, agreed with tomas.b and aisha.r. Each is reviewed after the pilot's first month.
+Decided by: lena.k
+
+### D9 — Acknowledgement ends escalation, and fired steps do not repeat
+Resolves: INT-1 and INT-2 escalate only while nobody has acknowledged ("If nobody acknowledges"), and neither says whether a fired step repeats
+Decision: Acknowledgement cancels a task's remaining steps. A step fires at most once per task; repeating reminders are a candidate for version 2.
 Decided by: lena.k
 
 ## Requirements
@@ -165,6 +172,8 @@ Criteria:
 ### ESC-R06 — Acknowledgement stops escalation
 Kind: functional
 Goal: G1
+Decision: D9
+Source: INT-2 | If nobody acknowledges a P1 within ten minutes, the secondary gets paged.
 Source: INT-1 | If a P1 sits for fifteen minutes with nobody on it
 Statement: When a task is acknowledged, Relay must cancel its remaining steps. A step that has already fired is not repeated.
 Depends on: ESC-R01, ESC-R02, ESC-R03
@@ -247,11 +256,11 @@ Category: human-ai
 Goal: G1
 Decision: D3, D8
 Source: INT-3 | Show the suggestion and how confident the model is
-Statement: The triage feature must return a confidence from 0% to 100% with each suggested priority. On the triage evaluation set, at least 90% of suggestions shown with 90% confidence or more must match the priority a person confirmed.
+Statement: The triage feature must return a confidence from 0% to 100% with each suggested priority, and the confidence must be calibrated. On the triage evaluation set, group suggestions into confidence bands 10 points wide; in every band with at least 30 suggestions, the share matching the priority a person confirmed must be within 10 points of the band's mean stated confidence.
 Introduces: model_confidence
 Depends on: ESC-R01
 Criteria:
-- ESC-AC20: Given the triage evaluation set, when every suggestion with confidence of 90% or more is compared with the confirmed priority, then at least 90% of them match.
+- ESC-AC20: Given the triage evaluation set grouped into 10-point confidence bands, when each band with at least 30 suggestions is compared with the confirmed priorities, then every such band's share of matches is within 10 points of its mean stated confidence.
 
 ### ESC-N03 — Rule permissions and audit
 Kind: nfr

@@ -229,7 +229,7 @@ def report_stats(s: Suite) -> str:
               f"  unpaired: {pct(correct / n_calls)} ({pct(lo)} to {pct(hi)}) vs {pct(cc / len(cand))} "
               f"({pct(clo)} to {pct(chi)})",
               f"  paired: difference {pts(c.diff)} points, 95% {pts(c.low)} to {pts(c.high)}; "
-              f"{c.worse} worse, {c.better} better, McNemar p={c.p_value:.3f}"]
+              f"{c.worse} worse, {c.better} better, McNemar {gate.p_text(c.p_value)}"]
     routed = gate.compare(base, s.records("routed:triage-v1"), [t["id"] for t in s.held])
     psi = (routed.worse + routed.better) / routed.tickets
     lines += ["", f"Sample size (80% power, two-sided 5%), routed vs all-large discordance "
@@ -250,7 +250,7 @@ def report_agents(s: Suite) -> str:
         "",
         f"Paired difference (agents-md minus no-instructions): {pts(e.diff)} points, "
         f"95% {pts(e.low)} to {pts(e.high)}; tasks worse {e.worse}, better {e.better} "
-        f"(majority of runs), McNemar p={e.p_value:.3f}",
+        f"(majority of runs), McNemar {gate.p_text(e.p_value)}",
     ])
 
 

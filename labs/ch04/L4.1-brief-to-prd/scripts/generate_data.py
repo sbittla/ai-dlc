@@ -8,6 +8,9 @@ data/sources/      the product owner's brief, three interview transcripts and fi
 data/lexicon.json  the word lists and patterns the requirements checker uses
 data/prd-draft.md  PRD v0.1: an assistant's first draft from the sources, unedited
 data/prd-v1.md     PRD v1.0: the same PRD after review, approved by the product owner
+data/prd-p1-scaffold.md   the P1 path of v1.0 with 9 requirements and 5 decisions left
+                          for the learner (Lab 4.1, step 5)
+data/prd-p1-reference.md  the same P1 path, completed: the reference answer to step 5
 
 The interviews are fictional and the customer is anonymised. Everything is
 written from the constants below, so the output is byte-identical on every
@@ -425,6 +428,8 @@ Urgent tasks in Relay can sit unacknowledged for hours, because nothing tells an
 ## Open questions
 
 - Business hours across a daylight-saving change need real time-zone data; Relay 4.17.2 uses a fixed offset table. Owner: sam.o.
+- Whether P1 escalations are exempt from the flood cap in ESC-N04; as written, a P1 escalation over the cap waits for the hourly summary, which works against G1. Owner: lena.k.
+- Whether business hours include weekends (ESC-R07 does not say). Owner: lena.k.
 
 ## Goals
 
@@ -452,7 +457,7 @@ Source: INT-3 | Titles can contain customer data, so keep them out of anything t
 
 ### D1 — First P1 step at 10 minutes by default, configurable
 Resolves: INT-1 asks for 15 minutes; INT-2 and DOC-ONCALL use 10 and 20 minutes
-Decision: New P1 rules start with Relay's on-call timings, 10 and 20 minutes. Each step's delay is configurable from 5 to 240 minutes, so the INT-1 customer can choose 15.
+Decision: New P1 rules start with Relay's on-call timings, 10 and 20 minutes. Each step's delay is configurable from 5 to 240 minutes, so the INT-1 customer can choose 15. Each later step must have a longer delay than the step before it, so that steps fire in order.
 Decided by: lena.k
 
 ### D2 — Only Owners and Admins edit rules
@@ -487,7 +492,12 @@ Decided by: lena.k
 
 ### D8 — Numeric targets that no source states
 Resolves: INT-2 and INT-3 ask for acknowledgement, calibration, loud rule changes and stall alerts, and name no numbers
-Decision: G2's 80%, ESC-N02's 90% calibration, ESC-N06's 5 minutes and ESC-N09's 95% within 60 seconds and 5-minute stall alert are the product owner's choices for the pilot, agreed with tomas.b and aisha.r. Each is reviewed after the pilot's first month.
+Decision: G2's 80%, ESC-N02's calibration tolerance (10 points, in bands of at least 30 suggestions), ESC-N06's 5 minutes and ESC-N09's 95% within 60 seconds and 5-minute stall alert are the product owner's choices for the pilot, agreed with tomas.b and aisha.r. Each is reviewed after the pilot's first month.
+Decided by: lena.k
+
+### D9 — Acknowledgement ends escalation, and fired steps do not repeat
+Resolves: INT-1 and INT-2 escalate only while nobody has acknowledged ("If nobody acknowledges"), and neither says whether a fired step repeats
+Decision: Acknowledgement cancels a task's remaining steps. A step fires at most once per task; repeating reminders are a candidate for version 2.
 Decided by: lena.k
 
 ## Requirements
@@ -554,6 +564,8 @@ Criteria:
 ### ESC-R06 — Acknowledgement stops escalation
 Kind: functional
 Goal: G1
+Decision: D9
+Source: INT-2 | If nobody acknowledges a P1 within ten minutes, the secondary gets paged.
 Source: INT-1 | If a P1 sits for fifteen minutes with nobody on it
 Statement: When a task is acknowledged, Relay must cancel its remaining steps. A step that has already fired is not repeated.
 Depends on: ESC-R01, ESC-R02, ESC-R03
@@ -636,11 +648,11 @@ Category: human-ai
 Goal: G1
 Decision: D3, D8
 Source: INT-3 | Show the suggestion and how confident the model is
-Statement: The triage feature must return a confidence from 0% to 100% with each suggested priority. On the triage evaluation set, at least 90% of suggestions shown with 90% confidence or more must match the priority a person confirmed.
+Statement: The triage feature must return a confidence from 0% to 100% with each suggested priority, and the confidence must be calibrated. On the triage evaluation set, group suggestions into confidence bands 10 points wide; in every band with at least 30 suggestions, the share matching the priority a person confirmed must be within 10 points of the band's mean stated confidence.
 Introduces: model_confidence
 Depends on: ESC-R01
 Criteria:
-- ESC-AC20: Given the triage evaluation set, when every suggestion with confidence of 90% or more is compared with the confirmed priority, then at least 90% of them match.
+- ESC-AC20: Given the triage evaluation set grouped into 10-point confidence bands, when each band with at least 30 suggestions is compared with the confirmed priorities, then every such band's share of matches is within 10 points of its mean stated confidence.
 
 ### ESC-N03 — Rule permissions and audit
 Kind: nfr
@@ -733,6 +745,77 @@ Criteria:
 """
 
 
+# Lab 4.1, step 5: the P1-path scaffold. Learners complete the LEARNER items;
+# PROVIDED items are copied from PRD v1.0; OUT items are not in scope for the lab.
+LEARNER = ("ESC-R04", "ESC-R05", "ESC-R06", "ESC-N01", "ESC-N03", "ESC-N04", "ESC-N05", "ESC-N06", "ESC-N07")
+OUT = ("ESC-R07", "ESC-R08", "ESC-R09", "ESC-R10", "ESC-R11", "D4")
+LEARNER_DECISIONS = ("D1", "D2", "D3", "D7", "D9")
+KEEP_FIELDS = ("Kind:", "Category:", "Goal:", "Decision:", "Resolves:", "Decided by:")
+
+
+def blocks(prd: str) -> list[str]:
+    """Split a PRD into blocks, each starting at a '## ' or '### ' heading."""
+    out, cur = [], []
+    for line in prd.split("\n"):
+        if line.startswith("## ") or line.startswith("### "):
+            out.append("\n".join(cur))
+            cur = []
+        cur.append(line)
+    out.append("\n".join(cur))
+    return out
+
+
+def item_id(block: str) -> str:
+    head = block.split("\n", 1)[0]
+    return head[4:].split(" — ")[0] if head.startswith("### ") else ""
+
+
+def prune_depends(block: str) -> str:
+    lines = []
+    for line in block.split("\n"):
+        if line.startswith("Depends on:"):
+            kept = [d.strip() for d in line[len("Depends on:"):].split(",") if d.strip() not in OUT]
+            if not kept:
+                continue
+            line = "Depends on: " + ", ".join(kept)
+        lines.append(line)
+    return "\n".join(lines)
+
+
+def blank(block: str) -> str:
+    lines = block.split("\n")
+    out = [lines[0], "Status: TO COMPLETE (Lab 4.1, step 5)"] + [l for l in lines[1:] if l.startswith(KEEP_FIELDS)]
+    if item_id(block).startswith("D"):
+        out.append("Decision:")
+    else:
+        out += ["Source:", "Statement:", "Criteria:", "- " + item_id(block).replace("ESC-R", "ESC-AC-R").replace("ESC-N", "ESC-AC-N") + "-1: "]
+    return "\n".join(out) + "\n"
+
+
+def p1_path(prd: str, scaffold: bool) -> str:
+    """PRD v1.0 restricted to the P1 path. scaffold=True blanks the learner's items."""
+    parts = []
+    for b in blocks(prd):
+        i = item_id(b)
+        if i in OUT:
+            continue
+        b = prune_depends(b)
+        if scaffold and (i in LEARNER or i in LEARNER_DECISIONS):
+            b = blank(b)
+        parts.append(b)
+    text = "\n".join(parts)
+    note = ("Scope of this lab: the P1 path. ESC-R07 to ESC-R11 and decision D4 are not in scope "
+            "for this lab; they are in data/prd-v1.md.\n")
+    text = text.replace("## Problem\n", note + "\n## Problem\n", 1)
+    if scaffold:
+        text = text.replace("Version: 1.0\nStatus: approved\nProduct owner: lena.k\nApproved by: lena.k\nApproved on: 2026-11-19\n",
+                            "Version: 0.2\nStatus: draft\nProduct owner: <the colleague acting as product owner>\n"
+                            "Approved by:\nApproved on:\n", 1)
+        text = text.replace("Reviewed by: tomas.b (support), aisha.r (security), sam.o (engineering)\n",
+                            "Reviewed by: <who read which requirements back, and when>\n", 1)
+    return text
+
+
 def lf(text: str) -> bytes:
     return text.replace("\r\n", "\n").encode("utf-8")
 
@@ -746,6 +829,8 @@ def files() -> dict[str, bytes]:
         "lexicon.json": lf(json.dumps(LEXICON, indent=2) + "\n"),
         "prd-draft.md": lf(PRD_DRAFT),
         "prd-v1.md": lf(PRD_V1),
+        "prd-p1-scaffold.md": lf(p1_path(PRD_V1, scaffold=True)),
+        "prd-p1-reference.md": lf(p1_path(PRD_V1, scaffold=False)),
     }
     for doc_id in DOCS:
         out[f"sources/{doc_id}.md"] = lf(doc_page(doc_id))

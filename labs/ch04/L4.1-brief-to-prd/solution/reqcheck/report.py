@@ -8,8 +8,10 @@ Options:
     --matrix         the traceability matrix of the last PRD
     --impact ID      what to re-review in the last PRD if ID (a source, goal,
                      decision or requirement) changes
-    --fail-on SEV    exit with status 1 if the last PRD has an open finding at
-                     SEV or above (critical, high, medium, low): a CI gate
+    --gate           Relay's CI gate: exit with status 1 if the last PRD has an
+                     open finding from a blocking check (core.BLOCKING); findings
+                     from word-list checks (core.WARNING) are printed as warnings
+    --fail-on SEV    stricter: exit 1 on any open finding at SEV or above
 """
 
 from __future__ import annotations
@@ -22,7 +24,7 @@ from pathlib import Path
 from . import prd as prdmod
 from . import trace
 from .checks import GWT, check_provenance, run_checks
-from .core import AREAS, CHECKS, SEVERITIES, load_lexicon
+from .core import AREAS, BLOCKING, CHECKS, SEVERITIES, load_lexicon
 from .sources import load_sources
 
 
@@ -77,6 +79,10 @@ def render(paths: list[Path], sources, lexicon) -> tuple[str, list[dict]]:
     for sev in SEVERITIES:
         lines.append(f"| {sev} | " + " | ".join(str(c[sev]) for c in counts) + " |")
     lines.append("| **Total open** | " + " | ".join(f"**{len(s['result'].findings)}**" for s in sums) + " |")
+    lines.append("| Blocking (gate) | " + " | ".join(
+        str(sum(f.code in BLOCKING for f in s["result"].findings)) for s in sums) + " |")
+    lines.append("| Warnings | " + " | ".join(
+        str(sum(f.code not in BLOCKING for f in s["result"].findings)) for s in sums) + " |")
 
     areas = [Counter(f.area for f in s["result"].findings) for s in sums]
     lines += ["", head.format("Open findings by area"), rule]
@@ -87,7 +93,8 @@ def render(paths: list[Path], sources, lexicon) -> tuple[str, list[dict]]:
     used = sorted({code for c in codes for code in c})
     lines += ["", head.format("Open findings by check"), rule]
     for code in used:
-        lines.append(f"| {code} {CHECKS[code][2]} ({CHECKS[code][0]}) | " + " | ".join(str(c[code]) for c in codes) + " |")
+        kind = "blocks" if code in BLOCKING else "warns"
+        lines.append(f"| {code} {CHECKS[code][2]} ({CHECKS[code][0]}; {kind}) | " + " | ".join(str(c[code]) for c in codes) + " |")
     return "\n".join(lines), sums
 
 
@@ -121,6 +128,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--details", action="store_true")
     ap.add_argument("--matrix", action="store_true")
     ap.add_argument("--impact")
+    ap.add_argument("--gate", action="store_true")
     ap.add_argument("--fail-on", choices=SEVERITIES)
     args = ap.parse_args(argv)
     if hasattr(sys.stdout, "reconfigure"):
@@ -137,6 +145,8 @@ def main(argv: list[str] | None = None) -> int:
         print("\n" + render_matrix(last["prd"]))
     if args.impact:
         print("\n" + render_impact(last["prd"], args.impact))
+    if args.gate and any(f.code in BLOCKING for f in last["result"].findings):
+        return 1
     if args.fail_on:
         limit = SEVERITIES.index(args.fail_on)
         if any(SEVERITIES.index(f.severity) <= limit for f in last["result"].findings):

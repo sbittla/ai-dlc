@@ -109,3 +109,10 @@ def test_cost_increase_warns():
 def test_points_never_prints_negative_zero():
     assert gate.points(-0.00001) == "+0.0"
     assert gate.points(-0.0417) == "-4.2"
+
+
+def test_unknown_rule_is_an_error():
+    ts = tickets()
+    f = gate.gather(POLICY, PIN, CLEAN, ts, records(ts, name="b"), records(ts))
+    with pytest.raises(KeyError):
+        gate.rule_status("speed", f, POLICY)

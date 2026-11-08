@@ -37,3 +37,7 @@ labs/chNN/LN.M-<slug>/
 | [L2.2](ch02/L2.2-context-strategies/) | One question set, five context strategies | Stretch | 3 h |
 | [L3.1](ch03/L3.1-accountable-workspace/) | Sandboxed agent workspace and a first agent-built PR | Core | 4 h |
 | [L3.2](ch03/L3.2-constrained-mcp-server/) | Constrained MCP server and workspace threat model | Stretch | 4 h |
+| [L4.1](ch04/L4.1-brief-to-prd/) | Ambiguous brief to PRD, NFRs (including security) and traceability | Core | 3 h |
+| [L4.2](ch04/L4.2-ambiguity-eval/) | An eval that finds seeded requirement ambiguities | Stretch | 2 h |
+| [L7.1](ch07/L7.1-triage-eval-gate/) | Triage eval suite and CI gate | Core | 4 h |
+| [L7.2](ch07/L7.2-judge-calibration/) | Calibrate an LLM judge against human labels | Stretch | 3 h |

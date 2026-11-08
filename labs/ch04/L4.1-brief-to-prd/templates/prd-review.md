@@ -5,8 +5,10 @@ Copy to `evidence/prd-review.md`. This is the Discover-stage evidence record (Ch
 | Field | Value |
 | --- | --- |
 | PRD file and version | evidence/prd.md, v |
-| Checker command | `python -m reqcheck.report --sources ../data/sources --lexicon ../data/lexicon.json ../evidence/prd.md --fail-on low` |
-| Checker result (total open, by severity) | |
+| Checker command | `python -m reqcheck.report --sources ../data/sources --lexicon ../data/lexicon.json ../evidence/prd.md --gate` |
+| Checker result (blocking, warnings, total open) | |
+| Warnings answered (code, item, why it is a false alarm or how it was fixed) | |
+| How the approval was given (for example, a required code-owner review on the PR) | |
 | Date the checker ran | |
 | Product owner who approved scope and criteria | |
 | Reviewers (support, security, engineering) | |

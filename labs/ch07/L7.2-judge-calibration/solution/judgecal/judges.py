@@ -115,6 +115,15 @@ class SimulatedJudge:
 
 # ------------------------------------------------------------------ live
 
+def _api_errors() -> tuple:
+    """The SDK's error class, or nothing to catch when the SDK is not installed."""
+    try:
+        import anthropic
+    except ImportError:
+        return ()
+    return (anthropic.APIError,)
+
+
 @dataclass
 class ClaudeJudge:
     """Live judge via the official Anthropic SDK (`pip install -e ".[live]"`), adapted from Lab 2.1.
@@ -134,12 +143,11 @@ class ClaudeJudge:
     _client: object = field(default=None, init=False, repr=False)
 
     def _call(self, system: str, user: str, schema: dict, key: str) -> str | None:
-        import anthropic  # imported lazily so offline runs need no package
-
         if self.spent_usd + 0.01 > self.max_usd:   # 0.01 USD: a pessimistic cost for one judge call
             self.outcomes["budget"] = self.outcomes.get("budget", 0) + 1
             return None
         if self._client is None:
+            import anthropic  # imported lazily so offline runs need no package
             self._client = anthropic.Anthropic()
         try:
             response = self._client.messages.create(
@@ -149,7 +157,7 @@ class ClaudeJudge:
                 messages=[{"role": "user", "content": user}],
                 output_config={"effort": self.effort, "format": {"type": "json_schema", "schema": schema}},
             )
-        except anthropic.APIError as exc:
+        except _api_errors() as exc:
             kind = f"api_error:{type(exc).__name__}"
             self.outcomes[kind] = self.outcomes.get(kind, 0) + 1
             return None

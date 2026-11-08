@@ -61,10 +61,10 @@ def test_report_prints_the_chapter_tables():
     for row in ("| Requirements (functional + NFR) | 14 (11 + 3) | 21 (11 + 10) |",
                 "| Acceptance criteria | 12 | 31 |",
                 "| Criteria in Given/When/Then form | 9 of 12 | 31 of 31 |",
-                "| Source quotes found verbatim | 14 of 15 | 37 of 37 |",
+                "| Source quotes found verbatim | 14 of 15 | 38 of 38 |",
                 "| Required NFR categories covered (of 7) | 2 | 7 |",
                 "| Requirements with goal, source and test | 11 of 14 (78.6%) | 21 of 21 (100.0%) |",
-                "| Decisions recorded | 0 | 8 |",
+                "| Decisions recorded | 0 | 9 |",
                 "| critical | 1 | 0 |", "| high | 17 | 0 |", "| medium | 32 | 0 |", "| low | 0 | 0 |",
                 "| **Total open** | **50** | **0** |",
                 "| dependencies | 14 | 0 |", "| clarity | 9 | 0 |"):
@@ -85,6 +85,7 @@ def test_impact_of_changing_acknowledgement_and_d1():
 def test_cli_gate_fails_the_draft_and_passes_v1():
     args = ["--sources", str(DATA_DIR / "sources"), "--lexicon", str(DATA_DIR / "lexicon.json")]
     assert report.main(args + [str(DRAFT), "--fail-on", "high"]) == 1
+    assert report.main(args + [str(DRAFT), "--fail-on", "low"]) == 1
     assert report.main(args + [str(V1), "--fail-on", "low"]) == 0
 
 
@@ -96,3 +97,37 @@ def test_generator_reproduces_data_byte_for_byte(tmp_path):
     assert written == committed
     for name in written:
         assert (tmp_path / name).read_bytes() == (DATA_DIR / name).read_bytes(), name
+
+
+def test_counts_quoted_in_the_text():
+    from reqcheck.core import CHECKS
+    v1 = prdmod.load(V1)
+    assert len(CHECKS) == 21
+    assert (len(LEXICON.vague_terms), len(LEXICON.weak_modals), len(LEXICON.required_nfr_categories)) == (22, 8, 7)
+    assert sum(1 for r in v1.requirements if r.decisions) == 12
+    assert [d.id for d in v1.decisions] == [f"D{i}" for i in range(1, 10)]
+    assert all(d.decided_by == "lena.k" for d in v1.decisions)
+    assert (v1.approved_by, v1.approved_on) == ("lena.k", "2026-11-19")
+
+
+def test_gate_policy_blocks_exact_checks_and_warns_on_word_lists(draft):
+    from reqcheck.core import BLOCKING, CHECKS, WARNING
+    assert WARNING == {"RQ010", "RQ011", "RQ012", "RQ040", "RQ041"}
+    assert BLOCKING | WARNING == set(CHECKS) and not BLOCKING & WARNING
+    assert sum(f.code in BLOCKING for f in draft.findings) == 21
+    assert sum(f.code in WARNING for f in draft.findings) == 29
+    args = ["--sources", str(DATA_DIR / "sources"), "--lexicon", str(DATA_DIR / "lexicon.json"), "--gate"]
+    assert report.main(args + [str(DRAFT)]) == 1
+    assert report.main(args + [str(V1)]) == 0
+    assert report.main(args + [str(DATA_DIR / "prd-p1-reference.md")]) == 0
+    assert report.main(args + [str(DATA_DIR / "prd-p1-scaffold.md")]) == 1
+
+
+def test_p1_path_scaffold_and_reference():
+    from reqcheck.core import BLOCKING
+    ref = prdmod.load(DATA_DIR / "prd-p1-reference.md")
+    assert run_checks(ref, SOURCES, LEXICON).findings == ()
+    assert (len(ref.requirements), sum(len(r.criteria) for r in ref.requirements), len(ref.decisions)) == (16, 25, 8)
+    scaffold = run_checks(prdmod.load(DATA_DIR / "prd-p1-scaffold.md"), SOURCES, LEXICON)
+    assert Counter(f.code for f in scaffold.findings) == {"RQ002": 9, "RQ012": 6, "RQ020": 9, "RQ080": 1}
+    assert sum(f.code in BLOCKING for f in scaffold.findings) == 19

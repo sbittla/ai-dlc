@@ -19,6 +19,10 @@ jobs:
           - labs/ch02/L2.2-context-strategies
           - labs/ch03/L3.1-accountable-workspace
           - labs/ch03/L3.2-constrained-mcp-server
+          - labs/ch04/L4.1-brief-to-prd
+          - labs/ch04/L4.2-ambiguity-eval
+          - labs/ch07/L7.1-triage-eval-gate
+          - labs/ch07/L7.2-judge-calibration
     defaults:
       run:
         working-directory: ${{ matrix.lab }}

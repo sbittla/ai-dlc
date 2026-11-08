@@ -6,7 +6,7 @@
 | Type | Stretch (Builder, Platform) |
 | Time | 2 hours |
 | Cost ceiling | $0 offline (default). Live mode: the `--max-usd` ceiling, $1.00 by default; one held-out run of 48 statements is estimated at under $0.25 with `claude-opus-5-5` and under $0.01 with `claude-haiku-5-5` at the list prices in `models.py`. Check current prices and set a spend limit first |
-| Requires | Python 3.11+ and pytest (`pip install -e ".[dev]"`). Live mode only: `pip install -e ".[live]"` and Claude API credentials |
+| Requires | Python 3.11+ and pytest (`pip install -e ".[dev]"`). Live mode only: `pip install -e ".[live]"`, which installs the Anthropic SDK within a pinned version range (`anthropic>=2.6,<3`, as in Lab 2.1), and Claude API credentials |
 
 ## Brief
 
@@ -19,6 +19,8 @@ The data has a **dev split** for tuning and a **held-out split** for reporting. 
 ## The data, honestly described
 
 The statements are synthetic. The authors wrote them and seeded the defects, and a second reader reviewed the labels once. The held-out sets were written later, by a different author who had not seen the dev sets or the detector, so they use some different words. That gap between the splits was built into the data, as the gap between keyword and paraphrased questions was in Lab 2.2. What transfers is the discipline of tuning on one split and reporting on another, not the particular percentages.
+
+Two of the detector's rules are flattered by the data's shape. The contradiction rule compares only statements within the same labelled set of four, and a real PRD has no such sets: run on a whole PRD, it would compare every pair and raise more false alarms. The missing-actor rule was written by the same authors who wrote the statements. Both rules are candidates for Relay's gate, not part of it. Lab 4.1's RQ030 is a different rule: it compares declared `Value:` keys, so its answer is exact.
 
 Labelling rules (a statement may have none, one or several):
 
@@ -133,7 +135,7 @@ Copy `templates/eval-record.md` to `evidence/` and complete it.
 
 ## Sample of acceptable evidence (excerpt)
 
-> On held-out, the v1 detector flagged 22 defects, 21 correctly: precision 95% (78%–99%), recall 60% (44%–74%), pooled over 35 labelled defects. Recall differs by type: missing actor 8 of 8, contradiction 4 of 8, untestable 6 of 12, ambiguity 3 of 7. Each type has only 7 to 12 positives, so each recall interval is between 32 and 59 points wide. Tuning on dev (v2) raised dev recall from 75% to 88% and changed nothing on held-out, where the new words never occur. We ship v1 as a warning on every PRD change, and keep v2's words as hypotheses for a larger held-out set. The detector misses every contradiction that is not a difference in numbers, so a person still reads every pair of requirements that share a topic.
+> On held-out, the v1 detector flagged 22 defects, 21 correctly: precision 95% (78%–99%), recall 60% (44%–74%), pooled over 35 labelled defects. Recall differs by type: missing actor 8 of 8, contradiction 4 of 8, untestable 6 of 12, ambiguity 3 of 7. Each type has only 7 to 12 positives, so each recall interval is between 32 and 59 points wide. Tuning on dev (v2) raised dev recall from 75% to 88% and changed nothing on held-out, where the new words never occur. Lab 4.1's word-list checks (RQ010–RQ012) therefore stay warnings: on 3 and 6 held-out flags, the precision intervals reach down to 44% and 61%, too little evidence to block a merge. We keep v1's words and record v2's as hypotheses for a larger held-out set. The contradiction and missing-actor rules stay candidates, outside the gate. The contradiction rule misses every conflict that is not a difference in numbers, and only compares statements within a set, so a person still reads every pair of requirements that share a topic.
 
 ## Troubleshooting
 

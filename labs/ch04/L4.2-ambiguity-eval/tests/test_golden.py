@@ -102,3 +102,10 @@ def test_generator_reproduces_data_byte_for_byte(tmp_path):
     for name in ("statements.jsonl", "lexicon-v1.json", "lexicon-v2.json"):
         assert (tmp_path / name).read_bytes() == (DATA_DIR / name).read_bytes(), name
     assert sorted(p.name for p in DATA_DIR.iterdir()) == ["lexicon-v1.json", "lexicon-v2.json", "statements.jsonl"]
+
+
+@pytest.mark.parametrize("defect,flags,prec_ci", [("ambiguity", 3, (44, 100)), ("untestable", 6, (61, 100))])
+def test_heldout_precision_behind_the_warning_policy(defect, flags, prec_ci):
+    c, rt = r(V1, "heldout", defect)
+    assert (c.tp + c.fp, c.fp) == (flags, 0)
+    assert pct(rt.precision) == 100 and tuple(map(pct, rt.precision_ci)) == prec_ci

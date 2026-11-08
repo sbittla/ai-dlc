@@ -56,7 +56,7 @@ L7.1-triage-eval-gate/
 │   ├── runner.py                ← provided: runs a candidate, strict parsing, summaries
 │   ├── dataset.py               ← TODO: check_leakage
 │   ├── stats.py                 ← TODO: mcnemar_exact, paired_bootstrap, paired_sample_size
-│   ├── gate.py                  ← TODO: evaluate_gate
+│   ├── gate.py                  ← TODO: rule_status
 │   ├── router.py                ← TODO: choose_threshold
 │   ├── agent_eval.py            ← provided: the simulated instruction-file evaluation
 │   └── report.py                ← provided: the gate CLI and every report the chapter quotes
@@ -105,7 +105,7 @@ python -m pytest -q tests/test_dataset.py
 
 ### 4. The gate (55 min)
 
-Implement `evaluate_gate` in `gate.py`. The docstring lists nine rules in order. Every rule is evaluated even after a failure, so a report shows everything that is wrong. Warnings never fail the gate.
+Implement `rule_status` in `gate.py`: for each rule name, return `pass`, `fail` or `warn`. The docstring gives every rule's condition. `evaluate_gate`, which is provided, evaluates every rule even after a failure, so a report shows everything that is wrong, and writes each rule's detail with `describe`. Warnings never fail the gate.
 
 ```bash
 python -m pytest -q tests/test_gate.py
