@@ -24,7 +24,7 @@ def test_relay_copy_is_4_19_0():
 def test_clean_relay_passes_every_rule():
     graph, findings = check(REPO, RULES)
     assert findings == []
-    assert (len(graph), sum(len(v) for v in graph.values())) == (17, 78)
+    assert (len(graph), sum(len(v) for v in graph.values())) == (17, 81)
 
 
 def test_six_rules_each_linked_to_an_adr():

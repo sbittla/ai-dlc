@@ -92,6 +92,8 @@ def render(results: list[Result], labels: list[str], prd: Prd, details: bool = F
 
 
 def main(argv: list[str] | None = None) -> int:
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")  # Windows consoles and redirects default to a legacy code page
     ap = argparse.ArgumentParser(prog="speccheck.report", description=__doc__.splitlines()[0])
     ap.add_argument("--prd", type=Path, required=True)
     ap.add_argument("--tests", type=Path, required=True, help="folder of tests whose names carry criterion IDs")

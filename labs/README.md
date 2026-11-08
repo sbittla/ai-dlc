@@ -39,5 +39,9 @@ labs/chNN/LN.M-<slug>/
 | [L3.2](ch03/L3.2-constrained-mcp-server/) | Constrained MCP server and workspace threat model | Stretch | 4 h |
 | [L4.1](ch04/L4.1-brief-to-prd/) | Ambiguous brief to PRD, NFRs (including security) and traceability | Core | 3 h |
 | [L4.2](ch04/L4.2-ambiguity-eval/) | An eval that finds seeded requirement ambiguities | Stretch | 2 h |
+| [L5.1](ch05/L5.1-spec-first-delivery/) | Spec-first feature delivery | Core | 4 h |
+| [L5.2](ch05/L5.2-spec-drift-check/) | Spec drift check in CI | Stretch | 3 h |
+| [L6.1](ch06/L6.1-architecture-options-adr/) | Two architectures, scored, with ADRs and a threat model | Core | 3 h |
+| [L6.2](ch06/L6.2-fitness-functions-ci/) | Fitness functions in CI | Stretch | 3 h |
 | [L7.1](ch07/L7.1-triage-eval-gate/) | Triage eval suite and CI gate | Core | 4 h |
 | [L7.2](ch07/L7.2-judge-calibration/) | Calibrate an LLM judge against human labels | Stretch | 3 h |

@@ -1,0 +1,188 @@
+{
+  "id": "C",
+  "name": "Modular monolith with a separate triage service",
+  "summary": "Relay's service and its escalation worker stay one artifact with one database, as in Option A. Triage moves into its own deployable service with its own database; Relay's service calls it over the internal network to queue tickets and read suggestions.",
+  "components": [
+    {
+      "id": "client",
+      "name": "Browsers, API clients and the support inbox",
+      "kind": "external",
+      "deployable": null
+    },
+    {
+      "id": "web",
+      "name": "relay.service: HTTP service",
+      "kind": "process",
+      "deployable": "relay"
+    },
+    {
+      "id": "worker",
+      "name": "relay.worker: escalation evaluator",
+      "kind": "process",
+      "deployable": "relay"
+    },
+    {
+      "id": "db",
+      "name": "Relay database: tasks, rules; tables owned by modules",
+      "kind": "datastore",
+      "deployable": null
+    },
+    {
+      "id": "triage",
+      "name": "triage-svc: queue, worker and model adapter",
+      "kind": "process",
+      "deployable": "triage-svc"
+    },
+    {
+      "id": "triage-db",
+      "name": "triage database",
+      "kind": "datastore",
+      "deployable": null
+    },
+    {
+      "id": "model",
+      "name": "Triage model provider (hosted)",
+      "kind": "external",
+      "deployable": null
+    },
+    {
+      "id": "email",
+      "name": "Email delivery provider",
+      "kind": "external",
+      "deployable": null
+    },
+    {
+      "id": "hooks",
+      "name": "Customer webhook endpoints",
+      "kind": "external",
+      "deployable": null
+    }
+  ],
+  "flows": [
+    {
+      "from": "client",
+      "to": "web",
+      "sync": true,
+      "boundary": "TB1",
+      "data": "requests, bearer tokens, ticket text"
+    },
+    {
+      "from": "web",
+      "to": "db",
+      "sync": true,
+      "boundary": null,
+      "data": "task reads"
+    },
+    {
+      "from": "worker",
+      "to": "db",
+      "sync": true,
+      "boundary": null,
+      "data": "step state"
+    },
+    {
+      "from": "web",
+      "to": "triage",
+      "sync": true,
+      "boundary": "TB5",
+      "data": "ticket text out; suggestions back"
+    },
+    {
+      "from": "triage",
+      "to": "triage-db",
+      "sync": true,
+      "boundary": null,
+      "data": "jobs and suggestions"
+    },
+    {
+      "from": "triage",
+      "to": "model",
+      "sync": true,
+      "boundary": "TB2",
+      "data": "ticket text out; suggested labels back"
+    },
+    {
+      "from": "worker",
+      "to": "email",
+      "sync": true,
+      "boundary": "TB3",
+      "data": "escalation emails: link, priority, rule, step; never the title"
+    },
+    {
+      "from": "worker",
+      "to": "hooks",
+      "sync": true,
+      "boundary": "TB4",
+      "data": "signed task.escalated events"
+    }
+  ],
+  "boundaries": {
+    "TB1": "Internet to the Relay service",
+    "TB2": "triage-svc to the model provider",
+    "TB3": "Relay to the email provider",
+    "TB4": "Relay to customer webhook endpoints",
+    "TB5": "Relay service to triage-svc on the internal network"
+  },
+  "step_path": [
+    "worker",
+    "db"
+  ],
+  "scores": {
+    "ESC-N01": [
+      2,
+      "Suggestions come back over an API, and Relay must store them as suggestions only: a rule kept at the boundary between two codebases, checked by a contract test rather than one module."
+    ],
+    "ESC-N03": [
+      2,
+      "Rules stay in the monolith with relay.roles and one audit table; triage-svc needs its own service authentication, but holds no rules."
+    ],
+    "ESC-N04": [
+      3,
+      "The flood cap stays in the monolith's one database, counted and sent in one transaction."
+    ],
+    "ESC-N05": [
+      2,
+      "Target validation lives in one module, as in Option A."
+    ],
+    "ESC-N06": [
+      2,
+      "A rule change and its notification are written in one transaction, as in Option A."
+    ],
+    "ESC-N07": [
+      2,
+      "Task titles stay in the monolith; only ticket text crosses TB5 to triage-svc."
+    ],
+    "ESC-N09": [
+      2,
+      "The step path is Option A's; triage-svc is one more service to watch."
+    ],
+    "ESC-N10": [
+      2,
+      "No broker; escalation calls only email and webhook delivery."
+    ],
+    "CON-1": [
+      2,
+      "Two deployables and two databases for one rota: workable, but triage-svc needs its own pipeline, dashboards and runbook."
+    ],
+    "CON-2": [
+      2,
+      "Two artifacts on the train; a change to the triage API needs both deployed in order."
+    ],
+    "CON-3": [
+      2,
+      "The limiter stays in Relay's service, as in Option A."
+    ],
+    "CON-4": [
+      3,
+      "Relay's service queues the ticket at triage-svc and returns 202; no request waits for the model."
+    ],
+    "CON-5": [
+      2,
+      "Webhook sends stay jobs with idempotency keys in the monolith."
+    ],
+    "CON-6": [
+      3,
+      "triage-svc scales on its own, without scaling the monolith."
+    ]
+  }
+}

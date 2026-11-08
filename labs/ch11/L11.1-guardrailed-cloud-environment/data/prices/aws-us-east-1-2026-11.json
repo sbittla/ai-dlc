@@ -1,0 +1,52 @@
+{
+ "price_table": "aws-us-east-1-2026-11",
+ "as_of": "2026-11-30",
+ "region": "us-east-1",
+ "currency": "USD",
+ "hours_per_month": 730,
+ "status": "ASSUMPTIONS. On-demand list prices as the authors read them on the as-of date, Linux, no discounts, free tiers or credits. Verify every price on the AWS pricing pages before relying on a total; prices change and differ by region.",
+ "hourly": {
+  "ec2_instance": {
+   "g5.48xlarge": 16.288,
+   "g5.12xlarge": 5.672,
+   "t4g.small": 0.0168,
+   "m7g.large": 0.0816
+  },
+  "public_ipv4_address": 0.005,
+  "fargate": {
+   "ARM64": {
+    "vcpu": 0.03238,
+    "gb": 0.00356
+   },
+   "X86_64": {
+    "vcpu": 0.04048,
+    "gb": 0.004445
+   }
+  },
+  "rds_postgres_instance": {
+   "db.t4g.small": 0.032,
+   "db.t4g.medium": 0.065,
+   "db.r6g.4xlarge": 1.798
+  },
+  "nat_gateway": 0.045,
+  "vpc_interface_endpoint_per_az": 0.01,
+  "network_firewall_endpoint": 0.395,
+  "application_load_balancer": 0.0225
+ },
+ "monthly": {
+  "ebs_gp3_gb": 0.08,
+  "rds_gp3_gb": 0.115,
+  "secretsmanager_secret": 0.4,
+  "kms_customer_managed_key": 1.0
+ },
+ "rds_multi_az_factor": 2,
+ "usage_based_not_estimated": {
+  "nat_gateway_per_gb": 0.045,
+  "vpc_endpoint_per_gb": 0.01,
+  "alb_lcu_hour": 0.008,
+  "cloudwatch_logs_ingest_per_gb": 0.5,
+  "s3_standard_gb_month": 0.023,
+  "ecr_storage_gb_month": 0.1,
+  "bedrock_model_calls": "per input and output token; model-specific"
+ }
+}

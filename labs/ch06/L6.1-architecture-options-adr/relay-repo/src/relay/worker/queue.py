@@ -9,9 +9,11 @@ module owns it: no other module reads or writes it except through
                       -> needs_human (attempts exhausted, or output unusable)
 
 Delivery is at least once. A worker holds a job under a lease; if it dies,
-the lease expires and another worker claims the job again. A worker whose
-lease has expired cannot complete the job, because every write checks the
-lease owner (a simple fencing rule).
+the lease expires and another worker claims the job again. Once another
+worker has claimed it, the first worker's late write is refused, because
+`complete` and `fail` both check the lease owner in the same statement (a
+simple fencing rule). Until then, a late result from the first worker is
+still accepted: its lease expired, but nobody else holds the job.
 
 Times are seconds since the Unix epoch, passed in by the caller, so tests
 control the clock.
@@ -162,24 +164,34 @@ class TriageQueue:
         """Take the oldest available job under a lease, or None if there is none.
 
         A job is available if it is queued and its retry time has come, or if it
-        is running under a lease that has expired (its worker died).
+        is running under a lease that has expired (its worker died or stalled).
+        An expired job that has already used `max_attempts` is not claimed again:
+        it goes to `needs_human`, so a job that crashes its worker every time
+        reaches a person instead of being retried forever.
         """
         self.conn.execute("BEGIN IMMEDIATE")
         try:
-            row = self.conn.execute(
-                "SELECT id FROM triage_jobs WHERE (status = 'queued' AND available_at <= ?) "
-                "OR (status = 'running' AND lease_until < ?) ORDER BY id LIMIT 1", (now, now)).fetchone()
-            if row is None:
+            while True:
+                row = self.conn.execute(
+                    "SELECT id, status, attempts FROM triage_jobs WHERE (status = 'queued' AND available_at <= ?) "
+                    "OR (status = 'running' AND lease_until < ?) ORDER BY id LIMIT 1", (now, now)).fetchone()
+                if row is None:
+                    self.conn.execute("COMMIT")
+                    return None
+                job_id, status, attempts = row
+                if status == "running" and attempts >= self.max_attempts:
+                    self.conn.execute(
+                        "UPDATE triage_jobs SET status = 'needs_human', lease_owner = NULL, lease_until = NULL, "
+                        "last_error = 'lease_expired', updated_at = ? WHERE id = ?", (now, job_id))
+                    continue
+                self.conn.execute(
+                    "UPDATE triage_jobs SET status = 'running', lease_owner = ?, lease_until = ?, "
+                    "attempts = attempts + 1, updated_at = ? WHERE id = ?", (worker_id, now + lease_s, now, job_id))
                 self.conn.execute("COMMIT")
-                return None
-            self.conn.execute(
-                "UPDATE triage_jobs SET status = 'running', lease_owner = ?, lease_until = ?, "
-                "attempts = attempts + 1, updated_at = ? WHERE id = ?", (worker_id, now + lease_s, now, row[0]))
-            self.conn.execute("COMMIT")
+                return self.get(job_id)
         except Exception:
             self.conn.execute("ROLLBACK")
             raise
-        return self.get(row[0])
 
     def complete(self, job_id: int, worker_id: str, result: dict, now: float) -> bool:
         """Record the result. False (and no change) if this worker no longer holds the lease."""
@@ -195,19 +207,31 @@ class TriageQueue:
         A retryable failure goes back to the queue after a backoff until the job has
         used `max_attempts`; then, or for a non-retryable failure, it goes to
         `needs_human`, the queue a person works through. A failure is never
-        turned into a guessed answer.
+        turned into a guessed answer. Like `complete`, the write happens only if
+        this worker still holds the lease, checked in the same transaction.
         """
-        job = self.get(job_id)
-        if job.status != "running" or job.lease_owner != worker_id:
-            return None
-        if retryable and job.attempts < self.max_attempts:
-            status, available = "queued", now + backoff_s(job.attempts)
-        else:
-            status, available = "needs_human", job.available_at
-        self.conn.execute(
-            "UPDATE triage_jobs SET status = ?, available_at = ?, lease_owner = NULL, lease_until = NULL, "
-            "last_error = ?, updated_at = ? WHERE id = ?", (status, available, error[:200], now, job_id))
-        return status
+        self.conn.execute("BEGIN IMMEDIATE")
+        try:
+            row = self.conn.execute(
+                "SELECT attempts, available_at FROM triage_jobs WHERE id = ? AND status = 'running' "
+                "AND lease_owner = ?", (job_id, worker_id)).fetchone()
+            if row is None:
+                self.conn.execute("COMMIT")
+                return None
+            attempts, available_at = row
+            if retryable and attempts < self.max_attempts:
+                status, available = "queued", now + backoff_s(attempts)
+            else:
+                status, available = "needs_human", available_at
+            cur = self.conn.execute(
+                "UPDATE triage_jobs SET status = ?, available_at = ?, lease_owner = NULL, lease_until = NULL, "
+                "last_error = ?, updated_at = ? WHERE id = ? AND status = 'running' AND lease_owner = ?",
+                (status, available, error[:200], now, job_id, worker_id))
+            self.conn.execute("COMMIT")
+        except Exception:
+            self.conn.execute("ROLLBACK")
+            raise
+        return status if cur.rowcount == 1 else None
 
 
 def _to_job(row: tuple) -> Job:

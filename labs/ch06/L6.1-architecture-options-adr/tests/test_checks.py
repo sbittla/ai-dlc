@@ -31,6 +31,7 @@ Some.
 ## Rejected alternatives
 ### Option B — Two
 Rejected because: it needs five pipelines for a rota of eight engineers.
+Revisit if: the team splits into several teams with their own rotas.
 """
 
 
@@ -108,6 +109,13 @@ def test_an_adr_must_link_to_the_prd():
 def test_decider_must_be_a_named_person():
     assert codes(adr(GOOD_ADR.replace("Decided by: sam.o (architect)", "Decided by: relay-architect-agent"))) == ["ADR009"]
     assert adr(GOOD_ADR.replace("Decided by: sam.o (architect)", "Decided by: lena.k")) == []
+
+
+def test_a_rejection_needs_a_revisit_condition():
+    found = adr(GOOD_ADR.replace("Revisit if: the team splits into several teams with their own rotas.\n", ""))
+    assert [(f.code, f.message) for f in found] == [("ADR011", "Option B: no 'Revisit if' condition")]
+    assert codes(adr(GOOD_ADR.replace("Revisit if: the team splits", "Revisit if:  "
+                                      ).replace(" into several teams with their own rotas.", ""))) == ["ADR011"]
 
 
 def test_superseded_needs_a_successor():

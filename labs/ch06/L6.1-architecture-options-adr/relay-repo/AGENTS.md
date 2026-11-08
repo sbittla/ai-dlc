@@ -41,12 +41,13 @@ the pull request description.
 - One ticket per pull request. Keep diffs under 200 changed lines; split larger work.
 - A due date is a calendar date. Do not convert it to or from an instant.
 - Do not add dependencies. If you think one is needed, stop and say why.
-- A new dependency or a change to a module boundary needs an ADR in `docs/adr/`, approved by its owner.
 
 ## Boundaries
 
 - Never read, print or copy secrets. There are none in this repository; if you find one, stop and report it.
 - Do not edit `governance/`, `.github/` or this file's Boundaries section without a human request.
+- Do not add a dependency, change a module boundary or edit `tests/test_architecture.py` without an
+  accepted ADR in `docs/adr/` and a human request.
 - Do not run commands that reach the network. For test data, use the local, read-only `relay-db-readonly` MCP tool.
 - Never push to `main`, merge, or approve a pull request. A person reviews and merges every change.
 - If a test fails for a reason you do not understand, stop and explain; do not delete or skip it.

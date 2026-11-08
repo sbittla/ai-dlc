@@ -89,6 +89,8 @@ def render(rows: list[dict], details: bool = False) -> str:
 
 
 def main(argv: list[str] | None = None) -> int:
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")  # Windows consoles and redirects default to a legacy code page
     ap = argparse.ArgumentParser(prog="driftcheck.report")
     ap.add_argument("--baseline", type=Path, required=True)
     ap.add_argument("--scenarios", type=Path, required=True)

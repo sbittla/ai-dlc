@@ -174,3 +174,50 @@ def test_end_to_end_with_the_worker(env):
     assert body["suggestion"]["priority"] == "P1" and body["applies_to_task"] is False
     _, _, health = call(app, "GET", "/healthz")
     assert health["worker"]["stalled"] is False and health["queue"]["done"] == 1
+
+
+def test_job_routes_need_a_known_token(env):
+    app, _, _ = env
+    _, _, job = submit(app)
+    assert call(app, "GET", f"/v1/triage-jobs/{job['id']}")[0] == 401
+    assert call(app, "POST", "/v1/triage-jobs", None, {"text": "t"}, {"Idempotency-Key": "ticket-0002"})[0] == 401
+
+
+def test_another_workspaces_job_is_404_not_403(env):
+    app, queue, _ = env
+    other, _ = queue.enqueue("ws-other", "ticket-0001", "Their ticket", T0)
+    status, _, body = call(app, "GET", f"/v1/triage-jobs/{other.id}", token="demo-admin")
+    assert status == 404 and "Their" not in json.dumps(body)
+
+
+def test_deeply_nested_json_is_400_not_500(env):
+    app, _, _ = env
+    k = {"Idempotency-Key": "ticket-0001"}
+    assert call(app, "POST", "/v1/triage-jobs", "demo-member", raw=b"[" * 5000 + b"]" * 5000, headers=k)[0] == 400
+    assert call(app, "POST", "/v1/triage-jobs", "demo-member", {"text": [[[["x"]]]]}, k)[0] == 400
+
+
+def test_an_unexpected_error_is_logged_and_returns_500_without_details(env, caplog):
+    app, _, _ = env
+
+    def boom(*args):
+        raise RuntimeError("secret detail")
+    app.tasks.get = boom
+    status, _, body = call(app, "GET", "/v1/projects/10/tasks/100", token="demo-owner")
+    assert status == 500 and body == {"error": "internal error"}
+    assert "unhandled error on GET /v1/projects/10/tasks/100" in caplog.text
+
+
+def test_rate_limit_is_keyed_by_token():
+    from relay.service.directory import token_hash
+    app_limiter = RateLimiter(limit=1)
+    assert app_limiter.check(token_hash("demo-owner"), 0)[0] is True
+    assert app_limiter.check(token_hash("demo-owner"), 1)[0] is False
+    assert app_limiter.check(token_hash("demo-admin"), 1)[0] is True
+
+
+def test_demo_tokens_refuse_a_public_bind():
+    from relay.service.__main__ import main
+    with pytest.raises(SystemExit) as exc:
+        main(["--db", ":memory:", "--demo", "--host", "0.0.0.0"])
+    assert exc.value.code == 2

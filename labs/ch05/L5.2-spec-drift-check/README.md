@@ -83,7 +83,7 @@ Read scenario 08's two changed files. Every artifact still agrees, and every tes
 
 ### 5. Seed one drift of your own (20 min)
 
-Copy `data/scenarios/04-status-added-in-code` to `evidence/scenarios/09-mine/`. Edit its scenario.json title to state your prediction, then change one file under `files/` in a way you predict the gate will catch, or will miss. Run it:
+Copy `data/scenarios/04-status-added-in-code` to `evidence/scenarios/09-mine/`: from the lab folder, `mkdir -p evidence/scenarios && cp -r data/scenarios/04-status-added-in-code evidence/scenarios/09-mine` in bash, or `New-Item -ItemType Directory -Force evidence/scenarios; Copy-Item -Recurse data/scenarios/04-status-added-in-code evidence/scenarios/09-mine` in PowerShell. Edit its scenario.json title to state your prediction, then change one file under `files/` in a way you predict the gate will catch, or will miss. Run it:
 
 ```bash
 cd starter
@@ -106,7 +106,7 @@ Read `templates/spec-drift.yml`. Copy it to `evidence/` and complete it for your
 
 ## Sample of acceptable evidence (excerpt)
 
-> Of six structural drifts the gate found six, and five failed it; scenario 06's extra test for ESC-AC15 only warns. Of two behavioural drifts it found none. The test suite caught one of the two: moving `>=` to `>` fails three tests, including ESC-AC08's at exactly 10 minutes. It did not catch scenario 05, where `delay_minutes` became a float in the code: all 59 tests pass, because they only use whole minutes, and the gate fails on DR012. Scenario 08 passes both: the delay message no longer names the range and the assertion that checked it was deleted in the same change. Only a reviewer who reads ESC-AC10's test against its criterion would see it, so our review checklist now asks for that on every change to a test named after a criterion.
+> Of six structural drifts the gate found six, and five failed it; scenario 06's extra test for ESC-AC15 only warns. Of two behavioural drifts it found none. The test suite caught one of the two: moving `>=` to `>` fails three tests, including ESC-AC08's at exactly 10 minutes. It did not catch scenario 05, where `delay_minutes` became a float in the code: all 64 tests pass, because they only use whole minutes, and the gate fails on DR012. Scenario 08 passes both: the delay message no longer names the range and the assertion that checked it was deleted in the same change. Only a reviewer who reads ESC-AC10's test against its criterion would see it, so our review checklist now asks for that on every change to a test named after a criterion.
 
 ## Troubleshooting
 

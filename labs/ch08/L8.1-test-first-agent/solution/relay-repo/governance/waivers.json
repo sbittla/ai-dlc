@@ -1,0 +1,11 @@
+{
+  "waivers": [
+    {
+      "check": "WS023",
+      "path": ".devcontainer/devcontainer.json",
+      "reason": "Image pinned by tag only until digest pinning and image signing land with the supply-chain work (Chapter 13).",
+      "owner": "sam.o",
+      "expires": "2027-01-31"
+    }
+  ]
+}

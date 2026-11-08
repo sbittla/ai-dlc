@@ -1,0 +1,7 @@
+{
+ "format": "lab11.1-plan-overlay-v1",
+ "remove": [
+  "aws_vpc_endpoint.bedrock_runtime"
+ ],
+ "upsert": []
+}

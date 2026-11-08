@@ -7,6 +7,7 @@
     "2": "meets",
     "3": "meets with margin"
   },
+  "must_rule": "A must driver is one of the PRD's prohibitions (who decides priority, who changes rules, where data goes, what is paid for) or CON-4. Thresholds the PRD marks for review after the pilot (D7, D8) are weighted, not musts.",
   "people": [
     "aisha.r",
     "lena.k",
@@ -72,7 +73,7 @@
       "category": "abuse",
       "title": "Targets are workspace user IDs only",
       "weight": 1,
-      "must": false,
+      "must": true,
       "source": "labs/ch04/L4.1-brief-to-prd/data/prd-v1.md",
       "note": ""
     },
@@ -122,7 +123,7 @@
       "category": "cost",
       "title": "$0 per notification beyond email and webhooks; no paid messaging service",
       "weight": 2,
-      "must": false,
+      "must": true,
       "source": "labs/ch04/L4.1-brief-to-prd/data/prd-v1.md",
       "note": ""
     },

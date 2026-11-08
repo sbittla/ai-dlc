@@ -1,0 +1,33 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "NonProductionComputeSizes",
+      "Effect": "Deny",
+      "Action": "ec2:RunInstances",
+      "Resource": "arn:aws:ec2:*:*:instance/*",
+      "Condition": {
+        "StringNotLike": {
+          "ec2:InstanceType": ["t4g.*", "m7g.large", "m7g.xlarge"]
+        }
+      }
+    },
+    {
+      "Sid": "NonProductionDatabaseSizes",
+      "Effect": "Deny",
+      "Action": ["rds:CreateDBInstance", "rds:ModifyDBInstance"],
+      "Resource": "*",
+      "Condition": {
+        "StringNotLike": {
+          "rds:DatabaseClass": ["db.t4g.*", "db.m7g.large"]
+        }
+      }
+    },
+    {
+      "Sid": "NoSelfHostedModelEndpoints",
+      "Effect": "Deny",
+      "Action": ["sagemaker:CreateEndpoint", "sagemaker:CreateEndpointConfig"],
+      "Resource": "*"
+    }
+  ]
+}

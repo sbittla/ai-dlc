@@ -4,7 +4,9 @@
 
 The drivers come from Chapter 4's approved PRD (ESC-N01 to ESC-N10, decisions
 D1 to D9; labs/ch04/L4.1-brief-to-prd/data/prd-v1.md) plus six architecture
-constraints from Relay's canonical facts. Weights and scores are the
+constraints from Relay's canonical facts. Three options are scored: A (modular
+monolith with an asynchronous worker), B (microservices) and C (the monolith
+with triage as one separate service). Weights and scores are the
 architect's judgements (sam.o), each with a reason; the scoring tool only
 does the arithmetic. They are inputs, not findings.
 """
@@ -47,6 +49,9 @@ DRIVERS = {
     "scored_by": "sam.o",
     "scale": {"0": "cannot meet", "1": "meets only with high risk or effort",
               "2": "meets", "3": "meets with margin"},
+    "must_rule": ("A must driver is one of the PRD's prohibitions (who decides priority, who changes rules, where "
+                  "data goes, what is paid for) or CON-4. Thresholds the PRD marks for review after the pilot (D7, D8) "
+                  "are weighted, not musts."),
     "people": PEOPLE,
     "decisions": DECISIONS,
     "drivers": [
@@ -56,7 +61,7 @@ DRIVERS = {
         nfr("ESC-N03", "security", "Rule permissions enforced on the server; every change audited for 400 days",
             3, must=True),
         nfr("ESC-N04", "abuse", "At most 20 escalation emails per target per hour, across all rules", 2),
-        nfr("ESC-N05", "abuse", "Targets are workspace user IDs only", 1),
+        nfr("ESC-N05", "abuse", "Targets are workspace user IDs only", 1, must=True),
         nfr("ESC-N06", "abuse", "Owner and Admins emailed within 5 minutes of a P1 rule change", 2),
         nfr("ESC-N07", "privacy", "No task title, description or comments in emails or webhook events", 3,
             must=True),
@@ -64,7 +69,8 @@ DRIVERS = {
             note="Not architecture-significant: a property of the editor's interface, the same in every option."),
         nfr("ESC-N09", "operability", "95% of steps within 60 seconds; a stalled evaluator pages after 5 minutes",
             3),
-        nfr("ESC-N10", "cost", "$0 per notification beyond email and webhooks; no paid messaging service", 2),
+        nfr("ESC-N10", "cost", "$0 per notification beyond email and webhooks; no paid messaging service", 2,
+            must=True),
         con("CON-1", "Operable by Relay's eight engineers on one platform on-call rota", 3,
             "Chapter 1 (team of eight engineers); Lab 2.2 docs (on-call)"),
         con("CON-2", "Ships on the daily deploy train, every weekday at 15:00 UTC", 2,
@@ -146,8 +152,8 @@ OPTION_B = {
     "id": "B",
     "name": "Microservices with a message broker",
     "summary": ("Five services, each deployed and scaled on its own with its own database: an API gateway, "
-                "tasks, escalation, triage and notification. Services publish events to a managed message "
-                "broker."),
+                "tasks, escalation, triage and notification. Services publish events to a message broker that "
+                "the team runs itself."),
     "components": [
         comp("client", "Browsers, API clients and the support inbox", "external"),
         comp("gateway", "API gateway: authentication and rate limits", "process", "gateway"),
@@ -155,7 +161,7 @@ OPTION_B = {
         comp("escalation", "escalation-svc: rules and the evaluator", "process", "escalation-svc"),
         comp("triage", "triage-svc", "process", "triage-svc"),
         comp("notify", "notify-svc: email and webhooks", "process", "notify-svc"),
-        comp("broker", "Managed message broker", "broker"),
+        comp("broker", "Self-hosted message broker, run by the team", "broker"),
         comp("tasks-db", "tasks database", "datastore"),
         comp("escalation-db", "escalation database", "datastore"),
         comp("triage-db", "triage database", "datastore"),
@@ -205,8 +211,8 @@ OPTION_B = {
                        "retention must keep titles out of outbound messages."],
         "ESC-N09": [2, "Each service fails on its own, but a step needs seven components up to fire; more "
                        "dashboards to watch."],
-        "ESC-N10": [1, "Adds a managed broker to the services escalation calls, so ESC-AC31's list is no longer "
-                       "only email and webhooks."],
+        "ESC-N10": [1, "A self-hosted broker is not a paid messaging service, but it joins the services escalation "
+                       "calls, so ESC-AC31's list of only email and webhooks would need amending."],
         "CON-1": [1, "Five pipelines, four databases and a broker for one rota of eight; each service needs an "
                      "owner on call."],
         "CON-2": [1, "Five deploys a day on one train; a cross-service change needs versioned contracts and an "
@@ -214,7 +220,63 @@ OPTION_B = {
         "CON-3": [3, "The gateway is the natural single place for the limit."],
         "CON-4": [3, "The gateway hands tickets to triage-svc asynchronously; no request waits for the model."],
         "CON-5": [2, "notify-svc owns deliveries and retries; the same idempotency rule applies."],
-        "CON-6": [3, "triage-svc scales on its own."],
+        "CON-6": [3, "triage-svc scales on its own, without scaling the other four services."],
+    },
+}
+
+OPTION_C = {
+    "id": "C",
+    "name": "Modular monolith with a separate triage service",
+    "summary": ("Relay's service and its escalation worker stay one artifact with one database, as in Option A. "
+                "Triage moves into its own deployable service with its own database; Relay's service calls it over "
+                "the internal network to queue tickets and read suggestions."),
+    "components": [
+        comp("client", "Browsers, API clients and the support inbox", "external"),
+        comp("web", "relay.service: HTTP service", "process", "relay"),
+        comp("worker", "relay.worker: escalation evaluator", "process", "relay"),
+        comp("db", "Relay database: tasks, rules; tables owned by modules", "datastore"),
+        comp("triage", "triage-svc: queue, worker and model adapter", "process", "triage-svc"),
+        comp("triage-db", "triage database", "datastore"),
+        comp("model", "Triage model provider (hosted)", "external"),
+        comp("email", "Email delivery provider", "external"),
+        comp("hooks", "Customer webhook endpoints", "external"),
+    ],
+    "flows": [
+        flow("client", "web", "requests, bearer tokens, ticket text", "TB1"),
+        flow("web", "db", "task reads"),
+        flow("worker", "db", "step state"),
+        flow("web", "triage", "ticket text out; suggestions back", "TB5"),
+        flow("triage", "triage-db", "jobs and suggestions"),
+        flow("triage", "model", "ticket text out; suggested labels back", "TB2"),
+        flow("worker", "email", "escalation emails: link, priority, rule, step; never the title", "TB3"),
+        flow("worker", "hooks", "signed task.escalated events", "TB4"),
+    ],
+    "boundaries": {
+        "TB1": "Internet to the Relay service",
+        "TB2": "triage-svc to the model provider",
+        "TB3": "Relay to the email provider",
+        "TB4": "Relay to customer webhook endpoints",
+        "TB5": "Relay service to triage-svc on the internal network",
+    },
+    "step_path": ["worker", "db"],
+    "scores": {
+        "ESC-N01": [2, "Suggestions come back over an API, and Relay must store them as suggestions only: a rule kept "
+                       "at the boundary between two codebases, checked by a contract test rather than one module."],
+        "ESC-N03": [2, "Rules stay in the monolith with relay.roles and one audit table; triage-svc needs its own "
+                       "service authentication, but holds no rules."],
+        "ESC-N04": [3, "The flood cap stays in the monolith's one database, counted and sent in one transaction."],
+        "ESC-N05": [2, "Target validation lives in one module, as in Option A."],
+        "ESC-N06": [2, "A rule change and its notification are written in one transaction, as in Option A."],
+        "ESC-N07": [2, "Task titles stay in the monolith; only ticket text crosses TB5 to triage-svc."],
+        "ESC-N09": [2, "The step path is Option A's; triage-svc is one more service to watch."],
+        "ESC-N10": [2, "No broker; escalation calls only email and webhook delivery."],
+        "CON-1": [2, "Two deployables and two databases for one rota: workable, but triage-svc needs its own pipeline, "
+                     "dashboards and runbook."],
+        "CON-2": [2, "Two artifacts on the train; a change to the triage API needs both deployed in order."],
+        "CON-3": [2, "The limiter stays in Relay's service, as in Option A."],
+        "CON-4": [3, "Relay's service queues the ticket at triage-svc and returns 202; no request waits for the model."],
+        "CON-5": [2, "Webhook sends stay jobs with idempotency keys in the monolith."],
+        "CON-6": [3, "triage-svc scales on its own, without scaling the monolith."],
     },
 }
 
@@ -223,10 +285,23 @@ SCENARIO = {
     "description": ("Hypothetical, not a forecast: Relay has grown to five product teams of about eight engineers, "
                     "triage has its own team and on-call rota, and the company runs a shared identity service, a "
                     "shared rate-limit store and a platform team that operates the broker."),
+    "titles": {
+        "CON-1": "Operable by five product teams, each with its own on-call rota",
+        "CON-2": "Each team ships its own changes on the daily deploy train",
+        "CON-6": "Triage capacity can grow without growing the rest of Relay (triage now has its own team)",
+    },
     "weights": {"CON-6": 3, "CON-2": 3},
     "scores": {
-        "A": {"CON-1": 1, "CON-2": 1},
-        "B": {"CON-1": 3, "CON-2": 3, "ESC-N03": 2, "ESC-N04": 2, "ESC-N10": 2},
+        "A": {"CON-1": [1, "One artifact and one rota shared by five teams; every incident pages people who did not "
+                           "write the code."],
+              "CON-2": [1, "Five teams' changes queue for one artifact on one train."]},
+        "B": {"CON-1": [3, "Each team owns and runs its own services on its own rota."],
+              "CON-2": [3, "Each team deploys its own services independently, on its own schedule."],
+              "ESC-N03": [2, "The shared identity service checks permissions for every service."],
+              "ESC-N04": [2, "The shared rate-limit store holds the count across all rules."],
+              "ESC-N10": [2, "The platform team runs the broker as shared infrastructure, not a paid service."]},
+        "C": {"CON-1": [3, "The triage team runs triage-svc on its own rota; the rest stays one artifact."],
+              "CON-2": [3, "Triage deploys on its own; the monolith's teams share one artifact less often."]},
     },
 }
 
@@ -328,7 +403,8 @@ ROWS_A = [
      "Planned: ESC-AC15, written test-first in Chapter 8"),
     ("none", "E", "A compromised worker process reads or writes every table",
      "Module ownership enforced in code by fitness tests; one database role for both processes in 4.19.0",
-     "tests/test_architecture.py AR1-AR5; residual risk, owner sam.o: separate database roles (Chapter 11)"),
+     "Residual risk, owner sam.o: import rules do not constrain a compromised process; separate database roles "
+     "(Chapter 11)"),
 ]
 
 DIAGRAM_A_DRAFT = [
@@ -405,6 +481,50 @@ ROWS_B = [
 ]
 
 
+DIAGRAM_C = [
+    "flowchart LR",
+    '    C["Clients"] -- "TB1" --> W["relay.service"]',
+    "    subgraph R[\"Relay (one artifact)\"]",
+    '        W --> DB[("Relay database")]',
+    '        K["relay.worker"] --> DB',
+    "    end",
+    '    W -- "TB5" --> T["triage-svc"]',
+    '    T --> TD[("triage database")]',
+    '    T -- "TB2" --> M["Model provider"]',
+    '    K -- "TB3" --> E["Email provider"]',
+    '    K -- "TB4" --> H["Customer webhooks"]',
+]
+
+ROWS_C = [
+    ("TB1", "S", "A stolen or guessed token is used to read tasks",
+     "Only SHA-256 token hashes stored; unknown tokens get 401",
+     "relay-repo tests/test_service_app.py::test_v1_routes_need_a_known_token"),
+    ("TB1", "D", "One token floods the service", "600 requests per minute per token; 16 KB body cap",
+     "test_service_app.py::test_rate_limit_is_per_token_and_says_when_to_retry"),
+    ("TB1", "I", "Ticket text leaks through error messages", "Errors never echo the ticket",
+     "test_service_app.py::test_errors_do_not_echo_the_ticket"),
+    ("TB5", "S", "Another process on the internal network calls triage-svc as Relay",
+     "Service identity and mutual TLS between Relay and triage-svc", "None yet: workload identity (Chapter 14)"),
+    ("TB5", "I", "Ticket text is read in transit to triage-svc", "TLS on the internal network",
+     "None yet: option not built"),
+    ("TB5", "T", "triage-svc's answer is applied to a task", "Relay stores suggestions only (D3, ESC-N01)",
+     "None yet: a contract test at TB5"),
+    ("TB2", "T", "An injected ticket steers the suggested priority", "Suggestions only; a person confirms (D3)",
+     "None yet: triage-svc's own tests"),
+    ("TB2", "I", "Ticket text with customer data is sent to the model provider",
+     "Provider terms checked first (Chapter 2)", "Residual risk, owner aisha.r"),
+    ("TB2", "D", "The model is slow and triage-svc backs up", "Queue, timeouts and a person's queue in triage-svc",
+     "None yet: option not built"),
+    ("TB3", "I", "A task title leaves Relay in an email", "Emails carry the link, priority, rule and step only",
+     "Planned: ESC-AC27, written test-first in Chapter 8"),
+    ("TB4", "S", "Customers accept forged task.escalated events", "HMAC-SHA256 signature in X-Relay-Signature",
+     "Planned: ESC-AC15, written test-first in Chapter 8"),
+    ("none", "E", "A compromised escalation worker reads or writes every table in Relay's database",
+     "One database role for the monolith's two processes",
+     "Residual risk, owner sam.o: separate database roles (Chapter 11)"),
+]
+
+
 def write(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "w", encoding="utf-8", newline="\n") as fh:
@@ -419,12 +539,15 @@ def main() -> None:
     write(DATA / "drivers.json", dump(DRIVERS))
     write(DATA / "options" / "A-modular-monolith.json", dump(OPTION_A))
     write(DATA / "options" / "B-microservices.json", dump(OPTION_B))
+    write(DATA / "options" / "C-monolith-plus-triage-service.json", dump(OPTION_C))
     write(DATA / "scenarios" / "five-teams.json", dump(SCENARIO))
     write(DATA / "adr" / "ADR-007-draft.md", ADR_DRAFT)
     write(DATA / "threat-models" / "A-modular-monolith.md",
           threat_model(OPTION_A, "priya.n", "aisha.r", "2026-11-23", DIAGRAM_A, ROWS_A))
     write(DATA / "threat-models" / "B-microservices.md",
           threat_model(OPTION_B, "priya.n", "aisha.r", "2026-11-23", DIAGRAM_B, ROWS_B))
+    write(DATA / "threat-models" / "C-monolith-plus-triage-service.md",
+          threat_model(OPTION_C, "priya.n", "aisha.r", "2026-11-23", DIAGRAM_C, ROWS_C))
     write(DATA / "threat-models" / "A-draft.md",
           threat_model(OPTION_A, "relay-architect-agent", "", "2026-11-20", DIAGRAM_A_DRAFT, ROWS_A_DRAFT))
     print(f"wrote {DATA}")

@@ -51,6 +51,8 @@ def render(found: list[Drift], gaps: list[str], status: int) -> str:
 
 
 def main(argv: list[str] | None = None) -> int:
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")  # Windows consoles and redirects default to a legacy code page
     ap = argparse.ArgumentParser(prog="driftcheck.gate")
     ap.add_argument("repo", type=Path)
     status, found, gaps = check(ap.parse_args(argv).repo)

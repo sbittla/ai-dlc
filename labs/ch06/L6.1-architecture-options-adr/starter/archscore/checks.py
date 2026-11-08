@@ -25,6 +25,7 @@ CATALOGUE = {
     "ADR008": "No link to any PRD decision (D1-D9) or NFR (ESC-N01-N10)",
     "ADR009": "Decided by is not a named person on the team",
     "ADR010": "Superseded without Superseded by",
+    "ADR011": "Rejected alternative without a Revisit if condition",
     "TM001": "Trust boundary with no threat",
     "TM002": "Threat on a boundary the option does not have",
     "TM003": "STRIDE category not one of S, T, R, I, D, E",
@@ -50,7 +51,7 @@ class Finding:
 
 
 def check_adr(adr: ADR, catalogue: Catalogue) -> list[Finding]:
-    """TODO 4. Check one ADR against CATALOGUE codes ADR001-ADR010, in that order.
+    """TODO 4. Check one ADR against CATALOGUE codes ADR001-ADR011, in that order.
 
     - ADR001: one finding per missing or empty REQUIRED_FIELDS entry, in field order.
     - ADR002: Status present but not in STATUSES (compare in lower case).
@@ -65,6 +66,8 @@ def check_adr(adr: ADR, catalogue: Catalogue) -> list[Finding]:
     - ADR009: "Decided by" present but its first word (before any space or "(") is not in
       catalogue.people.
     - ADR010: status "superseded" and no "Superseded by" field.
+    - ADR011: a rejected alternative with no non-empty "Revisit if:" line (adr.revisit has
+      the letter mapped to "" or no entry), one per letter in order of appearance.
     The finding's `item` is the ADR's title up to the first " — " (for example "ADR-007").
     """
     raise NotImplementedError("TODO 4: check_adr")

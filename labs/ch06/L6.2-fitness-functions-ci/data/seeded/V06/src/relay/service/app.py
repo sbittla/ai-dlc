@@ -20,7 +20,9 @@ error pages through this layer.
 from __future__ import annotations
 
 import json
+import logging
 import re
+import sys
 import time
 from datetime import datetime, timezone
 from typing import Callable, Iterable
@@ -29,12 +31,14 @@ from .. import __version__
 from ..api import task_view
 from ..store import TaskStore
 from ..worker import IdempotencyConflict, TriageQueue, is_stalled
-from .directory import Directory
+from .directory import Directory, token_hash
 from .ratelimit import RateLimiter
 import httpx
 
 MAX_BODY_BYTES = 16_384
 MAX_TICKET_CHARS = 8_000
+MAX_JSON_DEPTH = 4
+LOG = logging.getLogger("relay.service")
 IDEMPOTENCY_KEY = re.compile(r"^[A-Za-z0-9_-]{8,64}$")
 TASK_PATH = re.compile(r"^/v1/projects/(\d+)/tasks/(\d+)$")
 JOB_PATH = re.compile(r"^/v1/triage-jobs/(\d+)$")
@@ -66,7 +70,8 @@ class RelayApp:
     def __call__(self, environ: dict, start_response) -> Iterable[bytes]:
         try:
             resp = self.handle(environ)
-        except Exception:  # noqa: BLE001 - the boundary must not leak tracebacks
+        except Exception:  # noqa: BLE001 - the boundary must not leak tracebacks to callers
+            LOG.exception("unhandled error on %s %s", environ.get("REQUEST_METHOD"), environ.get("PATH_INFO"))
             resp = error(500, "internal error")
         payload = json.dumps(resp.body, sort_keys=True).encode("utf-8")
         headers = [("Content-Type", "application/json"), ("Content-Length", str(len(payload)))]
@@ -83,10 +88,11 @@ class RelayApp:
         if not path.startswith("/v1/"):
             return error(404, "not found")
 
-        user = self.directory.authenticate(_bearer(environ))
+        token = _bearer(environ)
+        user = self.directory.authenticate(token)
         if user is None:
             return error(401, "missing or unknown token", **{"WWW-Authenticate": "Bearer"})
-        allowed, retry_after = self.limiter.check(str(user.id), now)
+        allowed, retry_after = self.limiter.check(token_hash(token), now)
         if not allowed:
             return error(429, "rate limit: 600 requests per minute per token", **{"Retry-After": str(retry_after)})
 
@@ -191,9 +197,19 @@ def _read_json(environ: dict) -> tuple[object, Response | None]:
         return None, error(413, f"body over {MAX_BODY_BYTES} bytes")
     raw = environ["wsgi.input"].read(length)
     try:
-        return json.loads(raw.decode("utf-8")), None
-    except (UnicodeDecodeError, json.JSONDecodeError):
+        value = json.loads(raw.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError, RecursionError):
         return None, error(400, "body is not valid JSON")
+    if _depth(value) > MAX_JSON_DEPTH:
+        return None, error(400, f"JSON nested deeper than {MAX_JSON_DEPTH} levels")
+    return value, None
+
+
+def _depth(value, level: int = 1) -> int:
+    if level > MAX_JSON_DEPTH:
+        return level
+    children = value.values() if isinstance(value, dict) else value if isinstance(value, list) else ()
+    return max((_depth(c, level + 1) for c in children), default=level)
 
 
 def _iso(ts: float) -> str:

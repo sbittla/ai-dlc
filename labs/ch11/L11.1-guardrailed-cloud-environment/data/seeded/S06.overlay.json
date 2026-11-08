@@ -1,0 +1,8 @@
+{
+ "format": "lab11.1-plan-overlay-v1",
+ "remove": [
+  "aws_budgets_budget.nonprod",
+  "aws_budgets_budget.account"
+ ],
+ "upsert": []
+}

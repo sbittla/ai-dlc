@@ -94,7 +94,8 @@ def check_tiers(tasks: TaskList) -> list[Finding]:
     - SP050 if its tier is not one of core.TIERS (T0-T4), including an empty tier.
     - otherwise SP051 if it reads untrusted input (untrusted == "yes") at a tier above
       core.UNTRUSTED_CAP (T2). The cap applies whatever the other answers are.
-    - otherwise SP052 if it is sensitive (sensitive == "yes") at T4.
+    - otherwise SP052 if it is sensitive (sensitive == "yes") at T4. A task list marks
+      irreversible work as sensitive too: Chapter 1 never allows T4 for either.
     Item: the task ID.
     """
     out = []

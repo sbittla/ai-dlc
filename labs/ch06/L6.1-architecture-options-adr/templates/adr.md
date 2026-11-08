@@ -2,7 +2,7 @@
 
 Status: proposed
 Date: YYYY-MM-DD
-Decided by: <a named person on the team, never an agent> (architect of record)
+Decided by: <a name from `people` in data/drivers.json, never an agent> (architect of record)
 Reviewed by: <names and roles>
 Links: <PRD decisions D1-D9, NFR IDs ESC-N01-N10 and constraints CON-1-CON-6 this decision serves>
 Revisit when: <the observable change that would reopen this decision, and a review date>
@@ -15,7 +15,10 @@ Format rules the checker enforces (python -m archscore.report adr ...):
 - The Decision section names the chosen option as "Option X".
 - Every other option appears under "Rejected alternatives" with a line
   "Rejected because: <a reason of at least 8 words>". "Too complex" is not a reason; say what it would cost.
+- Every rejected alternative also has a line "Revisit if: <the change that would reopen it>".
 - At least one link to a PRD decision or NFR; every link must exist.
+- "Decided by" must be a name in `people` in data/drivers.json. In the lab, write sam.o (the role your approver
+  plays) and name the real approver in your review record.
 An agent may draft this file (tier T1). The person in "Decided by" approves it through a required review.
 -->
 

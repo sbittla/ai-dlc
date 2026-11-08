@@ -1,0 +1,67 @@
+{
+ "format": "lab11.1-plan-overlay-v1",
+ "remove": [],
+ "upsert": [
+  {
+   "address": "aws_iam_role_policy.worker_task",
+   "resource_change": {
+    "address": "aws_iam_role_policy.worker_task",
+    "mode": "managed",
+    "type": "aws_iam_role_policy",
+    "name": "worker_task",
+    "provider_name": "registry.opentofu.org/hashicorp/aws",
+    "change": {
+     "actions": [
+      "create"
+     ],
+     "before": null,
+     "after": {
+      "name": "db-connect-and-model",
+      "policy": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":[\"rds-db:connect\"],\"Resource\":\"arn:aws:rds-db:us-east-1:111122223333:dbuser:*/relay_worker\"},{\"Effect\":\"Allow\",\"Action\":[\"bedrock:*\"],\"Resource\":\"*\"}]}"
+     },
+     "after_unknown": {
+      "role": true,
+      "id": true
+     },
+     "before_sensitive": false,
+     "after_sensitive": {}
+    }
+   },
+   "planned_value": {
+    "address": "aws_iam_role_policy.worker_task",
+    "mode": "managed",
+    "type": "aws_iam_role_policy",
+    "name": "worker_task",
+    "provider_name": "registry.opentofu.org/hashicorp/aws",
+    "schema_version": 0,
+    "values": {
+     "name": "db-connect-and-model",
+     "policy": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":[\"rds-db:connect\"],\"Resource\":\"arn:aws:rds-db:us-east-1:111122223333:dbuser:*/relay_worker\"},{\"Effect\":\"Allow\",\"Action\":[\"bedrock:*\"],\"Resource\":\"*\"}]}"
+    },
+    "sensitive_values": {}
+   },
+   "configuration": {
+    "address": "aws_iam_role_policy.worker_task",
+    "mode": "managed",
+    "type": "aws_iam_role_policy",
+    "name": "worker_task",
+    "provider_config_key": "aws",
+    "expressions": {
+     "name": {
+      "constant_value": "db-connect-and-model"
+     },
+     "role": {
+      "references": [
+       "aws_iam_role.worker_task.id",
+       "aws_iam_role.worker_task"
+      ]
+     },
+     "policy": {
+      "constant_value": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":[\"rds-db:connect\"],\"Resource\":\"arn:aws:rds-db:us-east-1:111122223333:dbuser:*/relay_worker\"},{\"Effect\":\"Allow\",\"Action\":[\"bedrock:*\"],\"Resource\":\"*\"}]}"
+     }
+    },
+    "schema_version": 0
+   }
+  }
+ ]
+}

@@ -1,0 +1,223 @@
+{
+ "format": "lab11.1-plan-overlay-v1",
+ "remove": [],
+ "upsert": [
+  {
+   "address": "aws_db_instance.relay",
+   "resource_change": {
+    "address": "aws_db_instance.relay",
+    "mode": "managed",
+    "type": "aws_db_instance",
+    "name": "relay",
+    "provider_name": "registry.opentofu.org/hashicorp/aws",
+    "change": {
+     "actions": [
+      "create"
+     ],
+     "before": null,
+     "after": {
+      "identifier": "relay-nonprod",
+      "engine": "postgres",
+      "engine_version": "16",
+      "instance_class": "db.t4g.small",
+      "allocated_storage": 20,
+      "max_allocated_storage": 100,
+      "storage_type": "gp3",
+      "storage_encrypted": true,
+      "db_name": "relay",
+      "username": "relay_admin",
+      "manage_master_user_password": true,
+      "iam_database_authentication_enabled": true,
+      "multi_az": true,
+      "publicly_accessible": true,
+      "vpc_security_group_ids": [
+       null
+      ],
+      "port": 5432,
+      "backup_retention_period": 7,
+      "backup_window": "03:00-04:00",
+      "copy_tags_to_snapshot": true,
+      "deletion_protection": true,
+      "skip_final_snapshot": false,
+      "final_snapshot_identifier": "relay-nonprod-final",
+      "auto_minor_version_upgrade": true,
+      "tags": null,
+      "tags_all": {
+       "app": "relay",
+       "env": "nonprod",
+       "owner": "sam.o",
+       "cost-center": "relay-eng",
+       "data-class": "Internal"
+      }
+     },
+     "after_unknown": {
+      "kms_key_id": true,
+      "master_user_secret_kms_key_id": true,
+      "db_subnet_group_name": true,
+      "parameter_group_name": true,
+      "vpc_security_group_ids": [
+       true
+      ],
+      "id": true,
+      "arn": true,
+      "address": true,
+      "endpoint": true,
+      "master_user_secret": true
+     },
+     "before_sensitive": false,
+     "after_sensitive": {}
+    }
+   },
+   "planned_value": {
+    "address": "aws_db_instance.relay",
+    "mode": "managed",
+    "type": "aws_db_instance",
+    "name": "relay",
+    "provider_name": "registry.opentofu.org/hashicorp/aws",
+    "schema_version": 0,
+    "values": {
+     "identifier": "relay-nonprod",
+     "engine": "postgres",
+     "engine_version": "16",
+     "instance_class": "db.t4g.small",
+     "allocated_storage": 20,
+     "max_allocated_storage": 100,
+     "storage_type": "gp3",
+     "storage_encrypted": true,
+     "db_name": "relay",
+     "username": "relay_admin",
+     "manage_master_user_password": true,
+     "iam_database_authentication_enabled": true,
+     "multi_az": true,
+     "publicly_accessible": true,
+     "vpc_security_group_ids": [
+      null
+     ],
+     "port": 5432,
+     "backup_retention_period": 7,
+     "backup_window": "03:00-04:00",
+     "copy_tags_to_snapshot": true,
+     "deletion_protection": true,
+     "skip_final_snapshot": false,
+     "final_snapshot_identifier": "relay-nonprod-final",
+     "auto_minor_version_upgrade": true,
+     "tags": null,
+     "tags_all": {
+      "app": "relay",
+      "env": "nonprod",
+      "owner": "sam.o",
+      "cost-center": "relay-eng",
+      "data-class": "Internal"
+     }
+    },
+    "sensitive_values": {}
+   },
+   "configuration": {
+    "address": "aws_db_instance.relay",
+    "mode": "managed",
+    "type": "aws_db_instance",
+    "name": "relay",
+    "provider_config_key": "aws",
+    "expressions": {
+     "identifier": {
+      "constant_value": "relay-nonprod"
+     },
+     "engine": {
+      "constant_value": "postgres"
+     },
+     "engine_version": {
+      "constant_value": "16"
+     },
+     "instance_class": {
+      "constant_value": "db.t4g.small"
+     },
+     "allocated_storage": {
+      "constant_value": 20
+     },
+     "max_allocated_storage": {
+      "constant_value": 100
+     },
+     "storage_type": {
+      "constant_value": "gp3"
+     },
+     "storage_encrypted": {
+      "constant_value": true
+     },
+     "kms_key_id": {
+      "references": [
+       "aws_kms_key.relay.arn",
+       "aws_kms_key.relay"
+      ]
+     },
+     "db_name": {
+      "constant_value": "relay"
+     },
+     "username": {
+      "constant_value": "relay_admin"
+     },
+     "manage_master_user_password": {
+      "constant_value": true
+     },
+     "master_user_secret_kms_key_id": {
+      "references": [
+       "aws_kms_key.relay.arn",
+       "aws_kms_key.relay"
+      ]
+     },
+     "iam_database_authentication_enabled": {
+      "constant_value": true
+     },
+     "multi_az": {
+      "constant_value": true
+     },
+     "publicly_accessible": {
+      "constant_value": true
+     },
+     "db_subnet_group_name": {
+      "references": [
+       "aws_db_subnet_group.relay.name",
+       "aws_db_subnet_group.relay"
+      ]
+     },
+     "parameter_group_name": {
+      "references": [
+       "aws_db_parameter_group.relay.name",
+       "aws_db_parameter_group.relay"
+      ]
+     },
+     "vpc_security_group_ids": {
+      "references": [
+       "aws_security_group.db.id",
+       "aws_security_group.db"
+      ]
+     },
+     "port": {
+      "constant_value": 5432
+     },
+     "backup_retention_period": {
+      "constant_value": 7
+     },
+     "backup_window": {
+      "constant_value": "03:00-04:00"
+     },
+     "copy_tags_to_snapshot": {
+      "constant_value": true
+     },
+     "deletion_protection": {
+      "constant_value": true
+     },
+     "skip_final_snapshot": {
+      "constant_value": false
+     },
+     "final_snapshot_identifier": {
+      "constant_value": "relay-nonprod-final"
+     },
+     "auto_minor_version_upgrade": {
+      "constant_value": true
+     }
+    },
+    "schema_version": 0
+   }
+  }
+ ]
+}

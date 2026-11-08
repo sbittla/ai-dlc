@@ -1,10 +1,12 @@
 """Relay's API rate limit: 600 requests per minute per token (Relay's docs).
 
-A fixed one-minute window per token, kept in process memory. That is exact
-for one service process and wrong for several, which would each allow 600:
-a known limit of this snapshot, recorded in ADR-007's consequences, and a
-reason the limit will move to shared storage when Relay runs more than one
-process (Chapter 11).
+A fixed one-minute window per token (keyed by the token's hash), kept in
+process memory. Known limits of this snapshot, recorded in ADR-007's
+consequences: it is exact for one service process and wrong for several,
+which would each allow 600; a fixed window allows a burst of up to twice the
+limit across a window edge; and requests with no valid token are not counted
+(they are refused with 401 before the limiter). The limit moves to shared
+storage before Relay runs more than one process (Chapter 11).
 """
 
 from __future__ import annotations

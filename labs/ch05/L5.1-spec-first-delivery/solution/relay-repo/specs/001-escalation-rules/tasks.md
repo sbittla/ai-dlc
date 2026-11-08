@@ -4,7 +4,7 @@ Spec: ESC-SPEC-1@1.0.0
 Planned by: sam.o
 Reviewed by: aisha.r (T04, T05, T08, T09)
 
-Each task is one pull request. Checks lists the criteria and security constraints the task's tests cover. Tiers follow Chapter 1, Table 1.6: a task whose agent reads untrusted input is capped at T2, and a sensitive task never runs at T4.
+Each task is one pull request. Checks lists the criteria and security constraints the task's tests cover. Tiers follow Chapter 1, Table 1.6: a task whose agent reads untrusted input is capped at T2, and a sensitive task never runs at T4. Sensitive means irreversible or sensitive in Chapter 1's sense (data deletion, customer messages, money, secrets, personal data or security controls).
 
 ### T01 — Slice types, statuses and error codes
 Checks: ESC-AC27
@@ -84,7 +84,7 @@ Risk: high
 Sensitive: yes
 Untrusted input: yes
 Tier: T2
-Why: The agent builds its fixture from Lab 2.1's injection ticket TK32, which is untrusted input, so the task is capped at T2 whatever the other answers.
+Why: The agent builds its fixture by reading Lab 2.1's injection ticket TK32, which is untrusted input, so the task is capped at T2 whatever the other answers.
 
 ### T09 — Documents for delivery carry no task content
 Checks: ESC-AC27, SEC-04, SEC-05

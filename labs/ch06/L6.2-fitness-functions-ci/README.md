@@ -106,7 +106,7 @@ Adapt `templates/fitness-job.yml` for Relay's workflow and say which branch-prot
 
 ## Sample of acceptable evidence (excerpt)
 
-> Relay 4.19.0 passes all six rules: 17 modules and 78 static imports. On the ten seeded cases the rules caught 7 of 9 violations, passed the control (a declared dependency with an accepted ADR) and raised no false alarms. V03 fired two rules: the worker importing the service broke FF003 and closed a cycle through `relay.worker`'s `__init__`. The two misses are structural. `importlib.import_module("relay.worker.queue")` is a string at run time, and `subprocess.run(["curl", ...])` reaches the network without importing a network module. Review covers the first; for the second, the worker's production sandbox will have no egress except to the model provider (Chapter 11). We kept V10's rule: a type-only import still couples the service to the queue's internals.
+> Relay 4.19.0 passes all six rules: 17 modules and 81 static imports. On the ten seeded cases the rules caught 7 of 9 violations, passed the control (a declared dependency with an accepted ADR) and raised no false alarms. V03 fired two rules: the worker importing the service broke FF003 and closed a cycle through `relay.worker`'s `__init__`. The two misses are structural. `importlib.import_module("relay.worker.queue")` is a string at run time, and `subprocess.run(["curl", ...])` reaches the network without importing a network module. Review covers the first; for the second, Chapter 11's egress rules limit where the worker's production environment can connect. We kept V10's rule: a type-only import still couples the service to the queue's internals.
 
 ## Troubleshooting
 

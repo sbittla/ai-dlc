@@ -71,6 +71,8 @@ def render(result: dict) -> str:
 
 
 def main(argv: list[str] | None = None) -> int:
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")  # Windows consoles and redirects default to a legacy code page
     ap = argparse.ArgumentParser(prog="speccheck.incident")
     ap.add_argument("--incident", type=Path, required=True)
     ap.add_argument("--contract", type=Path, required=True)

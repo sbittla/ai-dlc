@@ -22,11 +22,11 @@ EXPECTED = {
     "07-boundary-moved": ([], 0),
     "08-criterion-weakened": ([], 0),
 }
-SUITES = {"00-baseline": "59 passed", "01-unit-renamed-in-code": "11 failed, 48 passed",
-          "02-contract-field-added": "3 failed, 56 passed", "03-spec-bumped": "1 failed, 58 passed",
-          "04-status-added-in-code": "1 failed, 58 passed", "05-type-drift": "59 passed",
-          "06-unspecified-test": "60 passed", "07-boundary-moved": "3 failed, 56 passed",
-          "08-criterion-weakened": "59 passed"}
+SUITES = {"00-baseline": "64 passed", "01-unit-renamed-in-code": "12 failed, 52 passed",
+          "02-contract-field-added": "3 failed, 61 passed", "03-spec-bumped": "1 failed, 63 passed",
+          "04-status-added-in-code": "1 failed, 63 passed", "05-type-drift": "64 passed",
+          "06-unspecified-test": "65 passed", "07-boundary-moved": "3 failed, 61 passed",
+          "08-criterion-weakened": "64 passed"}
 
 
 @pytest.fixture(scope="module")
@@ -38,7 +38,7 @@ def test_baseline_facts():
     facts = extract(BASELINE)
     assert (facts.spec_version, facts.contract_version, facts.code_version) == ("1.0.0", "1.0.0", "1.0.0")
     assert len(facts.contract_fields) == len(facts.code_fields) == 20 and len(facts.criteria) == 12
-    assert sorted(facts.contract_enums) == ["ERROR_CODES", "PRIORITIES", "STATUSES"]
+    assert sorted(facts.contract_enums) == ["ERROR_CODES", "RULE_PRIORITIES", "STATUSES"]
     assert len(CHECKS) == 9 and [c for c, (blocks, _) in CHECKS.items() if not blocks] == ["DR031"]
 
 

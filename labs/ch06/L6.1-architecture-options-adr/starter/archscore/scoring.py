@@ -70,6 +70,29 @@ def weight_to_flip(leader: Option, runner_up: Option, drivers, lo: int = 0, hi: 
     raise NotImplementedError("TODO 3: weight_to_flip")
 
 
+def score_changes_to_flip(leader: Option, runner_up: Option, drivers) -> tuple[int, int]:
+    """(gap, n): the fewest one-point score changes that would make `runner_up` win. Provided.
+
+    A one-point change either raises one of the runner-up's scores or lowers one of the
+    leader's, on a driver with weight > 0, within 0..MAX_SCORE. Each is worth the driver's
+    weight; taking the heaviest first gives the fewest changes. n is None if no set of
+    changes is enough.
+    """
+    gap = weighted_score(leader, drivers).total - weighted_score(runner_up, drivers).total
+    steps = []
+    for d in drivers:
+        if d.weight <= 0:
+            continue
+        steps += [d.weight] * (MAX_SCORE - runner_up.scores[d.id].value)
+        steps += [d.weight] * leader.scores[d.id].value
+    gained = 0
+    for n, w in enumerate(sorted(steps, reverse=True), 1):
+        gained += w
+        if gained > gap:
+            return gap, n
+    return gap, None
+
+
 def head_to_head(a: Option, b: Option, drivers) -> dict[str, list[str]]:
     """Which significant drivers each option scores higher on, and the ties. Provided."""
     out: dict[str, list[str]] = {a.id: [], b.id: [], "equal": [], "not significant": []}

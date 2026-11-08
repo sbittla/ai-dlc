@@ -1,0 +1,33 @@
+{
+ "ResourceTagMappingList": [
+  {
+   "ResourceARN": "arn:aws:rds:us-east-1:111122223333:snapshot:relay-nonprod-final",
+   "Tags": [
+    {
+     "Key": "app",
+     "Value": "relay"
+    },
+    {
+     "Key": "env",
+     "Value": "nonprod"
+    },
+    {
+     "Key": "owner",
+     "Value": "sam.o"
+    },
+    {
+     "Key": "cost-center",
+     "Value": "relay-eng"
+    },
+    {
+     "Key": "data-class",
+     "Value": "Internal"
+    },
+    {
+     "Key": "expires",
+     "Value": "2027-01-04"
+    }
+   ]
+  }
+ ]
+}

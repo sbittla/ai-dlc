@@ -99,13 +99,16 @@ def load_options(paths) -> list[Option]:
 
 
 def apply_scenario(catalogue: Catalogue, options: list[Option], path: str | Path) -> tuple[Catalogue, list[Option], dict]:
-    """Return copies with the scenario's weights and scores substituted, and the scenario itself."""
+    """Return copies with the scenario's titles, weights and scores substituted, and the scenario itself.
+
+    A scenario score is [value, reason], like an option file's; a changed score needs a reason too.
+    """
     sc = json.loads(Path(path).read_text(encoding="utf-8"))
-    drivers = tuple(replace(d, weight=sc.get("weights", {}).get(d.id, d.weight)) for d in catalogue.drivers)
+    drivers = tuple(replace(d, weight=sc.get("weights", {}).get(d.id, d.weight),
+                            title=sc.get("titles", {}).get(d.id, d.title)) for d in catalogue.drivers)
     out = []
     for opt in options:
         changes = sc.get("scores", {}).get(opt.id, {})
-        scores = {k: (Score(changes[k], f"scenario {sc['name']}") if k in changes else v)
-                  for k, v in opt.scores.items()}
+        scores = {k: (Score(changes[k][0], changes[k][1]) if k in changes else v) for k, v in opt.scores.items()}
         out.append(replace(opt, scores=scores))
     return replace(catalogue, drivers=drivers), out, sc

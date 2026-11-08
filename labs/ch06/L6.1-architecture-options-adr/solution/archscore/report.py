@@ -12,6 +12,7 @@ With --gate, the exit status is 1 if any ADR or threat model has a finding.
 from __future__ import annotations
 
 import argparse
+import re
 import sys
 from pathlib import Path
 
@@ -19,7 +20,7 @@ from . import structure
 from .checks import CATALOGUE, check_adr, check_threat_model
 from .docs import load_adr, load_threat_model
 from .model import apply_scenario, load_catalogue, load_options
-from .scoring import head_to_head, rank, weight_to_flip, weighted_score
+from .scoring import head_to_head, rank, score_changes_to_flip, weight_to_flip, weighted_score
 
 PER_COMPONENT = 0.999
 
@@ -54,30 +55,33 @@ def render_scores(catalogue, options, details=False, scenario=None) -> str:
         dq = f"; disqualified on {', '.join(r.disqualified)}" if r.disqualified else ""
         lines.append(f"{n}. Option {r.option_id} — {by_id[r.option_id].name}: {r.total.total} of "
                      f"{r.total.maximum} ({r.total.percent:.1f}%), {r.deployables} deployable unit(s){dq}")
-    if len(ranked) >= 2:
-        lead, second = by_id[ranked[0].option_id], by_id[ranked[1].option_id]
-        gap = ranked[0].total.total - ranked[1].total.total
+    lead = by_id[ranked[0].option_id]
+    for rival_r in ranked[1:]:
+        second = by_id[rival_r.option_id]
+        gap = ranked[0].total.total - rival_r.total.total
         h2h = head_to_head(lead, second, drivers)
-        lines += ["", f"Gap: {gap} points. Option {lead.id} scores higher on {len(h2h[lead.id])} drivers, "
+        lines += ["", f"## Option {lead.id} against Option {second.id}", "",
+                  f"Gap: {gap} points. Option {lead.id} scores higher on {len(h2h[lead.id])} drivers, "
                   f"Option {second.id} on {len(h2h[second.id])} ({', '.join(h2h[second.id]) or 'none'}), "
                   f"equal on {len(h2h['equal'])} ({', '.join(h2h['equal']) or 'none'}).", ""]
         flips = weight_to_flip(lead, second, drivers)
         flipping = {k: v for k, v in flips.items() if v is not None}
-        lines.append("## Sensitivity: one weight at a time, 0 to 5")
-        lines.append("")
         if flipping:
             for k, v in flipping.items():
-                lines.append(f"- {k}: weight {v} would make Option {second.id} win")
+                lines.append(f"- Weights: {k} at {v} would make Option {second.id} win.")
         else:
-            lines.append(f"- No single weight from 0 to 5 makes Option {second.id} win.")
+            lines.append(f"- Weights: no single weight from 0 to 5 makes Option {second.id} win.")
         best = max((d for d in drivers if d.id in second.scores and d.id in lead.scores),
                    key=lambda d: second.scores[d.id].value - lead.scores[d.id].value)
         diff = second.scores[best.id].value - lead.scores[best.id].value
-        if diff > 0:
+        if diff > 0 and not flipping:
             need = gap // diff + 1
-            lines.append(f"- Nearest: {best.id}, where Option {second.id} leads by {diff}; its weight would have "
-                         f"to rise by {need}, from {best.weight} to {best.weight + need}.")
-        lines.append("")
+            lines.append(f"- Nearest weight: {best.id}, where Option {second.id} leads by {diff}; its weight would "
+                         f"have to rise by {need}, from {best.weight} to {best.weight + need}.")
+        _, n = score_changes_to_flip(lead, second, drivers)
+        lines.append(f"- Scores: at least {n} one-point score changes, heaviest drivers first, would make "
+                     f"Option {second.id} win." if n else f"- Scores: no score changes make Option {second.id} win.")
+    lines.append("")
 
     lines += ["## Structure (counted from each option's components and flows)", "",
               "| Measure | " + " | ".join(f"Option {o.id}" for o in options) + " |",
@@ -134,6 +138,32 @@ def render_findings(title: str, results: list[tuple[str, list]]) -> tuple[str, i
     return "\n".join(lines) + "\n", total
 
 
+def evidence_kind(evidence: str) -> str:
+    """Classify a threat's evidence cell: residual, planned, none yet, missing or test (provided)."""
+    e = evidence.strip().lower()
+    if not e:
+        return "missing"
+    for prefix, kind in (("residual", "residual risk"), ("planned", "planned test"), ("none yet", "none yet")):
+        if e.startswith(prefix):
+            return kind
+    return "test or check"
+
+
+KINDS = ("test or check", "planned test", "residual risk", "none yet", "missing")
+
+
+def render_evidence(models) -> str:
+    lines = ["## Evidence by kind", "", "| Document | Boundaries in diagram | Threats | " + " | ".join(KINDS) + " |",
+             "| --- | ---: | ---: | " + " | ".join("---:" for _ in KINDS) + " |"]
+    for name, tm in models:
+        counts = {k: 0 for k in KINDS}
+        for t in tm.threats:
+            counts[evidence_kind(t.evidence)] += 1
+        bounds = len(set(re.findall(r"TB\d+", tm.diagram)))
+        lines.append(f"| {name} | {bounds} | {len(tm.threats)} | " + " | ".join(str(counts[k]) for k in KINDS) + " |")
+    return "\n".join(lines) + "\n"
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="python -m archscore.report")
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -171,11 +201,13 @@ def main(argv: list[str] | None = None) -> int:
         text, total = render_findings("Decision records", results)
     else:
         options = {o.id: o for o in load_options(sorted(Path(args.options).glob("*.json")))}
-        results = []
+        results, models = [], []
         for p in args.models:
             tm = load_threat_model(p)
+            models.append((Path(p).name, tm))
             results.append((Path(p).name, check_threat_model(tm, options[tm.fields.get("Option", "")])))
         text, total = render_findings("Threat models", results)
+        text += render_evidence(models)
     sys.stdout.write(text)
     if args.gate:
         sys.stdout.write(f"gate: {'FAIL' if total else 'PASS'} ({total} finding(s))\n")

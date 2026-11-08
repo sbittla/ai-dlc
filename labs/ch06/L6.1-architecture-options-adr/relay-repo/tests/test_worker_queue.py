@@ -98,3 +98,30 @@ def test_queue_survives_a_restart(tmp_path):
     reopened = TriageQueue(db)
     assert reopened.counts()["queued"] == 1
     assert reopened.claim("w1", T0, 60).ticket_text == "durable"
+
+
+def test_a_stale_worker_cannot_fail_a_job_another_worker_reclaimed(q):
+    q.enqueue("ws-1", "key-0000000a", "only", T0)
+    job = q.claim("w1", T0, 60)
+    q.claim("w2", T0 + 61, 60)                                  # w1's lease expired; w2 holds the job
+    assert q.fail(job.id, "w1", "timeout", T0 + 62) is None      # w1's late failure is refused
+    after = q.get(job.id)
+    assert (after.status, after.lease_owner, after.attempts) == ("running", "w2", 2)
+
+
+def test_a_late_result_is_accepted_while_nobody_else_holds_the_job(q):
+    q.enqueue("ws-1", "key-0000000a", "only", T0)
+    job = q.claim("w1", T0, 60)
+    assert q.complete(job.id, "w1", {"suggestion": {}}, T0 + 90) is True   # expired, but not reclaimed
+
+
+def test_a_job_that_keeps_crashing_its_worker_reaches_a_person(q):
+    q.enqueue("ws-1", "key-0000000a", "poison", T0)
+    now = T0
+    for attempt in (1, 2, 3):
+        job = q.claim(f"w{attempt}", now, 60)
+        assert job.attempts == attempt                           # each worker dies holding the lease
+        now += 61
+    assert q.claim("w4", now, 60) is None                        # not claimed a fourth time
+    dead = q.get(job.id)
+    assert (dead.status, dead.last_error) == ("needs_human", "lease_expired")

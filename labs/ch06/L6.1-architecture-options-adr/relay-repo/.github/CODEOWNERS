@@ -4,3 +4,5 @@
 /.github/            @relay/platform-leads
 /governance/         @relay/platform-leads
 /src/relay/roles.py  @relay/security
+/docs/adr/          @relay/platform-leads
+/tests/test_architecture.py  @relay/platform-leads

@@ -3,8 +3,8 @@
 Spec: ESC-SPEC-1
 Spec version: 1.0.0
 
-At this slice's boundary (spec, section Behavior): a step "fires" or its targets
-"are notified" when evaluate() returns it in `fire`; a rule "saves" when
+At this slice's boundary (spec, section Behavior): a step "fires" when evaluate()
+returns it in `fire`; a rule "saves" when
 validate_rule() accepts it, and Relay "refuses" when it raises RuleRejected.
 """
 
@@ -14,7 +14,7 @@ import pytest
 from escalation_fixtures import (ADMIN, GUEST_ELSEWHERE, GUEST_INVITED, MEMBER, ROTTERDAM, SCHEMA, TASK, USERS,
                                  default_rule, minutes, p1_rule, p1_state)
 
-from relay.escalation import RuleRejected, evaluate, to_document, validate, validate_rule
+from relay.escalation import Rule, RuleRejected, Step, evaluate, to_document, validate, validate_rule
 from relay.escalation.model import EscalationState
 from relay.models import Task
 
@@ -74,6 +74,19 @@ def test_ESC_AC10_range_boundaries(delay, accepted):
         assert validate_rule(rule, ADMIN, ROTTERDAM, USERS) is rule
     else:
         assert refused(rule).code == "delay_out_of_range"
+
+
+# Spec B1: checks run in a stated order, so every implementation refuses a bad rule with the same code.
+def test_validation_raises_the_first_failure_in_step_order():
+    no_target_then_short = p1_rule((10, ()), (4, (ADMIN.id,)))
+    assert refused(no_target_then_short).code == "no_targets"
+    short_then_misnumbered = Rule("R-ROT-P1", ROTTERDAM.id, "P1", (Step(1, 4, (ADMIN.id,)), Step(3, 20, (ADMIN.id,))))
+    assert refused(short_then_misnumbered).code == "delay_out_of_range"
+
+
+def test_p2_rules_are_refused_until_business_hours_exist():
+    rule = Rule("R-ROT-P2", ROTTERDAM.id, "P2", (Step(1, 240, (ADMIN.id,)),))
+    assert refused(rule).code == "unsupported_priority"
 
 
 # ESC-R06, D9: acknowledgement cancels remaining steps.

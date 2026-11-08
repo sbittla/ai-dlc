@@ -150,10 +150,15 @@ def test_relay_repos_carry_the_data_spec_packages():
 def test_reference_suite_counts():
     proc = subprocess.run([sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider"], cwd=RELAY_REPO,
                           env=ENV, capture_output=True, text=True, timeout=180)
-    assert proc.stdout.strip().splitlines()[-1].startswith("59 passed")
+    assert proc.stdout.strip().splitlines()[-1].startswith("64 passed")
     proc = subprocess.run([sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider", "tests/escalation"],
                           cwd=RELAY_REPO, env=ENV, capture_output=True, text=True, timeout=180)
-    assert proc.stdout.strip().splitlines()[-1].startswith("30 passed")
+    assert proc.stdout.strip().splitlines()[-1].startswith("35 passed")
+    proc = subprocess.run([sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider", "--collect-only",
+                           "tests/escalation"], cwd=RELAY_REPO, env=ENV, capture_output=True, text=True, timeout=180)
+    modules = Counter(line.split("::")[0].split("/")[-1] for line in proc.stdout.splitlines() if "::" in line)
+    assert modules == {"test_escalation_acceptance.py": 19, "test_escalation_contract.py": 13,
+                       "test_escalation_policy.py": 3}
 
 
 def test_generator_reproduces_data_byte_for_byte(tmp_path):

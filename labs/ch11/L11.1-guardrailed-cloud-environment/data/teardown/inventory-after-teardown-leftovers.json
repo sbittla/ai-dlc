@@ -1,0 +1,51 @@
+{
+ "ResourceTagMappingList": [
+  {
+   "ResourceARN": "arn:aws:rds:us-east-1:111122223333:snapshot:relay-nonprod-final",
+   "Tags": [
+    {
+     "Key": "app",
+     "Value": "relay"
+    },
+    {
+     "Key": "env",
+     "Value": "nonprod"
+    },
+    {
+     "Key": "owner",
+     "Value": "sam.o"
+    },
+    {
+     "Key": "cost-center",
+     "Value": "relay-eng"
+    }
+   ]
+  },
+  {
+   "ResourceARN": "arn:aws:ec2:us-east-1:111122223333:volume/vol-0handmade00000001",
+   "Tags": [
+    {
+     "Key": "env",
+     "Value": "nonprod"
+    },
+    {
+     "Key": "owner",
+     "Value": "priya.n"
+    }
+   ]
+  },
+  {
+   "ResourceARN": "arn:aws:ec2:us-east-1:111122223333:elastic-ip/eipalloc-0handmade0000002",
+   "Tags": [
+    {
+     "Key": "app",
+     "Value": "relay"
+    },
+    {
+     "Key": "env",
+     "Value": "nonprod"
+    }
+   ]
+  }
+ ]
+}

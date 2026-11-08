@@ -24,7 +24,7 @@ Relay release: 4.18.0
 - Storing rules or escalation state. Callers pass both in; Chapter 8 adds storage.
 - Sending email or webhook events, and explaining escalations (ESC-R09 to ESC-R11). The evaluator decides; delivery is a later stage.
 - Recording acknowledgement (ESC-R02). The evaluator reads `acknowledged_at`; it never sets it.
-- Business hours for P2 rules (ESC-R07). Two PRD open questions, daylight-saving changes and weekends, are unresolved.
+- Business hours for P2 rules (ESC-R07). Two PRD open questions, daylight-saving changes and weekends, are unresolved. Until Chapter 8 adds them, `validate_rule` refuses rules for any priority but P1.
 - The flood cap (ESC-N04), the audit log (ESC-N03), calibration (ESC-N02), the rule editor's accessibility (ESC-N08) and operability measures (ESC-N09).
 - An HTTP endpoint. Chapter 6 adds Relay's service; its handlers will call this slice and use this contract.
 
@@ -44,12 +44,19 @@ Relay release: 4.18.0
 
 Requirements: ESC-R03, ESC-R05, ESC-R08, ESC-N05, ESC-N06
 
-`validate_rule(rule, editor, project, users)` returns the rule unchanged if Relay may save it, and raises `RuleRejected` otherwise. It is a pure function: it reads nothing but its arguments and changes nothing. Checks run in the order of the table, and the first failure is raised.
+`validate_rule(rule, editor, project, users)` returns the rule unchanged if Relay may save it, and raises `RuleRejected` otherwise. It is a pure function: it reads nothing but its arguments and changes nothing. Checks run in this order, and the first failure is raised:
+
+1. The editor (`not_rule_editor`).
+2. The priority (`unsupported_priority`).
+3. At least one step (`no_steps`).
+4. Each step in turn, all of step 1 before any of step 2: (a) its number (`steps_not_numbered`); (b) its delay's range (`delay_out_of_range`); (c) its delay against the previous step's (`delays_not_increasing`); (d) at least one target (`no_targets`); (e) each target in turn (`target_not_user`, `target_not_in_workspace`, `target_cannot_view_project`).
+
+So a rule whose step 1 has no targets and whose step 2 has a 4-minute delay is refused with `no_targets`.
 
 | Code | When | Criterion |
 | --- | --- | --- |
 | `not_rule_editor` | The editor is not an Owner or Admin (D2) | ESC-AC06 |
-| `unsupported_priority` | The rule's priority is not P1, P2, P3 or P4 | – |
+| `unsupported_priority` | The rule's priority is not P1; P2 rules need business hours (ESC-R07), which this release does not have | – |
 | `no_steps` | The rule has no steps | – |
 | `steps_not_numbered` | Steps are not numbered 1, 2, ... in order | – |
 | `delay_out_of_range` | A delay is not a whole number of minutes from 5 to 240; the message names the range (D1) | ESC-AC10 |
@@ -74,7 +81,7 @@ Requirements: ESC-R01, ESC-R04, ESC-R06, ESC-N01, ESC-N07
 
 ### Terms at this boundary
 
-The PRD's criteria describe the whole feature. In this slice: a step **fires**, and its targets **are notified**, when `evaluate` returns it in `fire`. A rule **saves** when `validate_rule` accepts it, and Relay **refuses** when `validate_rule` raises `RuleRejected`. Criteria that need more than this, such as a display or a delivered email, are marked `partial` below, with the deferred part named.
+The PRD's criteria describe the whole feature. In this slice: a step **fires** when `evaluate` returns it in `fire`. A rule **saves** when `validate_rule` accepts it, and Relay **refuses** when `validate_rule` raises `RuleRejected`; because `validate_rule` is pure, a refused rule is **unchanged**. Notifying targets is delivery, which is not in this slice. Criteria that need more than these terms, such as a notification, a display or an audit entry, are marked `partial` below, with the deferred part named.
 
 ## Non-functional requirements
 
@@ -91,7 +98,7 @@ The PRD's criteria describe the whole feature. In this slice: a step **fires**, 
 Contract: contracts/escalation-rules.schema.json
 Outbound: Evaluation, StepDecision
 
-The contract is a JSON Schema (2020-12) with five definitions: `Rule` and `Step` (documents in), `Evaluation` and `StepDecision` (documents out, for delivery), and `Rejection` (refusals, shown to the editor inside Relay). Its `x-spec-version` must equal this spec's version. Relay validates documents with `relay.escalation.validate`, which implements only the keywords the contract uses and refuses any other.
+The contract is a JSON Schema (2020-12) with five definitions: `Rule` and `Step` (documents in), `Evaluation` and `StepDecision` (documents out, for delivery), and `Rejection` (refusals, shown to the editor inside Relay). Its `x-spec-version` must equal this spec's version. In this version `Rule.priority` allows only P1, matching B1; accepting P2 rules later widens it, a MINOR change. Relay validates documents with `relay.escalation.validate`, which implements only the keywords the contract uses and refuses any other.
 
 ## Data rules
 
@@ -147,9 +154,9 @@ Checks: ESC-AC27, test_SEC04
 Statement: Every field of `Evaluation` and `StepDecision` must be classified Internal or Public in the data rules. Delivery builds email and webhook payloads from these documents, so task titles, descriptions, comments, names and addresses must not be in them.
 
 ### SEC-05 — The slice reaches nothing outside the process
-Source: ESC-N10
+Source: ESC-N10 (refined)
 Checks: test_SEC05
-Statement: The escalation package must import only the standard-library modules its policy test allows, and must not open files, run code from strings or call services.
+Statement: This constraint refines ESC-N10, which forbids paid services, into a rule a test can check, and the refinement is approved here by the security reviewer. The escalation package must import only the standard-library modules its policy test allows, and must not open files, run code from strings or call services.
 
 ## Acceptance criteria
 

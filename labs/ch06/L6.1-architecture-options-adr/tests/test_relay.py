@@ -34,7 +34,7 @@ def test_relay_suite_passes():
     out = subprocess.run([sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider"], cwd=RELAY,
                          capture_output=True, text=True, timeout=300, env=env)
     assert out.returncode == 0, out.stdout[-2000:]
-    assert re.search(r"\b79 passed\b", out.stdout), out.stdout[-500:]
+    assert re.search(r"\b88 passed\b", out.stdout), out.stdout[-500:]
 
 
 def test_relay_lint_passes():

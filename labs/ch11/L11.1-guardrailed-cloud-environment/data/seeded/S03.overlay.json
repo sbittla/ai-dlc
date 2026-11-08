@@ -1,0 +1,7 @@
+{
+ "format": "lab11.1-plan-overlay-v1",
+ "remove": [
+  "aws_s3_bucket_server_side_encryption_configuration.flow_logs"
+ ],
+ "upsert": []
+}

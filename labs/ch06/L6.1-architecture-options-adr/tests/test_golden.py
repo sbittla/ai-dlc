@@ -11,12 +11,13 @@ from archscore import report, structure
 from archscore.checks import check_adr, check_threat_model
 from archscore.docs import load_adr, load_threat_model
 from archscore.model import apply_scenario, load_catalogue, load_options
-from archscore.scoring import head_to_head, rank, weight_to_flip, weighted_score
+from archscore.scoring import head_to_head, rank, score_changes_to_flip, weight_to_flip, weighted_score
 
 CAT = load_catalogue(DATA_DIR / "drivers.json")
-OPTION_FILES = [DATA_DIR / "options" / "A-modular-monolith.json", DATA_DIR / "options" / "B-microservices.json"]
+OPTION_FILES = [DATA_DIR / "options" / "A-modular-monolith.json", DATA_DIR / "options" / "B-microservices.json",
+                DATA_DIR / "options" / "C-monolith-plus-triage-service.json"]
 OPTIONS = load_options(OPTION_FILES)
-A, B = OPTIONS
+A, B, C = OPTIONS
 ADR_DIR = RELAY / "docs" / "adr"
 ADR_007 = ADR_DIR / "ADR-007-modular-monolith-async-triage.md"
 
@@ -27,56 +28,82 @@ def test_catalogue_has_the_prd_nfrs_and_six_constraints():
     assert ids[10:] == [f"CON-{n}" for n in range(1, 7)]
     assert sorted(CAT.decisions) == [f"D{n}" for n in range(1, 10)]
     assert [d.id for d in CAT.drivers if d.weight == 0] == ["ESC-N02", "ESC-N08"]
-    assert [d.id for d in CAT.drivers if d.must] == ["ESC-N01", "ESC-N03", "ESC-N07", "CON-4"]
+    assert [d.id for d in CAT.drivers if d.must] == ["ESC-N01", "ESC-N03", "ESC-N05", "ESC-N07", "ESC-N10", "CON-4"]
+    assert sum(d.weight for d in CAT.drivers) == 31
+
+
+def test_every_score_has_a_reason():
+    for o in OPTIONS:
+        assert all(len(s.why.split()) >= 8 for s in o.scores.values()), o.id
 
 
 def test_weighted_totals():
-    assert (weighted_score(A, CAT.drivers).total, weighted_score(A, CAT.drivers).maximum) == (75, 93)
-    assert weighted_score(B, CAT.drivers).total == 52
-    assert (weighted_score(A, CAT.drivers).percent, weighted_score(B, CAT.drivers).percent) == (80.6, 55.9)
+    totals = {o.id: weighted_score(o, CAT.drivers) for o in OPTIONS}
+    assert {k: (v.total, v.maximum, v.percent) for k, v in totals.items()} == {
+        "A": (75, 93, 80.6), "B": (52, 93, 55.9), "C": (68, 93, 73.1)}
 
 
 def test_ranking_and_head_to_head():
-    assert [r.option_id for r in rank(OPTIONS, CAT.drivers)] == ["A", "B"]
+    assert [r.option_id for r in rank(OPTIONS, CAT.drivers)] == ["A", "C", "B"]
     h = head_to_head(A, B, CAT.drivers)
     assert (len(h["A"]), h["B"], len(h["equal"])) == (7, ["CON-3", "CON-6"], 5)
+    h = head_to_head(A, C, CAT.drivers)
+    assert (len(h["A"]), h["C"], len(h["equal"])) == (3, ["CON-6"], 10)
 
 
-def test_no_single_weight_flips_the_ranking():
+def test_sensitivity_weights_and_scores():
     assert set(weight_to_flip(A, B, CAT.drivers).values()) == {None}
+    assert set(weight_to_flip(A, C, CAT.drivers).values()) == {None}
+    assert score_changes_to_flip(A, C, CAT.drivers) == (7, 3)
+    assert score_changes_to_flip(A, B, CAT.drivers) == (23, 8)
 
 
 def test_structure():
-    ma, mb = structure.metrics(A), structure.metrics(B)
-    assert (ma["deployable units"], mb["deployable units"]) == (1, 5)
-    assert (ma["process types"], mb["process types"]) == (2, 5)
-    assert (ma["databases"], mb["databases"], mb["message brokers"]) == (1, 4, 1)
-    assert (ma["trust boundaries"], mb["trust boundaries"]) == (4, 6)
-    assert (ma["flows crossing a boundary"], mb["flows crossing a boundary"]) == (4, 12)
-    assert (ma["components a step needs"], mb["components a step needs"]) == (2, 7)
+    ma, mb, mc = (structure.metrics(o) for o in OPTIONS)
+    assert (ma["deployable units"], mb["deployable units"], mc["deployable units"]) == (1, 5, 2)
+    assert (ma["process types"], mb["process types"], mc["process types"]) == (2, 5, 3)
+    assert (ma["databases"], mb["databases"], mc["databases"], mb["message brokers"]) == (1, 4, 2, 1)
+    assert (ma["trust boundaries"], mb["trust boundaries"], mc["trust boundaries"]) == (4, 6, 5)
+    assert (ma["flows crossing a boundary"], mb["flows crossing a boundary"], mc["flows crossing a boundary"]) == (4, 12, 5)
+    assert (ma["components a step needs"], mb["components a step needs"], mc["components a step needs"]) == (2, 7, 2)
     assert round(ma["step path down, minutes per 30 days"], 1) == 86.4
     assert round(mb["step path down, minutes per 30 days"], 1) == 301.5
 
 
-def test_scenario_five_teams_reverses_the_ranking():
-    cat, opts, _ = apply_scenario(CAT, OPTIONS, DATA_DIR / "scenarios" / "five-teams.json")
-    a, b = opts
-    assert (weighted_score(a, cat.drivers).total, weighted_score(b, cat.drivers).total) == (70, 78)
-    assert weighted_score(a, cat.drivers).maximum == 102
-    assert [r.option_id for r in rank(opts, cat.drivers)] == ["B", "A"]
+def test_scenario_five_teams():
+    cat, opts, sc = apply_scenario(CAT, OPTIONS, DATA_DIR / "scenarios" / "five-teams.json")
+    totals = {o.id: weighted_score(o, cat.drivers).total for o in opts}
+    assert totals == {"A": 70, "B": 78, "C": 82}
+    assert weighted_score(opts[0], cat.drivers).maximum == 102
+    assert [r.option_id for r in rank(opts, cat.drivers)] == ["C", "B", "A"]
+    assert next(d.title for d in cat.drivers if d.id == "CON-1").startswith("Operable by five product teams")
+    for changes in sc["scores"].values():
+        assert all(len(v[1].split()) >= 8 for v in changes.values())
 
 
 def test_score_report_prints_the_chapter_numbers():
     text = report.render_scores(CAT, OPTIONS)
-    for line in ("| **Weighted total** | | | | **75 of 93 (80.6%)** | **52 of 93 (55.9%)** |",
+    for line in ("| **Weighted total** | | | | **75 of 93 (80.6%)** | **52 of 93 (55.9%)** | **68 of 93 (73.1%)** |",
+                 "Gap: 7 points. Option A scores higher on 3 drivers, Option C on 1 (CON-6), equal on 10",
                  "Gap: 23 points. Option A scores higher on 7 drivers, Option B on 2 (CON-3, CON-6), equal on 5",
-                 "- No single weight from 0 to 5 makes Option B win.",
-                 "- Nearest: CON-3, where Option B leads by 1; its weight would have to rise by 24, from 1 to 25.",
-                 "| deployable units | 1 | 5 |", "| process types | 2 | 5 |", "| databases | 1 | 4 |", "| trust boundaries | 4 | 6 |",
-                 "| flows crossing a boundary | 4 | 12 |", "| components a step needs | 2 | 7 |",
-                 "| step-path availability | 99.80% | 99.30% |",
-                 "| step path down, minutes per 30 days | 86.4 | 301.5 |"):
+                 "- Weights: no single weight from 0 to 5 makes Option B win.",
+                 "- Weights: no single weight from 0 to 5 makes Option C win.",
+                 "- Nearest weight: CON-3, where Option B leads by 1; its weight would have to rise by 24, from 1 to 25.",
+                 "- Nearest weight: CON-6, where Option C leads by 1; its weight would have to rise by 8, from 1 to 9.",
+                 "- Scores: at least 3 one-point score changes, heaviest drivers first, would make Option C win.",
+                 "- Scores: at least 8 one-point score changes, heaviest drivers first, would make Option B win.",
+                 "| deployable units | 1 | 5 | 2 |", "| process types | 2 | 5 | 3 |", "| databases | 1 | 4 | 2 |",
+                 "| trust boundaries | 4 | 6 | 5 |", "| flows crossing a boundary | 4 | 12 | 5 |",
+                 "| components a step needs | 2 | 7 | 2 |", "| step-path availability | 99.80% | 99.30% | 99.80% |",
+                 "| step path down, minutes per 30 days | 86.4 | 301.5 | 86.4 |"):
         assert line in text, line
+
+
+def test_scenario_report_prints_the_chapter_numbers():
+    cat, opts, sc = apply_scenario(CAT, OPTIONS, DATA_DIR / "scenarios" / "five-teams.json")
+    text = report.render_scores(cat, opts, scenario=sc)
+    assert "| **Weighted total** | | | | **70 of 102 (68.6%)** | **78 of 102 (76.5%)** | **82 of 102 (80.4%)** |" in text
+    assert "- Scores: at least 2 one-point score changes, heaviest drivers first, would make Option B win." in text
 
 
 def test_availability_explain_prints_equation_6_1():
@@ -86,9 +113,10 @@ def test_availability_explain_prints_equation_6_1():
     assert "- One component at 99.9%: down 43.2 minutes per 30 days" in text
 
 
-def test_the_agent_draft_adr_has_six_findings():
+def test_the_agent_draft_adr_has_seven_findings():
     found = check_adr(load_adr(DATA_DIR / "adr" / "ADR-007-draft.md"), CAT)
-    assert Counter(f.code for f in found) == {"ADR001": 1, "ADR003": 1, "ADR006": 1, "ADR007": 2, "ADR009": 1}
+    assert Counter(f.code for f in found) == {"ADR001": 1, "ADR003": 1, "ADR006": 1, "ADR007": 2, "ADR009": 1,
+                                              "ADR011": 1}
 
 
 def test_relay_adrs_pass_the_checker():
@@ -96,13 +124,15 @@ def test_relay_adrs_pass_the_checker():
         assert check_adr(load_adr(path), CAT) == [], path.name
 
 
-def test_adr_007_quotes_the_tool_and_lists_three_rejected_alternatives():
+def test_adr_007_quotes_the_tool_and_lists_four_rejected_alternatives():
     adr = load_adr(ADR_007)
-    assert adr.options == ["A", "B", "C", "D"] and sorted(adr.rejected) == ["B", "C", "D"]
+    assert adr.options == ["A", "B", "C", "D", "E"] and sorted(adr.rejected) == ["B", "C", "D", "E"]
+    assert sorted(adr.revisit) == ["B", "C", "D", "E"]
     assert {"D3", "D5", "D7", "D8", "D9"} <= set(adr.links)
-    text = ADR_007.read_text(encoding="utf-8")
-    for quoted in ("75 of 93", "52 of 93", "No single weight from 0 to 5", "2\ninternal components",
-                   "7 in Option B", "86.4 against 301.5", "4.12 s"):
+    text = " ".join(ADR_007.read_text(encoding="utf-8").split())
+    for quoted in ("75 of 93", "Option C 68", "Option B 52", "at least 3 one-point score changes", "at least 8 would",
+                   "No single weight from 0 to 5", "2 internal components in Options A and C and 7 in Option B",
+                   "86.4 against 301.5", "4.12 s"):
         assert quoted in text, quoted
 
 
@@ -110,13 +140,17 @@ def test_threat_models():
     opts = {o.id: o for o in OPTIONS}
     tms = {p.stem: load_threat_model(p) for p in sorted((DATA_DIR / "threat-models").glob("*.md"))}
     assert {k: len(v.threats) for k, v in tms.items()} == {
-        "A-draft": 4, "A-modular-monolith": 13, "B-microservices": 14}
-    assert check_threat_model(tms["A-modular-monolith"], opts["A"]) == []
-    assert check_threat_model(tms["B-microservices"], opts["B"]) == []
+        "A-draft": 4, "A-modular-monolith": 13, "B-microservices": 14, "C-monolith-plus-triage-service": 12}
+    for name, oid in (("A-modular-monolith", "A"), ("B-microservices", "B"), ("C-monolith-plus-triage-service", "C")):
+        assert check_threat_model(tms[name], opts[oid]) == [], name
     draft = check_threat_model(tms["A-draft"], opts["A"])
     assert [f.code for f in draft] == ["TM001", "TM005", "TM006", "TM007"]
-    no_evidence_yet = sum(t.evidence.startswith("None yet") for t in tms["B-microservices"].threats)
-    assert no_evidence_yet == 13
+    text = report.render_evidence([(k + ".md", v) for k, v in tms.items()])
+    for row in ("| A-draft.md | 3 | 4 | 1 | 2 | 0 | 0 | 1 |",
+                "| A-modular-monolith.md | 4 | 13 | 8 | 2 | 3 | 0 | 0 |",
+                "| B-microservices.md | 6 | 14 | 0 | 0 | 1 | 13 | 0 |",
+                "| C-monolith-plus-triage-service.md | 5 | 12 | 3 | 2 | 2 | 5 | 0 |"):
+        assert row in text, row
 
 
 def test_gate_exit_codes():

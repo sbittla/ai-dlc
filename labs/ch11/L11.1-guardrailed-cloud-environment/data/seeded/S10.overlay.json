@@ -1,0 +1,199 @@
+{
+ "format": "lab11.1-plan-overlay-v1",
+ "remove": [],
+ "upsert": [
+  {
+   "address": "aws_ecs_service.service",
+   "resource_change": {
+    "address": "aws_ecs_service.service",
+    "mode": "managed",
+    "type": "aws_ecs_service",
+    "name": "service",
+    "provider_name": "registry.opentofu.org/hashicorp/aws",
+    "change": {
+     "actions": [
+      "create"
+     ],
+     "before": null,
+     "after": {
+      "name": "relay-nonprod-service",
+      "desired_count": 2,
+      "launch_type": "FARGATE",
+      "enable_execute_command": false,
+      "propagate_tags": "SERVICE",
+      "network_configuration": [
+       {
+        "subnets": [
+         null,
+         null
+        ],
+        "security_groups": [
+         null,
+         null
+        ],
+        "assign_public_ip": true
+       }
+      ],
+      "load_balancer": [
+       {
+        "container_name": "relay-service",
+        "container_port": 8080
+       }
+      ],
+      "tags": null,
+      "tags_all": {
+       "app": "relay",
+       "env": "nonprod",
+       "owner": "sam.o",
+       "cost-center": "relay-eng",
+       "data-class": "Internal"
+      }
+     },
+     "after_unknown": {
+      "cluster": true,
+      "task_definition": true,
+      "network_configuration": [
+       {
+        "subnets": [
+         true,
+         true
+        ],
+        "security_groups": [
+         true,
+         true
+        ]
+       }
+      ],
+      "load_balancer": [
+       {
+        "target_group_arn": true
+       }
+      ],
+      "id": true
+     },
+     "before_sensitive": false,
+     "after_sensitive": {}
+    }
+   },
+   "planned_value": {
+    "address": "aws_ecs_service.service",
+    "mode": "managed",
+    "type": "aws_ecs_service",
+    "name": "service",
+    "provider_name": "registry.opentofu.org/hashicorp/aws",
+    "schema_version": 0,
+    "values": {
+     "name": "relay-nonprod-service",
+     "desired_count": 2,
+     "launch_type": "FARGATE",
+     "enable_execute_command": false,
+     "propagate_tags": "SERVICE",
+     "network_configuration": [
+      {
+       "subnets": [
+        null,
+        null
+       ],
+       "security_groups": [
+        null,
+        null
+       ],
+       "assign_public_ip": true
+      }
+     ],
+     "load_balancer": [
+      {
+       "container_name": "relay-service",
+       "container_port": 8080
+      }
+     ],
+     "tags": null,
+     "tags_all": {
+      "app": "relay",
+      "env": "nonprod",
+      "owner": "sam.o",
+      "cost-center": "relay-eng",
+      "data-class": "Internal"
+     }
+    },
+    "sensitive_values": {}
+   },
+   "configuration": {
+    "address": "aws_ecs_service.service",
+    "mode": "managed",
+    "type": "aws_ecs_service",
+    "name": "service",
+    "provider_config_key": "aws",
+    "expressions": {
+     "name": {
+      "constant_value": "relay-nonprod-service"
+     },
+     "cluster": {
+      "references": [
+       "aws_ecs_cluster.relay.id",
+       "aws_ecs_cluster.relay"
+      ]
+     },
+     "task_definition": {
+      "references": [
+       "aws_ecs_task_definition.service.arn",
+       "aws_ecs_task_definition.service"
+      ]
+     },
+     "desired_count": {
+      "constant_value": 2
+     },
+     "launch_type": {
+      "constant_value": "FARGATE"
+     },
+     "enable_execute_command": {
+      "constant_value": false
+     },
+     "propagate_tags": {
+      "constant_value": "SERVICE"
+     },
+     "network_configuration": [
+      {
+       "subnets": {
+        "references": [
+         "aws_subnet.app_a.id",
+         "aws_subnet.app_a",
+         "aws_subnet.app_b.id",
+         "aws_subnet.app_b"
+        ]
+       },
+       "security_groups": {
+        "references": [
+         "aws_security_group.service.id",
+         "aws_security_group.service",
+         "aws_security_group.tasks.id",
+         "aws_security_group.tasks"
+        ]
+       },
+       "assign_public_ip": {
+        "constant_value": true
+       }
+      }
+     ],
+     "load_balancer": [
+      {
+       "target_group_arn": {
+        "references": [
+         "aws_lb_target_group.service.arn",
+         "aws_lb_target_group.service"
+        ]
+       },
+       "container_name": {
+        "constant_value": "relay-service"
+       },
+       "container_port": {
+        "constant_value": 8080
+       }
+      }
+     ]
+    },
+    "schema_version": 0
+   }
+  }
+ ]
+}

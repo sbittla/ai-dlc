@@ -17,6 +17,7 @@ ADR format (templates/adr.md):
     ## Rejected alternatives
     ### Option B — Name              one per rejected option, with a line
     Rejected because: ...            "Rejected because: <reason>"
+    Revisit if: ...                  and "Revisit if: <the change that would reopen it>"
 
 Threat-model format (templates/threat-model.md): header fields (Option, Author,
 Reviewed by, Date), a "## Diagram" section with a Mermaid block, and a
@@ -42,6 +43,7 @@ class ADR:
     sections: dict[str, str]                         # "## " heading -> body text
     options: list[str]                               # option letters under "Options considered"
     rejected: dict[str, str] = field(default_factory=dict)   # option letter -> reason ("" if missing)
+    revisit: dict[str, str] = field(default_factory=dict)    # option letter -> revisit condition
 
     @property
     def links(self) -> list[str]:
@@ -50,7 +52,7 @@ class ADR:
 
 def parse_adr(text: str, path: str = "<text>") -> ADR:
     title, fields, sections = "", {}, {}
-    options, rejected = [], {}
+    options, rejected, revisit = [], {}, {}
     current, sub = None, None
     for line in text.splitlines():
         m = HEADING.match(line)
@@ -77,7 +79,9 @@ def parse_adr(text: str, path: str = "<text>") -> ADR:
         sections[current] += line + "\n"
         if current == "Rejected alternatives" and sub and line.startswith("Rejected because:"):
             rejected[sub] = line.split(":", 1)[1].strip()
-    return ADR(path, title, fields, sections, options, rejected)
+        if current == "Rejected alternatives" and sub and line.startswith("Revisit if:"):
+            revisit[sub] = line.split(":", 1)[1].strip()
+    return ADR(path, title, fields, sections, options, rejected, revisit)
 
 
 def load_adr(path: str | Path) -> ADR:

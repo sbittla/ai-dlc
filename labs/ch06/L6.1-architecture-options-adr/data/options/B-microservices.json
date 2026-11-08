@@ -1,7 +1,7 @@
 {
   "id": "B",
   "name": "Microservices with a message broker",
-  "summary": "Five services, each deployed and scaled on its own with its own database: an API gateway, tasks, escalation, triage and notification. Services publish events to a managed message broker.",
+  "summary": "Five services, each deployed and scaled on its own with its own database: an API gateway, tasks, escalation, triage and notification. Services publish events to a message broker that the team runs itself.",
   "components": [
     {
       "id": "client",
@@ -41,7 +41,7 @@
     },
     {
       "id": "broker",
-      "name": "Managed message broker",
+      "name": "Self-hosted message broker, run by the team",
       "kind": "broker",
       "deployable": null
     },
@@ -250,7 +250,7 @@
     ],
     "ESC-N10": [
       1,
-      "Adds a managed broker to the services escalation calls, so ESC-AC31's list is no longer only email and webhooks."
+      "A self-hosted broker is not a paid messaging service, but it joins the services escalation calls, so ESC-AC31's list of only email and webhooks would need amending."
     ],
     "CON-1": [
       1,
@@ -274,7 +274,7 @@
     ],
     "CON-6": [
       3,
-      "triage-svc scales on its own."
+      "triage-svc scales on its own, without scaling the other four services."
     ]
   }
 }

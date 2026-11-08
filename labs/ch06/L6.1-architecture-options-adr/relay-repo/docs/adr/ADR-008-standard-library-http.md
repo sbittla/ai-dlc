@@ -35,3 +35,4 @@ bound to 127.0.0.1 by default.
 
 ### Option B — A web framework, pinned in pyproject.toml
 Rejected because: four routes do not repay a dependency that every lab would have to install and Chapter 13 would have to review, and the WSGI interface keeps the choice open.
+Revisit if: Relay needs asynchronous handlers, generated API documentation or request validation from an OpenAPI document; Chapter 11's production server is the first new dependency either way.

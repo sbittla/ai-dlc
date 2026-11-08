@@ -62,3 +62,22 @@ def test_contract_refuses_documents_from_other_designs():
 def test_validator_fails_closed_on_keywords_it_does_not_implement():
     with pytest.raises(ValueError, match="not implemented"):
         validate("ops@example.com", {"type": "string", "format": "email"})
+    with pytest.raises(ValueError, match="points to no definition"):
+        validate({}, {"$ref": "#/$defs/Missing"})
+
+
+def test_validator_refuses_unsupported_keywords_a_document_never_reaches():
+    with pytest.raises(ValueError, match="not implemented"):
+        validate({}, {"type": "object", "properties": {"a": {"type": "string", "format": "email"}}})
+
+
+def test_validator_refuses_keywords_beside_a_ref():
+    schema = {"$defs": {"X": {"type": "integer"}}, "properties": {"n": {"$ref": "#/$defs/X", "maximum": 3}}}
+    with pytest.raises(ValueError, match="beside"):
+        validate({"n": 9}, schema)
+
+
+def test_enum_and_const_compare_types_as_well_as_values():
+    assert validate(1, {"enum": [True]}) == ["$: 1 is not one of [True]"]
+    assert validate(True, {"const": 1}) == ["$: must be 1"]
+    assert validate(False, {"enum": [0, 1]}) != [] and validate(1, {"enum": [0, 1]}) == []

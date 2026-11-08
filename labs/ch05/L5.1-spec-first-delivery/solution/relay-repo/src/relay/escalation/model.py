@@ -25,6 +25,7 @@ ERROR_CODES = (
     "target_cannot_view_project",
 )
 RULE_EDITORS = ("Owner", "Admin")  # D2
+RULE_PRIORITIES = ("P1",)  # this release: P2 rules need business hours (ESC-R07), which come later
 MIN_DELAY_MINUTES = 5  # D1
 MAX_DELAY_MINUTES = 240  # D1
 

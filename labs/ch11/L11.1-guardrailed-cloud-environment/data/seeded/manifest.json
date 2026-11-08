@@ -1,0 +1,143 @@
+{
+ "base": "plans/relay-nonprod.plan.json",
+ "cases": [
+  {
+   "id": "S01",
+   "change": "The database is made publicly accessible",
+   "kind": "violation",
+   "expected_rules": [
+    "POL002"
+   ],
+   "note": "Private subnets alone do not stop this: a public flag on the instance is enough to ask for a public address."
+  },
+  {
+   "id": "S02",
+   "change": "The service accepts port 8080 from 0.0.0.0/0",
+   "kind": "violation",
+   "expected_rules": [
+    "POL001"
+   ],
+   "note": "A typical debugging shortcut."
+  },
+  {
+   "id": "S03",
+   "change": "The flow-log bucket's encryption configuration is removed",
+   "kind": "violation",
+   "expected_rules": [
+    "POL005"
+   ],
+   "note": "S3 still encrypts new objects with its own keys; the policy requires the customer-managed key."
+  },
+  {
+   "id": "S04",
+   "change": "The cost-center tag is dropped from the provider's default tags",
+   "kind": "violation",
+   "expected_rules": [
+    "POL006"
+   ],
+   "note": "One line in providers.tf; every taggable resource loses the tag."
+  },
+  {
+   "id": "S05",
+   "change": "The worker may call any Bedrock action on any resource",
+   "kind": "violation",
+   "expected_rules": [
+    "POL007"
+   ],
+   "note": "An agent's fix for an AccessDenied error."
+  },
+  {
+   "id": "S06",
+   "change": "Both budgets are removed",
+   "kind": "violation",
+   "expected_rules": [
+    "POL009"
+   ],
+   "note": "Spend would still be visible in Cost Explorer, to anyone who looked."
+  },
+  {
+   "id": "S07",
+   "change": "The worker may send HTTPS to 0.0.0.0/0",
+   "kind": "violation",
+   "expected_rules": [
+    "POL010"
+   ],
+   "note": "The route table still has no way out, so this rule alone opens nothing today; it is still refused."
+  },
+  {
+   "id": "S08",
+   "change": "Deletion protection off and backups disabled",
+   "kind": "violation",
+   "expected_rules": [
+    "POL011"
+   ],
+   "note": "Two changes to one resource, the kind that makes a teardown quicker."
+  },
+  {
+   "id": "S09",
+   "change": "The Bedrock endpoint is removed",
+   "kind": "violation",
+   "expected_rules": [
+    "POL004"
+   ],
+   "note": "With no internet route, model calls would fail rather than leak; the rule names the cause."
+  },
+  {
+   "id": "S10",
+   "change": "The service tasks get public IP addresses",
+   "kind": "violation",
+   "expected_rules": [
+    "POL003"
+   ],
+   "note": "A common fix for image pulls failing in a subnet with no route out."
+  },
+  {
+   "id": "S11",
+   "change": "CI's apply role trusts every repository in the organization",
+   "kind": "violation",
+   "expected_rules": [
+    "POL008"
+   ],
+   "note": "A wildcard in the OIDC subject lets any repository's workflow assume the role."
+  },
+  {
+   "id": "S12",
+   "change": "A GPU instance is added for a model experiment",
+   "kind": "violation",
+   "expected_rules": [
+    "POL012"
+   ],
+   "note": "The organization's guardrail would also refuse it at apply time."
+  },
+  {
+   "id": "S13",
+   "change": "SSH to the service from a new Elastic IP, known only after apply",
+   "kind": "unknown",
+   "expected_rules": [
+    "POL001"
+   ],
+   "note": "The rule's source address is unknown in the plan. The check cannot decide, so it fails closed."
+  },
+  {
+   "id": "S14",
+   "change": "The worker may log in to the database as relay_service",
+   "kind": "violation",
+   "expected_rules": [],
+   "note": "Specific, wildcard-free and wrong: the worker gains the service's privileges. No pattern sees intent."
+  },
+  {
+   "id": "S15",
+   "change": "Port 22 opened to 0.0.0.0/0 in the console after apply (drift)",
+   "kind": "violation",
+   "expected_rules": [],
+   "note": "The change is not in any plan, so no plan check can see it. Posture management of the live account does."
+  },
+  {
+   "id": "C01",
+   "change": "Control: tags set only through the provider's default tags",
+   "kind": "control",
+   "expected_rules": [],
+   "note": "Every resource in the clean plan already relies on default_tags; this control also removes the per-resource Name tags. A check that reads `tags` instead of `tags_all` raises false alarms here."
+  }
+ ]
+}

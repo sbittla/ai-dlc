@@ -11,6 +11,7 @@ WSGI application behind a production server and a load balancer.
 from __future__ import annotations
 
 import argparse
+import logging
 import sys
 from datetime import date
 from wsgiref.simple_server import WSGIRequestHandler, make_server
@@ -26,6 +27,9 @@ DEMO_TASKS = (
     Task(101, 10, "Replace label printer", "open", None, 4),
     Task(102, 11, "Quarterly stock count", "done", date(2026, 11, 30), 2),
 )
+
+
+LOOPBACK = {"127.0.0.1", "::1", "localhost"}
 
 
 class QuietHandler(WSGIRequestHandler):
@@ -52,6 +56,9 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--host", default="127.0.0.1")
     ap.add_argument("--port", type=int, default=8080)
     args = ap.parse_args(argv)
+    if args.demo and args.host not in LOOPBACK:
+        ap.error("--demo serves well-known demo tokens; it binds only to 127.0.0.1, ::1 or localhost")
+    logging.basicConfig(level=logging.INFO, stream=sys.stderr, format="%(levelname)s %(name)s: %(message)s")
 
     directory = demo_directory() if args.demo else Directory.load(args.directory)
     app = build_app(args.db, directory, args.demo)

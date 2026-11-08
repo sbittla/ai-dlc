@@ -38,7 +38,7 @@ This release is Relay **4.18.0**. Chapter 8 builds the full escalation engine te
 | **Total** | **240 min** | **240 min** |
 
 - **Builder:** do every step; step 6 is the slice's code.
-- **Platform:** in step 6, copy the reference slice instead of writing it (`cp ../solution/relay-repo/src/relay/escalation/rules.py ../solution/relay-repo/src/relay/escalation/evaluate.py relay-repo/src/relay/escalation/` from `starter/`). Spend the time on step 6P: the CI wiring that makes the spec checker and the contract tests required. The rubric's 2 points for the slice are given for that wiring.
+- **Platform:** in step 6, copy the reference slice instead of writing it. From `starter/`, in bash: `cp ../solution/relay-repo/src/relay/escalation/rules.py ../solution/relay-repo/src/relay/escalation/evaluate.py relay-repo/src/relay/escalation/`. In PowerShell: `Copy-Item ../solution/relay-repo/src/relay/escalation/rules.py, ../solution/relay-repo/src/relay/escalation/evaluate.py relay-repo/src/relay/escalation/`. Spend the time on step 6P: the CI wiring that makes the spec checker and the contract tests required. The rubric's 2 points for the slice are given for that wiring.
 
 ## What you will practise
 
@@ -72,7 +72,7 @@ L5.1-spec-first-delivery/
 │   └── relay-repo/                ← Relay 4.18.0 in progress
 │       ├── specs/001-escalation-rules/   ← spec.md and tasks.md to complete; contracts/ is complete
 │       ├── src/relay/escalation/  ← TODO: validate_rule (rules.py) and evaluate (evaluate.py)
-│       └── tests/escalation/      ← provided: acceptance, contract and policy tests (30)
+│       └── tests/escalation/      ← provided: acceptance, contract and policy tests (35)
 ├── solution/                      ← reference solution (instructors; read only after finishing)
 ├── templates/spec-review.md
 ├── tests/                         ← test_checks.py (hand-checkable), test_slice.py, test_golden.py
@@ -83,7 +83,7 @@ L5.1-spec-first-delivery/
 
 Tests run against `starter/` by default. `LAB_TARGET=solution python -m pytest -q` (bash) checks the reference. PowerShell: `$env:LAB_TARGET="solution"; python -m pytest -q; Remove-Item Env:LAB_TARGET`. The variable persists until removed, so always remove it, or later runs will silently grade the solution. Run pytest from this lab's folder.
 
-Until you finish, every failing test stops with `NotImplementedError`. Relay's own suite runs too: `cd starter/relay-repo && python -m pytest -q`.
+Until you finish, every failing test stops with `NotImplementedError`. Relay's own suite runs too: change to `starter/relay-repo` and run `python -m pytest -q`.
 
 ## Steps
 
@@ -118,19 +118,19 @@ python -m pytest -q tests/test_checks.py
 
 ```bash
 cd starter
-python -m speccheck.report --prd ../data/prd-v1.md --tests relay-repo/tests --spec relay-repo/specs/001-escalation-rules --spec ../data/spec-scaffold --tasks - --tasks ../data/tasks-draft.md --details > ../evidence/scaffold-check.md
+python -m speccheck.report --prd ../data/prd-v1.md --tests relay-repo/tests --spec relay-repo/specs/001-escalation-rules --spec ../data/spec-v1 --tasks - --tasks ../data/tasks-draft.md --details > ../evidence/scaffold-check.md
 ```
 
 On Windows PowerShell 5.1, `>` writes UTF-16; use `| Out-File -Encoding utf8 <file>` instead.
 
-The second column checks the assistant's draft task list against the scaffold. Pick its three most harmful findings. Look hard at T05 and T06: what did the drafting assistant read that made it plan an SMS channel?
+The first column is your package, still the scaffold. The second checks the assistant's draft task list (`data/tasks-draft.md`) against the approved spec; its findings are all about the tasks, so it gives nothing of the spec away. Pick its three most harmful findings. Look hard at T05 and T06: what did the drafting assistant read that made it plan an SMS channel?
 
 ### 4. Complete the spec package (60 min)
 
 In `starter/relay-repo/specs/001-escalation-rules/spec.md`:
 
 - **Data rules:** one row per contract field (all 20), plus `Task.title`, `User.name`, `User.email` and `EscalationState.suggested_priority`. Use Public, Internal, Confidential or Restricted. List `Evaluation` and `StepDecision` as outbound; nothing in them may be Confidential.
-- **Security constraints:** SEC-02 to SEC-05, each with Source:, Checks: and Statement:. SEC-03, SEC-04 and SEC-05 name the policy tests that already exist (`test_SEC03`, `test_SEC04`, `test_SEC05`).
+- **Security constraints:** SEC-02 to SEC-05, each with Source:, Checks: and Statement:. If a constraint refines a requirement into something testable, say so in its Source and Statement (SEC-05 refines ESC-N10's cost rule). SEC-03, SEC-04 and SEC-05 name the policy tests that already exist (`test_SEC03`, `test_SEC04`, `test_SEC05`).
 - **Coverage:** for each of the 12 criteria, `full` or `partial`. A criterion is `full` only if this slice's code can observe its whole Then clause, read with the spec's "Terms at this boundary". Every `partial` needs a Deferred: line naming what is deferred and to which later stage.
 
 Do not edit a criterion's text: the checker compares it word for word with the PRD (SP021). If a criterion is wrong, the fix is a change to the PRD first.
@@ -153,24 +153,33 @@ Implement `validate_rule` in `relay-repo/src/relay/escalation/rules.py` and `eva
 ```bash
 cd starter/relay-repo
 python -m pytest -q tests/escalation -k "ESC_AC08 or ESC_AC09"
-python -m pytest -q && python tools/lint.py
+python -m pytest -q
+python tools/lint.py
 ```
 
 If you use a coding agent, give it one task at a time: the task's block from `tasks.md`, the spec, and the instruction to change only the task's Files. Run it at the tier the task names.
 
 ### 6P. Wire the gates (Platform, 55 min)
 
-Write the change as the platform team's separate pull request, in `evidence/`, not in `relay-repo/` (the slice's pull request must not touch `.github/` or `governance/`, and `tests/test_slice.py` checks that it does not). Write `evidence/ci-spec-check.yml`: a `spec-check` job that runs the checker with `--gate` and the escalation tests. Write `evidence/branch-protection.json`: Relay's file with `spec-check` added to the required status checks. Check that `relay-repo/.github/CODEOWNERS` gives `specs/` to the product team and `rules.py` to security. In `evidence/spec-review.md` section 7, say how a spec change reaches `Status: approved`, and why the checker must come from a pinned copy outside the pull request it checks.
+Write the change as the platform team's separate pull request, in `evidence/`, not in `relay-repo/`. The slice's pull request may change only `.github/CODEOWNERS` under `.github/`, and nothing under `governance/`; `tests/test_slice.py` checks that. Write `evidence/ci-spec-check.yml`: a `spec-check` job that runs the checker with `--gate` and the escalation tests. Write `evidence/branch-protection.json`: Relay's file with `spec-check` added to the required status checks. Check that `relay-repo/.github/CODEOWNERS` gives `specs/` to the product team, and `rules.py`, `evaluate.py` and the policy tests to security. In `evidence/spec-review.md` section 7, say how a spec change reaches `Status: approved`, and why the checker must come from a pinned copy outside the pull request it checks.
 
 ### 7. Contract and gate (10 min)
 
 ```bash
 cd starter
 python -m speccheck.report --prd ../data/prd-v1.md --tests relay-repo/tests --spec relay-repo/specs/001-escalation-rules --gate; echo "exit $?"
-cd .. && python -m pytest -q
+cd ..
+python -m pytest -q
 ```
 
-In PowerShell, use `echo "exit $LASTEXITCODE"`. The gate blocks on every check except three warnings (SP011, SP031, SP044). `tests/test_slice.py` also checks that your Relay changes stay inside the slice: only four 4.17.2 files may change.
+In PowerShell, use `echo "exit $LASTEXITCODE"`. Then, from this lab's folder, check that the workspace files still pass Chapter 3's audit (exit 0, one waiver):
+
+```bash
+cd ../../ch03/L3.1-accountable-workspace/solution
+python -m audit.report --policy ../data/policy.json --as-of 2026-11-24 --fail-on high ../../../ch05/L5.1-spec-first-delivery/starter/relay-repo
+```
+
+The spec gate blocks on every check except three warnings (SP011, SP031, SP044). `tests/test_slice.py` also checks that your Relay changes stay inside the slice: only four 4.17.2 files may change.
 
 ### 8. Review and approval (10 min)
 

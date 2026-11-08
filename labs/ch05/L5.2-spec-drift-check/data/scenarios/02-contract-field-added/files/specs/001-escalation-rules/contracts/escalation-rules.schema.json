@@ -12,7 +12,7 @@
       "properties": {
         "rule_id": {"type": "string", "pattern": "^[A-Za-z0-9_-]{1,64}$"},
         "project_id": {"type": "integer", "minimum": 1},
-        "priority": {"type": "string", "enum": ["P1", "P2", "P3", "P4"], "x-relay-constant": "PRIORITIES"},
+        "priority": {"type": "string", "enum": ["P1"], "x-relay-constant": "RULE_PRIORITIES"},
         "steps": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/Step"}}
       }
     },

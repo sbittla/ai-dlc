@@ -1,0 +1,83 @@
+{
+ "format": "lab11.1-plan-overlay-v1",
+ "remove": [],
+ "upsert": [
+  {
+   "address": "aws_iam_role.ci_apply",
+   "resource_change": {
+    "address": "aws_iam_role.ci_apply",
+    "mode": "managed",
+    "type": "aws_iam_role",
+    "name": "ci_apply",
+    "provider_name": "registry.opentofu.org/hashicorp/aws",
+    "change": {
+     "actions": [
+      "create"
+     ],
+     "before": null,
+     "after": {
+      "name": "relay-nonprod-ci-apply",
+      "max_session_duration": 3600,
+      "assume_role_policy": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"Federated\":\"arn:aws:iam::111122223333:oidc-provider/token.actions.githubusercontent.com\"},\"Action\":\"sts:AssumeRoleWithWebIdentity\",\"Condition\":{\"StringEquals\":{\"token.actions.githubusercontent.com:aud\":\"sts.amazonaws.com\"},\"StringLike\":{\"token.actions.githubusercontent.com:sub\":\"repo:relay-example/*\"}}}]}",
+      "tags": null,
+      "tags_all": {
+       "app": "relay",
+       "env": "nonprod",
+       "owner": "sam.o",
+       "cost-center": "relay-eng",
+       "data-class": "Internal"
+      }
+     },
+     "after_unknown": {
+      "id": true,
+      "arn": true,
+      "unique_id": true
+     },
+     "before_sensitive": false,
+     "after_sensitive": {}
+    }
+   },
+   "planned_value": {
+    "address": "aws_iam_role.ci_apply",
+    "mode": "managed",
+    "type": "aws_iam_role",
+    "name": "ci_apply",
+    "provider_name": "registry.opentofu.org/hashicorp/aws",
+    "schema_version": 0,
+    "values": {
+     "name": "relay-nonprod-ci-apply",
+     "max_session_duration": 3600,
+     "assume_role_policy": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"Federated\":\"arn:aws:iam::111122223333:oidc-provider/token.actions.githubusercontent.com\"},\"Action\":\"sts:AssumeRoleWithWebIdentity\",\"Condition\":{\"StringEquals\":{\"token.actions.githubusercontent.com:aud\":\"sts.amazonaws.com\"},\"StringLike\":{\"token.actions.githubusercontent.com:sub\":\"repo:relay-example/*\"}}}]}",
+     "tags": null,
+     "tags_all": {
+      "app": "relay",
+      "env": "nonprod",
+      "owner": "sam.o",
+      "cost-center": "relay-eng",
+      "data-class": "Internal"
+     }
+    },
+    "sensitive_values": {}
+   },
+   "configuration": {
+    "address": "aws_iam_role.ci_apply",
+    "mode": "managed",
+    "type": "aws_iam_role",
+    "name": "ci_apply",
+    "provider_config_key": "aws",
+    "expressions": {
+     "name": {
+      "constant_value": "relay-nonprod-ci-apply"
+     },
+     "max_session_duration": {
+      "constant_value": 3600
+     },
+     "assume_role_policy": {
+      "constant_value": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"Federated\":\"arn:aws:iam::111122223333:oidc-provider/token.actions.githubusercontent.com\"},\"Action\":\"sts:AssumeRoleWithWebIdentity\",\"Condition\":{\"StringEquals\":{\"token.actions.githubusercontent.com:aud\":\"sts.amazonaws.com\"},\"StringLike\":{\"token.actions.githubusercontent.com:sub\":\"repo:relay-example/*\"}}}]}"
+     }
+    },
+    "schema_version": 0
+   }
+  }
+ ]
+}

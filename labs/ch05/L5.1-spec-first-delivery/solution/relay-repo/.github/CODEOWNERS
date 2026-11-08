@@ -6,3 +6,5 @@
 /src/relay/roles.py  @relay/security
 /specs/             @relay/product
 /src/relay/escalation/rules.py  @relay/security
+/src/relay/escalation/evaluate.py  @relay/security
+/tests/escalation/test_escalation_policy.py  @relay/security
