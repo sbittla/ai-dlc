@@ -23,7 +23,8 @@ LAB = Path(__file__).resolve().parent.parent
 
 async def main(target: str) -> None:
     params = StdioServerParameters(command=sys.executable,
-                                   args=["-m", "relaymcp.server", "--db", str(LAB / "data" / "relay-test.sql")],
+                                   args=["-m", "relaymcp.server", "--db", str(LAB / "data" / "relay-test.sql"),
+                                         "--audit", str(LAB / "evidence" / "mcp-audit.jsonl")],
                                    cwd=str(LAB / target))
     async with stdio_client(params) as (read, write):
         async with ClientSession(read, write) as session:
@@ -32,7 +33,7 @@ async def main(target: str) -> None:
             print("tools:", [t.name for t in tools.tools])
             for args in ({"template": "overdue_tasks", "params": {"project_id": 2, "as_of": "2026-11-08"}, "limit": 3},
                          {"template": "tasks_by_project", "params": {"project_id": "1 OR 1=1"}}):
-                result = await session.call_tool("query", args)
+                result = await session.call_tool("query", {"request": args})
                 print(json.dumps(args), "->", result.content[0].text.replace("\n", " ")[:200])
 
 

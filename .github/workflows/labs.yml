@@ -35,6 +35,9 @@ jobs:
           if [ -f scripts/generate_data.py ]; then python scripts/generate_data.py; fi
           if [ -f scripts/build_corpus.py ]; then python scripts/build_corpus.py; fi
           git diff --exit-code -- data
+          # Also fail on new untracked files. Generated folders holding fake secrets
+          # (Lab 3.1's data/repos/before) are git-ignored, so they are excluded here.
+          test -z "$(git status --porcelain -- data)"
       - name: Reference solution passes
         env:
           LAB_TARGET: solution

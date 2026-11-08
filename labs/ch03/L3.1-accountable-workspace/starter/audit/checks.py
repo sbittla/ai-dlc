@@ -56,26 +56,32 @@ def scan_secrets(repo: Path, policy: dict) -> list[Finding]:
     raise NotImplementedError('scan_secrets')
 
 
-def _mount_source(mount) -> str:
+def _parse_mount(mount) -> tuple[str, str]:
+    """(type, source) of a devcontainer mount; a string without type= counts as a bind mount."""
     if isinstance(mount, dict):
-        return str(mount.get("source", ""))
+        return str(mount.get("type", "bind")), str(mount.get("source", ""))
     parts = dict(p.split("=", 1) for p in str(mount).split(",") if "=" in p)
-    return parts.get("source", parts.get("src", ""))
+    return parts.get("type", "bind"), parts.get("source", parts.get("src", ""))
 
 
 def check_sandbox(repo: Path, policy: dict) -> list[Finding]:
-    """WS020–WS023: the dev container that agents run in.
+    """WS020–WS023: the dev container that agents run in. Mounts and run arguments are allowlisted.
 
-    policy["sandbox"] has: file, forbidden_mount_fragments,
-    forbidden_run_args, require_image_digest.
+    policy["sandbox"] has: file, allowed_mount_types, mount_run_args,
+    allowed_run_args, require_image_digest.
 
     - WS020 if the file does not exist (and nothing else).
-    - WS021 for each entry of "mounts" whose source contains any forbidden
-      fragment. Mounts are either objects with a "source" key or strings like
-      "source=X,target=Y,type=bind". Message: "mount source '<source>' exposes host credentials".
-    - WS022 for each entry of "runArgs" that equals a forbidden argument or
-      starts with it followed by "=" ; and once if "privileged" is true.
-      Message: "run argument '<arg>'" (or "privileged: true").
+    - WS021 for each entry of "mounts" whose type is not in allowed_mount_types
+      (named volumes and tmpfs hold no host files; a bind mount exposes the host).
+      Mounts are objects with "type" and "source", or strings like
+      "source=X,target=Y,type=bind"; a missing type counts as "bind".
+      Message: "host path '<source>' is mounted (type <type>)".
+    - In "runArgs", in order:
+      - an argument in mount_run_args ("-v", "--volume", "--mount") is a mount:
+        WS021 with the next argument as its value, which is then skipped;
+        "<flag>=<value>" is the same. Message: "run argument mounts '<value>'".
+      - any other argument not in allowed_run_args: WS022, message "run argument '<arg>'".
+    - WS022 once more if "privileged" is true. Message: "privileged: true".
     - WS023 if require_image_digest, the config has an "image", and the image
       does not contain "@sha256:". Message: "image '<image>' is pinned by tag, not digest".
     """
@@ -84,12 +90,13 @@ def check_sandbox(repo: Path, policy: dict) -> list[Finding]:
 
 
 def check_branch_protection(repo: Path, policy: dict) -> list[Finding]:
-    """WS030–WS036: branch protection (from an exported JSON file) and CODEOWNERS.
+    """WS030–WS037: branch protection (from an exported JSON file) and CODEOWNERS.
 
     policy["branch_protection"] has: file, codeowners (candidate paths),
     min_approving_reviews, require_code_owner_reviews, required_status_checks,
-    enforce_admins, allow_force_pushes. The export uses the shape of GitHub's
-    branch-protection API response.
+    enforce_admins, allow_force_pushes, fresh_approval_settings. The export uses
+    the shape of GitHub's branch-protection API response. A committed export is
+    self-attested: in CI, fetch the live settings from the platform's API instead.
 
     - WS030 if the export is missing; otherwise:
       - WS031 if required_pull_request_reviews.required_approving_review_count
@@ -100,6 +107,9 @@ def check_branch_protection(repo: Path, policy: dict) -> list[Finding]:
         required_status_checks.contexts (in policy order). Message: "status check '<name>' not required".
       - WS034 if the policy requires enforce_admins and enforce_admins.enabled is not true.
       - WS035 if the policy forbids force pushes and allow_force_pushes.enabled is true.
+      - WS037 for each name in fresh_approval_settings (in policy order) that is not
+        true in required_pull_request_reviews. Message: "'<name>' is not enabled".
+        Without them, an approval given before a later push still counts.
     - WS036 (whether or not the export exists) if none of the codeowners paths
       exists; path is the first candidate.
     """

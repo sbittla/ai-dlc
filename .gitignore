@@ -7,3 +7,5 @@ __pycache__/
 labs/**/evidence/*
 !labs/**/evidence/.gitkeep
 ~$*.docx
+# Lab 3.1: generated at run time with fake secrets (scripts/generate_data.py); never committed
+labs/ch03/L3.1-accountable-workspace/data/repos/before/

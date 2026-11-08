@@ -9,6 +9,7 @@ fix in <target>/relay-repo/.
 """
 
 import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -21,6 +22,10 @@ TARGET_DIR = LAB_ROOT / TARGET
 RELAY_REPO = TARGET_DIR / "relay-repo"
 DATA_DIR = LAB_ROOT / "data"
 FIXTURES = Path(__file__).resolve().parent / "fixtures"
+
+# data/repos/before holds fake secrets, so it is generated, never committed.
+if not (DATA_DIR / "repos" / "before" / "AGENTS.md").is_file():
+    subprocess.run([sys.executable, str(LAB_ROOT / "scripts" / "generate_data.py")], check=True)
 
 sys.path.insert(0, str(RELAY_REPO / "src"))
 sys.path.insert(0, str(TARGET_DIR))

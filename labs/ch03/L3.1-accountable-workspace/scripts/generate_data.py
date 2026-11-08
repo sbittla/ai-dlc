@@ -4,6 +4,7 @@
 
 data/policy.json        the accountable-workspace policy the audit enforces
 data/repos/before/      Relay's workspace on the day of the Chapter 3 incident
+                        (NOT committed: git-ignored, written here on demand; see below)
 data/repos/after/       the same workspace after this chapter's hardening
 
 "after" is a copy of solution/relay-repo. "before" uses the same code with the
@@ -11,8 +12,11 @@ unfixed due-date module (tests/fixtures/buggy_duedates.py), without the RLY-412
 regression test, and with the workspace configuration the team had at the time.
 
 All secrets in "before" are fake. The AWS values are the placeholder keys from
-AWS's own documentation; the Relay token is derived from a fixed seed. Real
-secret scanners may still flag them, which is the point.
+AWS's own documentation; the Relay token is derived from a fixed seed. They are
+assembled from fragments at run time, so no complete secret-like string appears in
+this source file, and "before" is git-ignored, so none is committed either. Secret
+scanners run on the generated folder will flag them: that is the exercise. The
+lab's tests run this script automatically if the folder is missing.
 Output is byte-identical on every platform (LF line endings, sorted order).
 """
 
@@ -53,9 +57,9 @@ POLICY = {
     },
     "sandbox": {
         "file": ".devcontainer/devcontainer.json",
-        "forbidden_mount_fragments": [".aws", ".ssh", ".config/gcloud", ".azure", ".kube", ".docker",
-                                      "docker.sock", ".gnupg", ".netrc"],
-        "forbidden_run_args": ["--privileged", "--network", "--pid", "--ipc", "--cap-add"],
+        "allowed_mount_types": ["volume", "tmpfs"],
+        "mount_run_args": ["-v", "--volume", "--mount"],
+        "allowed_run_args": ["--cap-drop=ALL", "--security-opt=no-new-privileges", "--read-only", "--network=none"],
         "require_image_digest": True,
     },
     "branch_protection": {
@@ -66,18 +70,25 @@ POLICY = {
         "required_status_checks": ["tests", "secret-scan"],
         "enforce_admins": True,
         "allow_force_pushes": False,
+        "fresh_approval_settings": ["dismiss_stale_reviews", "require_last_push_approval"],
     },
     "mcp": {
         "file": ".mcp.json",
         "allowlist": {
             "relay-db-readonly": {"command": "python",
-                                  "args": ["-m", "relaymcp.server", "--db", "data/relay-test.sql"]},
+                                  "args": ["-m", "relaymcp.server", "--db", "data/relay-test.sql",
+                                           "--audit", "evidence/mcp-audit.jsonl"]},
         },
     },
     "waivers": {"file": "governance/waivers.json", "waivable_severities": ["low", "medium"]},
 }
 
-TEST_DB_URL = "postgresql://relay_admin:Tr0ub4dor-staging@test-db.relay.internal:5432/relay_test"
+def _join(*parts: str) -> str:
+    """Assemble a fake secret from fragments, so the whole string never sits in source."""
+    return "".join(parts)
+
+
+TEST_DB_URL = _join("postgresql://relay_admin", ":", "Tr0ub4dor-staging", "@", "test-db.relay.internal:5432/relay_test")
 SPRINT_TOPICS = [
     "moved the export job to the background queue",
     "renamed the Projects tab to Workspaces, then back",
@@ -123,15 +134,15 @@ def before_agents_md() -> str:
 
 
 def relay_token(seed: str) -> str:
-    return "rly_live_" + hashlib.sha256(seed.encode()).hexdigest()[:32]
+    return _join("rly", "_live_", hashlib.sha256(seed.encode()).hexdigest()[:32])
 
 
 BEFORE_FILES = {
     "AGENTS.md": before_agents_md(),
     ".env": "\n".join([
         f"RELAY_API_TOKEN={relay_token('lab-3.1-before')}",
-        "AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE",
-        "AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+        "AWS_ACCESS_KEY_ID=" + _join("AK", "IA", "IOSFODNN7", "EXAMPLE"),
+        "AWS_SECRET_ACCESS_KEY=" + _join("wJalrXUtnFEMI", "/K7MDENG/", "bPxRfiCY", "EXAMPLEKEY"),
         "AWS_DEFAULT_REGION=eu-west-1",
     ]) + "\n",
     ".gitignore": "__pycache__/\n.pytest_cache/\n",

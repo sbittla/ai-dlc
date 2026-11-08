@@ -11,10 +11,15 @@ jobs:
       - run: python -m pip install pytest==9.1.1
       - run: python -m pytest -q
       - run: python tools/lint.py
+  # ILLUSTRATIVE: this snapshot does not vendor the audit package or the policy file,
+  # so the job shows the shape of the check rather than running as written. A real job
+  # installs the audit tool and fetches the policy from the platform team's repository.
+  # It should also read branch protection live from the platform's API, not from the
+  # committed export, and run a dedicated scanner over the full history (Chapter 13).
   secret-scan:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      # The workspace audit from Lab 3.1, with the platform team's policy file.
-      # A dedicated scanner over the full git history belongs here too (Chapter 13).
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.11"}
       - run: python -m audit.report --policy workspace-policy.json --fail-on high .

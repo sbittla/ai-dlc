@@ -23,13 +23,13 @@ def before():
 
 
 def test_before_findings_by_severity(before):
-    assert Counter(f.severity for f in before.open) == {"critical": 7, "high": 8, "medium": 6, "low": 2}
-    assert len(before.open) == 23 and before.waived == ()
+    assert Counter(f.severity for f in before.open) == {"critical": 7, "high": 9, "medium": 7, "low": 2}
+    assert len(before.open) == 25 and before.waived == ()
 
 
 def test_before_findings_by_area(before):
     assert Counter(f.area for f in before.open) == {"instructions": 4, "secrets": 6, "sandbox": 4,
-                                                    "branch": 7, "mcp": 2}
+                                                    "branch": 9, "mcp": 2}
 
 
 def test_before_criticals_are_five_secrets_and_two_credential_mounts(before):
@@ -57,9 +57,9 @@ def test_the_relay_repo_you_ship_passes_the_audit():
 
 def test_report_prints_the_chapter_table():
     text, _ = report.render([BEFORE, AFTER], POLICY, AS_OF)
-    for row in ("| critical | 7 | 0 |", "| high | 8 | 0 |", "| medium | 6 | 0 |", "| low | 2 | 0 |",
-                "| **Total open** | **23** | **0** |", "| Waived (with owner and expiry) | 0 | 1 |",
-                "· 19 checks"):
+    for row in ("| critical | 7 | 0 |", "| high | 9 | 0 |", "| medium | 7 | 0 |", "| low | 2 | 0 |",
+                "| **Total open** | **25** | **0** |", "| Waived (with owner and expiry) | 0 | 1 |",
+                "· 20 checks", "166 lines; policy maximum is 150"):
         assert row in text
 
 

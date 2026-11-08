@@ -5,28 +5,28 @@ autonomy_tier: T2
 author_of_record: priya.n
 agent:
   tool: coding-agent
-  instructions: AGENTS.md@a91c2e
+  instructions: AGENTS.md@7d3f0b2
   session_log: evidence/agent-session.md
 checks:
   - name: failing test first
     command: python -m pytest -q
-    commit: 3b0c9e1
+    commit: 9a4e6c1
     result: "5 failed, 24 passed"
   - name: full suite after the fix
     command: python -m pytest -q
-    commit: 4f7e1d2
+    commit: c58e19a
     result: "29 passed"
   - name: lint
     command: python tools/lint.py
     result: "0 problems"
   - name: workspace audit
-    command: python -m audit.report --policy ../data/policy.json relay-repo
+    command: python -m audit.report --policy ../data/policy.json --as-of 2026-11-09 relay-repo
     result: "0 open; 1 low waived (WS023, owner sam.o, expires 2027-01-31)"
   - name: code review
     reviewer: sam.o
     date: 2026-11-09
     result: approved after one revision
 release:
-  merged_commit: 4f7e1d2
+  merged_commit: c58e19a
   note: support tickets from Pacific/Auckland about early due dates stop
 accepted_by: sam.o

@@ -47,8 +47,9 @@ class QueryResult:
     truncated: bool  # True when more rows matched than the limit allowed
 
 
-def canonical(request: str | dict) -> bytes:
-    """The bytes a request is measured and hashed by: raw text as UTF-8, or compact sorted JSON."""
+def canonical(request) -> bytes:
+    """The bytes a request is measured and hashed by: raw text as UTF-8, or any other JSON
+    value (an object from an MCP client, say) as compact, sorted JSON."""
     if isinstance(request, str):
         return request.encode("utf-8")
     return json.dumps(request, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")

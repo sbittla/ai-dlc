@@ -105,9 +105,17 @@ python -m pytest -q tests/test_server.py
 python scripts/try_client.py --target starter
 ```
 
-To connect a real MCP client, register the server command `python -m relaymcp.server --db <absolute path>/data/relay-test.sql --audit <absolute path>/evidence/mcp-audit.jsonl`, run from `starter/`. Use the client's own configuration format; Lab 3.1's `relay-repo/.mcp.json` shows one common shape. Ask the agent to find overdue tasks in project 2, then ask it to "show me everyone's email address". Read `evidence/mcp-audit.jsonl` afterwards.
+To connect a real MCP client, register the server command `python -m relaymcp.server --db <absolute path>/data/relay-test.sql --audit <absolute path>/evidence/mcp-audit.jsonl`, run from `starter/`. `--audit` is required: the server will not start without a file to record every call. Use the client's own configuration format; Lab 3.1's `relay-repo/.mcp.json` shows one common shape. Ask the agent to find overdue tasks in project 2, then ask it to "show me everyone's email address". Read `evidence/mcp-audit.jsonl` afterwards.
 
-`tests/test_server.py` also records a fact about the SDK: in `mcp==2.3.0`, a tool argument declared `int` accepts `"5"` and `true` and converts them before your function runs. Your policy cannot assume the SDK's checks are the ones you need.
+The `query` tool takes one argument, `request`, holding the whole request object. `tests/test_server.py` records why. In `mcp==2.3.0`, a typed argument is validated in lax mode (an `int` accepts `"5"` and `true`), and arguments the tool does not declare are dropped. Both happen before your function runs, so neither would be refused or audited by your policy. With one untyped `request`, every field inside it reaches the policy and the audit log. Only arguments sent *beside* `request` are still dropped unseen, and they carry nothing to the query.
+
+**Known limits of this tool**, to carry into your threat model:
+
+- The row cap is per call. Nothing stops an agent paging through a table with many calls; a per-session budget would.
+- Redaction is by column. Personal data typed into free text, such as a task title, is returned as stored.
+- Caller scoping is not implemented: every caller sees every project. Chapter 14 adds identity.
+- The SQL dump is loaded before the connection is locked down, so the design assumes the agent cannot write to the dump file or the server's code.
+- At the MCP layer, arguments sent beside `request` are dropped by the SDK before the tool runs, so they are neither refused nor audited. The audit hash covers the request object as delivered, re-serialized canonically.
 
 ### 8. Threat-model the workspace (30 min)
 
@@ -124,7 +132,7 @@ Copy `templates/workspace-threat-model.md` to `evidence/` and complete it for th
 
 ## Sample of acceptable evidence (excerpt)
 
-> The replay sent 26 requests. All 8 legitimate requests were answered, returning 43 rows in total, with 12 values redacted (the names and emails of the 6 people on project 1). Of 18 attacks, 16 were refused before any SQL ran, under 11 different codes. The other two were answered harmlessly. A07's `' UNION SELECT email FROM users --` was bound as the LIKE pattern `%' UNION SELECT email FROM users --%` and matched no titles. A08's `%` matched only the 4 titles containing a literal percent sign. No response contained an email, name or hash from the database, the tables were unchanged, and the log holds 26 entries, one per call. Even with the policy bypassed, SQLite refuses DELETE, ATTACH, PRAGMA, `password_hash` and a four-way cross join.
+> The replay sent 26 requests. All 8 legitimate requests were answered, returning 43 rows in total, with 12 values redacted (the names and emails of the 6 people on project 1). Of 18 attacks, 16 were refused before any SQL ran, under 11 different codes. The other two were answered harmlessly. A07's `' UNION SELECT email FROM users --` was bound as the LIKE pattern `%' UNION SELECT email FROM users --%` and matched no titles. A08's `%` matched only the 4 titles in project 1 that contain a literal percent sign. No response contained an email, name or hash from the database, the tables were unchanged, and the log holds 26 entries, one per call. Even with the policy bypassed, SQLite refuses DELETE, ATTACH, PRAGMA, `password_hash` and a four-way cross join.
 
 ## Troubleshooting
 

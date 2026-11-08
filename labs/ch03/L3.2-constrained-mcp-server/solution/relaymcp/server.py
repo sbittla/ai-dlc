@@ -3,7 +3,7 @@
     pip install -e ".[mcp]"          # the official MCP Python SDK, pinned to mcp==2.3.0
     python -m relaymcp.server --db ../data/relay-test.sql --audit ../evidence/mcp-audit.jsonl
 
-It speaks MCP over stdio, so an MCP client starts it as a subprocess (see the
+The audit file is required. It speaks MCP over stdio, so an MCP client starts it as a subprocess (see the
 `.mcp.json` entry in Lab 3.1's relay-repo). Everything that matters happens in
 policy.handle(); this file only translates between MCP and the policy.
 
@@ -57,14 +57,17 @@ def build_server(sql_path: Path, audit_path: Path | None = None, caller: str = "
         return template_catalogue()
 
     @server.tool(annotations=READ_ONLY)
-    def query(template: str, params: dict[str, Any] | None = None, limit: int | None = None) -> dict:
-        """Run one allowlisted, read-only query template with typed parameters.
+    def query(request: Any = None) -> dict:
+        """Run one allowlisted, read-only query template.
 
-        Returns {"ok": true, "rows": [...], "truncated": ...} or {"ok": false, "error": <code>}.
+        `request` is one object: {"template": <name>, "params": {...}, "limit": <1-50, optional>}.
+        Call list_templates for the names and parameters. Returns {"ok": true, "rows": [...],
+        "truncated": ...} or {"ok": false, "error": <code>}.
         """
-        request: dict[str, Any] = {"template": template, "params": params if params is not None else {}}
-        if limit is not None:
-            request["limit"] = limit
+        # One untyped argument, on purpose. The SDK validates typed arguments in lax mode
+        # ("5" becomes 5) and drops arguments it does not declare, before this function
+        # runs and so before anything is audited. Taking the whole request as one value
+        # means every field the agent sent inside it reaches the policy and the audit log.
         with lock:
             return handle(request, conn, audit, caller=caller)
 
@@ -74,7 +77,8 @@ def build_server(sql_path: Path, audit_path: Path | None = None, caller: str = "
 def main() -> None:
     ap = argparse.ArgumentParser(description="Relay's constrained, read-only MCP query server (stdio)")
     ap.add_argument("--db", type=Path, required=True, help="the SQL dump to load, e.g. ../data/relay-test.sql")
-    ap.add_argument("--audit", type=Path, default=None, help="append audit entries to this JSON-lines file")
+    ap.add_argument("--audit", type=Path, required=True,
+                    help="append audit entries to this JSON-lines file (required: no call goes unrecorded)")
     args = ap.parse_args()
     server, _ = build_server(args.db, args.audit)
     server.run()  # stdio; never print to stdout here, it carries the protocol

@@ -85,11 +85,14 @@ def test_long_instructions_file_is_ws003(tmp_path):
 
 # ------------------------------------------------------------ secrets
 
-TOKEN = "rly_live_" + "0123456789abcdef" * 2
+# Fake secrets are assembled at run time so no complete one appears in source.
+TOKEN = "rly" + "_live_" + "0123456789abcdef" * 2
+PASSWORD_LINE = "DB_PASS" + "WORD=" + "hunter2" * 2
+DB_URL = "postgresql://admin" + ":" + "s3cret-pass" + "@db.internal/relay"
 
 
 def test_committed_env_file_and_each_secret_line(tmp_path):
-    write(tmp_path, ".env", f"RELAY_API_TOKEN={TOKEN}\nREGION=eu-west-1\nDB_PASSWORD=hunter2hunter2\n")
+    write(tmp_path, ".env", f"RELAY_API_TOKEN={TOKEN}\nREGION=eu-west-1\n{PASSWORD_LINE}\n")
     found = checks.scan_secrets(tmp_path, POLICY)
     assert [(f.check, f.line) for f in found] == [("WS011", None), ("WS010", 1), ("WS010", 3)]
     # The first matching pattern wins: one secret is one finding.
@@ -98,7 +101,7 @@ def test_committed_env_file_and_each_secret_line(tmp_path):
 
 
 def test_findings_never_contain_the_secret(tmp_path):
-    write(tmp_path, "notes.md", f"use postgresql://admin:s3cret-pass@db.internal/relay and {TOKEN}\n")
+    write(tmp_path, "notes.md", f"use {DB_URL} and {TOKEN}\n")
     found = checks.scan_secrets(tmp_path, POLICY)
     assert len(found) == 1 and found[0].message == "relay-token: rly_…"  # first pattern in policy order wins
     assert all("s3cret" not in f.message and TOKEN not in f.message for f in found)
@@ -127,24 +130,38 @@ def test_missing_devcontainer_is_ws020(tmp_path):
     assert ids(checks.check_sandbox(tmp_path, POLICY)) == ["WS020"]
 
 
-def test_credential_mounts_in_both_forms(tmp_path):
+def test_only_volume_and_tmpfs_mounts_are_allowed(tmp_path):
     devcontainer(tmp_path, image="img@sha256:abc", mounts=[
         "source=${localEnv:HOME}/.aws,target=/home/vscode/.aws,type=bind",
         {"source": "/var/run/docker.sock", "target": "/var/run/docker.sock", "type": "bind"},
+        "source=${localEnv:HOME},target=/home/host",   # no type: counts as a bind mount
         "source=relay-cache,target=/cache,type=volume",
+        {"type": "tmpfs", "target": "/tmp"},
     ])
     found = checks.check_sandbox(tmp_path, POLICY)
     assert [f.message for f in found] == [
-        "mount source '${localEnv:HOME}/.aws' exposes host credentials",
-        "mount source '/var/run/docker.sock' exposes host credentials"]
+        "host path '${localEnv:HOME}/.aws' is mounted (type bind)",
+        "host path '/var/run/docker.sock' is mounted (type bind)",
+        "host path '${localEnv:HOME}' is mounted (type bind)"]
 
 
-def test_dangerous_run_args_and_privileged_flag(tmp_path):
+def test_mounts_hidden_in_run_args_are_caught(tmp_path):
+    devcontainer(tmp_path, image="img@sha256:abc",
+                 runArgs=["-v", "/var/run/docker.sock:/var/run/docker.sock", "--mount=type=bind,source=/,target=/h",
+                          "--cap-drop=ALL"])
+    found = checks.check_sandbox(tmp_path, POLICY)
+    assert [(f.check, f.message) for f in found] == [
+        ("WS021", "run argument mounts '/var/run/docker.sock:/var/run/docker.sock'"),
+        ("WS021", "run argument mounts 'type=bind,source=/,target=/h'")]
+
+
+def test_run_args_not_on_the_allowlist_and_privileged_flag(tmp_path):
     devcontainer(tmp_path, image="img@sha256:abc", privileged=True,
-                 runArgs=["--network=host", "--networkx", "--cap-drop=ALL", "--privileged"])
+                 runArgs=["--network=host", "--cap-drop=ALL", "--security-opt=no-new-privileges", "--privileged",
+                          "--gpus=all"])
     found = checks.check_sandbox(tmp_path, POLICY)
     assert [f.message for f in found] == ["run argument '--network=host'", "run argument '--privileged'",
-                                          "privileged: true"]
+                                          "run argument '--gpus=all'", "privileged: true"]
 
 
 def test_image_pinned_by_tag_is_low_ws023(tmp_path):
@@ -157,7 +174,8 @@ def test_image_pinned_by_tag_is_low_ws023(tmp_path):
 
 GOOD_BP = {
     "required_status_checks": {"strict": True, "contexts": ["tests", "secret-scan"]},
-    "required_pull_request_reviews": {"required_approving_review_count": 1, "require_code_owner_reviews": True},
+    "required_pull_request_reviews": {"required_approving_review_count": 1, "require_code_owner_reviews": True,
+                                      "dismiss_stale_reviews": True, "require_last_push_approval": True},
     "enforce_admins": {"enabled": True},
     "allow_force_pushes": {"enabled": False},
 }
@@ -185,7 +203,10 @@ def test_every_branch_protection_gap(tmp_path):
         ("WS033", "status check 'secret-scan' not required"),
         ("WS034", "protection does not apply to administrators"),
         ("WS035", "force pushes to the protected branch are allowed"),
+        ("WS037", "'dismiss_stale_reviews' is not enabled"),
+        ("WS037", "'require_last_push_approval' is not enabled"),
     ]
+    assert {f.check: f.severity for f in found}["WS034"] == "high"
 
 
 # ------------------------------------------------------------ MCP

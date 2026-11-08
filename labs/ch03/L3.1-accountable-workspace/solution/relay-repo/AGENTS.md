@@ -38,6 +38,6 @@ the pull request description.
 
 - Never read, print or copy secrets. There are none in this repository; if you find one, stop and report it.
 - Do not edit `governance/`, `.github/` or this file's Boundaries section without a human request.
-- Do not run commands that reach the network, other than the read-only `relay-db-readonly` MCP tool.
+- Do not run commands that reach the network. For test data, use the local, read-only `relay-db-readonly` MCP tool.
 - Never push to `main`, merge, or approve a pull request. A person reviews and merges every change.
 - If a test fails for a reason you do not understand, stop and explain; do not delete or skip it.

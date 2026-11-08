@@ -1,0 +1,10 @@
+# Gitleaks configuration: default rules, plus an allowlist for Lab 3.1's deliberately
+# fake secrets (generated at run time into a git-ignored folder).
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Lab 3.1 teaching fixtures with fake secrets"
+paths = [
+  '''labs/ch03/L3\.1-accountable-workspace/data/repos/before/''',
+]

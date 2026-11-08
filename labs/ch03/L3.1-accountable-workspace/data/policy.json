@@ -69,23 +69,20 @@
   },
   "sandbox": {
     "file": ".devcontainer/devcontainer.json",
-    "forbidden_mount_fragments": [
-      ".aws",
-      ".ssh",
-      ".config/gcloud",
-      ".azure",
-      ".kube",
-      ".docker",
-      "docker.sock",
-      ".gnupg",
-      ".netrc"
+    "allowed_mount_types": [
+      "volume",
+      "tmpfs"
     ],
-    "forbidden_run_args": [
-      "--privileged",
-      "--network",
-      "--pid",
-      "--ipc",
-      "--cap-add"
+    "mount_run_args": [
+      "-v",
+      "--volume",
+      "--mount"
+    ],
+    "allowed_run_args": [
+      "--cap-drop=ALL",
+      "--security-opt=no-new-privileges",
+      "--read-only",
+      "--network=none"
     ],
     "require_image_digest": true
   },
@@ -103,7 +100,11 @@
       "secret-scan"
     ],
     "enforce_admins": true,
-    "allow_force_pushes": false
+    "allow_force_pushes": false,
+    "fresh_approval_settings": [
+      "dismiss_stale_reviews",
+      "require_last_push_approval"
+    ]
   },
   "mcp": {
     "file": ".mcp.json",
@@ -114,7 +115,9 @@
           "-m",
           "relaymcp.server",
           "--db",
-          "data/relay-test.sql"
+          "data/relay-test.sql",
+          "--audit",
+          "evidence/mcp-audit.jsonl"
         ]
       }
     }
