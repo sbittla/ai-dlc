@@ -1,0 +1,30 @@
+{
+  "sha256": {
+    ".devcontainer/devcontainer.json": "075700a172d7f2f42c8a266f259b2a84302c5531696b1ca8d8ea03e715dd7b2c",
+    ".env.example": "91d29b49ac5c19550df6a7ea2f9701088d6930711cf5c8ee523102bc06c651cc",
+    ".github/CODEOWNERS": "14c1fff06eacf1fd128644489b92479ab0081f6917f79979982da36604107698",
+    ".github/workflows/ci.yml": "78b2bf1872a8b7c9217c30c50b24be84288c6ea86eacf23c3bc79eecef88636c",
+    ".gitignore": "d7afa8f5b3ba426a99999870223ae810bb9954e6046dcb5eb388190eebcd7ece",
+    ".mcp.json": "b57d4a3c1f8882c9c264d0125b0cea2d4cf13cf07b2d982179ffce7fbe76c839",
+    "AGENTS.md": "d361793af07e6bdae41c99c39cc3dd9870c68654b3671ccc583188b202cf5ce4",
+    "governance/branch-protection.json": "ea82354f5f64144a21433a251cfd994e68a3b03bafc6360dd3434568b26f01e8",
+    "governance/waivers.json": "91ec5c055a751940f1e46bd2e34de42de343d7b91d331da04e0386c6de1460c2",
+    "pyproject.toml": "3e8758cd5b0d70ef266eb026df6091cf8fccd80fd8f9a61713e8a82f1d56b1b7",
+    "src/relay/__init__.py": "7e688c3155a97592a4fe3475728a7e5dc25defe8dbc2c1a8f61e0bbe9e9a0a31",
+    "src/relay/api.py": "3f513e0f17669e0c4f061872288d52b7582a38ab6d74dd2caa5aa25ce55aff84",
+    "src/relay/duedates.py": "c7cb5cd1bb2bd5109674bd93ce27118a726879042dad7bdf392691788a28abd7",
+    "src/relay/models.py": "8a3e1aa071ed4bfbd9680c5c888ea02c7f7edd0f1179593bc029872fac2eb8f8",
+    "src/relay/roles.py": "0434200ba1b763e3771a321ac1ef2fee12d2e3d04132fdd4d4af6ab74f0a13f3",
+    "src/relay/store.py": "942338a199944bbfb617e1faba1fe13b00a731038feb11da9371ba215c4ed5b7",
+    "src/relay/timezones.py": "50a609438b68f5e7e3c9d1bc43e04a9f43c45f6bb0167a834635e0acf50ece45",
+    "tests/test_api.py": "2dbd352356e07bbd092ece186a33b1975722c8402c63db3d3ada5fd46c3358d0",
+    "tests/test_due_dates_rly412.py": "968c22911590b3533ae9381f1afc5cf9bd874f4e9339b65d18b5e3d4f76a3760",
+    "tests/test_duedates.py": "0ac47aa7a32a173b51370d39737924065036efa36bb4fd08c0ab643ab2ba31a1",
+    "tests/test_roles.py": "d37f45dd33e64f8d4a4b69f22c9c8d45cfe936ef8b5e4b31b26c234fb51003b7",
+    "tests/test_store.py": "7e0b81a1499dde6a442b7ea4fae9badc2d2972d8217018b4e0de3630ef3b549c",
+    "tools/due_date_table.py": "d0b457f3d5b40620a108870a959dc013d48b9aa0b7c95b3371a8973615b2df88",
+    "tools/lint.py": "ed29fa4db8e01238cb809c6eb83d327296201020866814d2cf483c0e904bba81"
+  },
+  "source": "labs/ch03/L3.1-accountable-workspace/solution/relay-repo/",
+  "version": "4.17.2"
+}

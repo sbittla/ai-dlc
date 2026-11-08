@@ -14,7 +14,7 @@ Held-out de: hard recall 100.0% of 10 hard tickets
 Routed (sim-small for predicted-easy, fallback to sim-large on invalid output) against all-sim-large:
   calls served: {'sim-large': 530, 'sim-small': 70}; fully correct 82.2% -> 80.5%
   cost per call $0.001102 -> $0.000978 (-11.3%); cost per correct $0.001341 -> $0.001214
-  gate: FAIL
-    PASS regression: 82.2% -> 80.5%, difference -1.7 points (95% paired interval -4.2 to +0.7); 7 worse, 2 better, McNemar p=0.180
+  gate: PASS
+    PASS regression: non-inferior within 5 points for a cheaper candidate (cost per call -11.3%): 82.2% -> 80.5%, difference -1.7 points (95% paired interval -4.1 to +0.8); 7 worse, 2 better, McNemar p=0.180
     WARN slice language:es: n=20: 81.7% -> 75.0%, difference -6.7 points (95% paired interval -18.3 to +0.0); 2 worse, 0 better, McNemar p=0.500
-    FAIL slice source:production: n=96: 85.1% -> 80.6%, difference -4.5 points (95% paired interval -8.7 to -1.4); 5 worse, 0 better, McNemar p=0.062
+    WARN slice source:production: n=96: 85.1% -> 80.6%, difference -4.5 points (95% paired interval -9.0 to -1.2); 5 worse, 0 better, McNemar p=0.062

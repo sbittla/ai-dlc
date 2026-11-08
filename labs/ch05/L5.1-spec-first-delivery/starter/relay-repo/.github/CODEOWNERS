@@ -1,0 +1,8 @@
+# Every change needs review from a human owner. Agents are never code owners.
+*                    @relay/maintainers
+/AGENTS.md           @relay/platform-leads
+/.github/            @relay/platform-leads
+/governance/         @relay/platform-leads
+/src/relay/roles.py  @relay/security
+/specs/             @relay/product
+/src/relay/escalation/rules.py  @relay/security

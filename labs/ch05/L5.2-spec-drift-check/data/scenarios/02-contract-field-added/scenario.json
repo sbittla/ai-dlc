@@ -1,0 +1,8 @@
+{
+  "id": "02-contract-field-added",
+  "title": "Someone adds task_title to the Evaluation contract for a richer email",
+  "kind": "structural",
+  "changed": [
+    "specs/001-escalation-rules/contracts/escalation-rules.schema.json"
+  ]
+}

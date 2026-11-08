@@ -1,0 +1,190 @@
+{
+  "version": "relay-drivers-2026.11",
+  "scored_by": "sam.o",
+  "scale": {
+    "0": "cannot meet",
+    "1": "meets only with high risk or effort",
+    "2": "meets",
+    "3": "meets with margin"
+  },
+  "people": [
+    "aisha.r",
+    "lena.k",
+    "priya.n",
+    "sam.o",
+    "tomas.b"
+  ],
+  "decisions": {
+    "D1": "First P1 step at 10 minutes by default, configurable",
+    "D2": "Only Owners and Admins edit rules",
+    "D3": "A suggested priority never starts an escalation",
+    "D4": "Business hours belong to the rule",
+    "D5": "No SMS in version 1; a webhook event instead",
+    "D6": "Targets are named users; no rotas in version 1",
+    "D7": "Flood cap of 20 escalation emails per target per hour",
+    "D8": "Numeric targets that no source states",
+    "D9": "Acknowledgement ends escalation, and fired steps do not repeat"
+  },
+  "drivers": [
+    {
+      "id": "ESC-N01",
+      "kind": "nfr",
+      "category": "human-ai",
+      "title": "Suggested priorities need a person",
+      "weight": 3,
+      "must": true,
+      "source": "labs/ch04/L4.1-brief-to-prd/data/prd-v1.md",
+      "note": ""
+    },
+    {
+      "id": "ESC-N02",
+      "kind": "nfr",
+      "category": "human-ai",
+      "title": "Confidence that means something",
+      "weight": 0,
+      "must": false,
+      "source": "labs/ch04/L4.1-brief-to-prd/data/prd-v1.md",
+      "note": "Not architecture-significant: met by the triage evaluation (Chapter 7), whatever the structure."
+    },
+    {
+      "id": "ESC-N03",
+      "kind": "nfr",
+      "category": "security",
+      "title": "Rule permissions enforced on the server; every change audited for 400 days",
+      "weight": 3,
+      "must": true,
+      "source": "labs/ch04/L4.1-brief-to-prd/data/prd-v1.md",
+      "note": ""
+    },
+    {
+      "id": "ESC-N04",
+      "kind": "nfr",
+      "category": "abuse",
+      "title": "At most 20 escalation emails per target per hour, across all rules",
+      "weight": 2,
+      "must": false,
+      "source": "labs/ch04/L4.1-brief-to-prd/data/prd-v1.md",
+      "note": ""
+    },
+    {
+      "id": "ESC-N05",
+      "kind": "nfr",
+      "category": "abuse",
+      "title": "Targets are workspace user IDs only",
+      "weight": 1,
+      "must": false,
+      "source": "labs/ch04/L4.1-brief-to-prd/data/prd-v1.md",
+      "note": ""
+    },
+    {
+      "id": "ESC-N06",
+      "kind": "nfr",
+      "category": "abuse",
+      "title": "Owner and Admins emailed within 5 minutes of a P1 rule change",
+      "weight": 2,
+      "must": false,
+      "source": "labs/ch04/L4.1-brief-to-prd/data/prd-v1.md",
+      "note": ""
+    },
+    {
+      "id": "ESC-N07",
+      "kind": "nfr",
+      "category": "privacy",
+      "title": "No task title, description or comments in emails or webhook events",
+      "weight": 3,
+      "must": true,
+      "source": "labs/ch04/L4.1-brief-to-prd/data/prd-v1.md",
+      "note": ""
+    },
+    {
+      "id": "ESC-N08",
+      "kind": "nfr",
+      "category": "accessibility",
+      "title": "Rule editor meets WCAG 2.2 AA; keyboard only",
+      "weight": 0,
+      "must": false,
+      "source": "labs/ch04/L4.1-brief-to-prd/data/prd-v1.md",
+      "note": "Not architecture-significant: a property of the editor's interface, the same in every option."
+    },
+    {
+      "id": "ESC-N09",
+      "kind": "nfr",
+      "category": "operability",
+      "title": "95% of steps within 60 seconds; a stalled evaluator pages after 5 minutes",
+      "weight": 3,
+      "must": false,
+      "source": "labs/ch04/L4.1-brief-to-prd/data/prd-v1.md",
+      "note": ""
+    },
+    {
+      "id": "ESC-N10",
+      "kind": "nfr",
+      "category": "cost",
+      "title": "$0 per notification beyond email and webhooks; no paid messaging service",
+      "weight": 2,
+      "must": false,
+      "source": "labs/ch04/L4.1-brief-to-prd/data/prd-v1.md",
+      "note": ""
+    },
+    {
+      "id": "CON-1",
+      "kind": "constraint",
+      "category": "constraint",
+      "title": "Operable by Relay's eight engineers on one platform on-call rota",
+      "weight": 3,
+      "must": false,
+      "source": "Chapter 1 (team of eight engineers); Lab 2.2 docs (on-call)",
+      "note": ""
+    },
+    {
+      "id": "CON-2",
+      "kind": "constraint",
+      "category": "constraint",
+      "title": "Ships on the daily deploy train, every weekday at 15:00 UTC",
+      "weight": 2,
+      "must": false,
+      "source": "Chapter 1 recommendation; Lab 2.2 docs",
+      "note": ""
+    },
+    {
+      "id": "CON-3",
+      "kind": "constraint",
+      "category": "constraint",
+      "title": "API limit of 600 requests per minute per token, HTTP 429 with Retry-After",
+      "weight": 1,
+      "must": false,
+      "source": "Lab 2.2 docs (API)",
+      "note": ""
+    },
+    {
+      "id": "CON-4",
+      "kind": "constraint",
+      "category": "constraint",
+      "title": "No API request waits for the triage model; API p95 under 1 second",
+      "weight": 3,
+      "must": true,
+      "source": "sam.o, recorded in ADR-007; the model's p95 is 4.12 s in Chapter 2's evaluation",
+      "note": ""
+    },
+    {
+      "id": "CON-5",
+      "kind": "constraint",
+      "category": "constraint",
+      "title": "Webhook deliveries signed, retried 8 times over about 6 hours, safe to receive twice",
+      "weight": 2,
+      "must": false,
+      "source": "Lab 2.2 docs (webhooks)",
+      "note": ""
+    },
+    {
+      "id": "CON-6",
+      "kind": "constraint",
+      "category": "constraint",
+      "title": "Triage capacity can grow without growing the rest of Relay",
+      "weight": 1,
+      "must": false,
+      "source": "sam.o, recorded in ADR-007",
+      "note": ""
+    }
+  ]
+}

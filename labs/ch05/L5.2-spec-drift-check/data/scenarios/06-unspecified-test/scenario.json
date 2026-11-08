@@ -1,0 +1,8 @@
+{
+  "id": "06-unspecified-test",
+  "title": "An agent adds a test named after ESC-AC15, a criterion outside this spec",
+  "kind": "structural",
+  "changed": [
+    "tests/escalation/test_escalation_acceptance.py"
+  ]
+}

@@ -45,13 +45,35 @@ def paired_bootstrap(diffs: list[float], n_resamples: int = 2000, seed: int = 7)
     raise NotImplementedError("paired_bootstrap")
 
 
+def cluster_bootstrap(clusters: list[list[float]], n_resamples: int = 2000, seed: int = 7) -> tuple[float, float, float]:
+    """Mean per-ticket difference and its 95% interval, resampling whole clusters (families).
+
+    Tickets of one family share a problem, so they are not independent; resampling
+    tickets one by one would make the interval too narrow. Here each cluster is
+    the list of per-ticket differences of one family.
+
+    rng = random.Random(seed); k = len(clusters). For each of n_resamples rounds,
+    draw k cluster indices with rng.randrange(k), and record
+    sum(sum(clusters[i]) for the drawn i) / sum(len(clusters[i]) for the drawn i).
+    Sort the recorded means; the interval is (means[int(0.025 * n_resamples)],
+    means[int(0.975 * n_resamples) - 1]). The point estimate is the mean over all
+    tickets. Returns (mean, low, high). Raise ValueError if there are no tickets.
+    """
+    # TODO(L7.1): implement using the definition in the docstring.
+    raise NotImplementedError("cluster_bootstrap")
+
+
 def paired_sample_size(discordant_rate: float, delta: float, alpha: float = 0.05, power: float = 0.80) -> int:
     """Tickets needed to detect a paired accuracy difference `delta` (Connor, 1987).
 
     n = (z_a * sqrt(psi) + z_b * sqrt(psi - delta**2))**2 / delta**2, rounded
     up, where psi is the share of tickets on which the two candidates
     disagree, z_a = NormalDist().inv_cdf(1 - alpha / 2) and
-    z_b = NormalDist().inv_cdf(power). Requires 0 < delta and delta**2 < psi.
+    z_b = NormalDist().inv_cdf(power).
+
+    A paired difference can never exceed the disagreement rate, and at
+    delta == psi every disagreement goes one way, so the formula applies only
+    when 0 < delta < psi. Raise ValueError otherwise.
     """
     # TODO(L7.1): implement using the definition in the docstring.
     raise NotImplementedError("paired_sample_size")

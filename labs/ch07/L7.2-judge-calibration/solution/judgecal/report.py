@@ -38,7 +38,8 @@ def load(data: Path):
 
 
 def report_agreement(answers, pairs) -> str:
-    lines = ["| Judge | Split | Answers | Accuracy | Cohen's kappa (95%) | Humans' kappa | TP | FP | FN | TN | False-pass rate |",
+    lines = ["Kappa intervals: 95% percentile bootstrap over answers (2,000 resamples, seed 7), not Wilson.", "",
+             "| Judge | Split | Answers | Accuracy | Cohen's kappa (95%) | Humans' kappa | TP | FP | FN | TN | False-pass rate |",
              "| --- | --- | ---: | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: |"]
     for split in ("calibration", "heldout"):
         for name in JUDGES:
@@ -53,7 +54,9 @@ def report_agreement(answers, pairs) -> str:
 def report_probes(answers, pairs, split: str = "heldout") -> str:
     cs = [calibrate.calibrate(judges.SimulatedJudge(n), answers, pairs, split) for n in JUDGES]
     head = "| Probe | " + " | ".join(c.judge for c in cs) + " |"
-    lines = [f"Bias probes on the {split} split (SIMULATED judges; biases are configured)", "",
+    lines = [f"Bias probes on the {split} split (SIMULATED judges; biases are configured). The self-preference "
+             f"probe compares answers labelled with the judge's family; it means something only if those answers "
+             f"really were written by that family.", "",
              head, "| --- |" + " ---: |" * len(cs)]
 
     def row(label, fn):

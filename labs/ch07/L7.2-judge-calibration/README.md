@@ -4,9 +4,9 @@
 | --- | --- |
 | Chapter | 7 — Evaluation-Driven Development |
 | Type | Stretch (Builder, Platform) |
-| Time | 3 hours |
+| Time | 3 hours, including the optional 15-minute live run |
 | Cost ceiling | $0 offline (default). Live mode: under $1 for one judge prompt over the 120 held-out answers and 60 pairs (240 calls) on `claude-opus-5-5` at the list prices in `judges.py`; the judge stops calling at `--max-usd` and records every unanswered item. Check current prices first |
-| Requires | Python 3.11+ and pytest (`pip install -e ".[dev]"`). Live mode only: `pip install -e ".[live]"` and Claude API credentials |
+| Requires | Python 3.11+ and pytest (`pip install -e ".[dev]"`, pinned to `pytest==9.1.1`). Live mode only: `pip install -e ".[live]"` (the Anthropic SDK, a pinned range `>=2.6,<3`, as in Lab 2.1) and Claude API credentials |
 
 ## Brief
 
@@ -21,6 +21,8 @@ By default the lab runs two **simulated** judges, `judge-v1` (asks "is this a go
 The probes will find exactly these biases, because they were put there. What this lab teaches is the calibration method, and how small the evidence for each bias is. Never quote simulated numbers as facts about real judges. The answers and labels are synthetic too: each question asks about one canonical Relay fact, and the adjudicated label stands in for the support leads' judgement.
 
 Live mode runs the same calibration with a real Claude model as the judge. Refusals, truncation, invalid output, API errors and budget stops become "no verdict", which counts as disagreement with the humans.
+
+**The self-preference probe has two limits.** In live mode it is meaningless as shipped: the answers labelled "large" were written by the generator, not by the judge's model, so a real judge has no reason to recognise them. To probe self-preference live, replace them with answers your judge's own model wrote. Even then, the probe is confounded if the two families make different kinds of mistakes, because some wrong answers are simply easier to catch than others. Compare families on matched questions, as this dataset does, and treat the gap as a lead to investigate, not a verdict.
 
 ## What you will practise
 
@@ -97,9 +99,12 @@ Choose between `judge-v1` and `judge-v2` from the calibration rows only. Note wh
 
 ### 6. Probe and decide on the held-out split (30 min)
 
+Still in `starter/`:
+
 ```bash
 python -m judgecal.report --data ../data probes > ../evidence/probes.md
 python -m judgecal.report --data ../data decide > ../evidence/decide.md
+cd ..
 ```
 
 Answer: why does `judge-v2` agree with the adjudicated labels slightly more than two labellers agree with each other, and why does that not make it better than a person? Which check does `judge-v2` pass with no margin at all, and on how many answers? Why may it grade single answers but not compare pairs?
@@ -107,9 +112,10 @@ Answer: why does `judge-v2` agree with the adjudicated labels slightly more than
 ### 7. Live judge (optional, 15 min, costs money)
 
 ```bash
-pip install -e ".[live]"
+pip install -e ".[live]"          # from the lab folder, where pyproject.toml is
 cd starter
 python -m judgecal.report --data ../data decide --live judge-v2 --model claude-opus-5-5 --max-usd 1 > ../evidence/decide-live.md
+cd ..
 ```
 
 Record the date, model ID, spend and every "outcome other than a verdict".

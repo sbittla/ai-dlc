@@ -1,0 +1,280 @@
+{
+  "id": "B",
+  "name": "Microservices with a message broker",
+  "summary": "Five services, each deployed and scaled on its own with its own database: an API gateway, tasks, escalation, triage and notification. Services publish events to a managed message broker.",
+  "components": [
+    {
+      "id": "client",
+      "name": "Browsers, API clients and the support inbox",
+      "kind": "external",
+      "deployable": null
+    },
+    {
+      "id": "gateway",
+      "name": "API gateway: authentication and rate limits",
+      "kind": "process",
+      "deployable": "gateway"
+    },
+    {
+      "id": "tasks",
+      "name": "tasks-svc",
+      "kind": "process",
+      "deployable": "tasks-svc"
+    },
+    {
+      "id": "escalation",
+      "name": "escalation-svc: rules and the evaluator",
+      "kind": "process",
+      "deployable": "escalation-svc"
+    },
+    {
+      "id": "triage",
+      "name": "triage-svc",
+      "kind": "process",
+      "deployable": "triage-svc"
+    },
+    {
+      "id": "notify",
+      "name": "notify-svc: email and webhooks",
+      "kind": "process",
+      "deployable": "notify-svc"
+    },
+    {
+      "id": "broker",
+      "name": "Managed message broker",
+      "kind": "broker",
+      "deployable": null
+    },
+    {
+      "id": "tasks-db",
+      "name": "tasks database",
+      "kind": "datastore",
+      "deployable": null
+    },
+    {
+      "id": "escalation-db",
+      "name": "escalation database",
+      "kind": "datastore",
+      "deployable": null
+    },
+    {
+      "id": "triage-db",
+      "name": "triage database",
+      "kind": "datastore",
+      "deployable": null
+    },
+    {
+      "id": "notify-db",
+      "name": "notification database",
+      "kind": "datastore",
+      "deployable": null
+    },
+    {
+      "id": "model",
+      "name": "Triage model provider (hosted)",
+      "kind": "external",
+      "deployable": null
+    },
+    {
+      "id": "email",
+      "name": "Email delivery provider",
+      "kind": "external",
+      "deployable": null
+    },
+    {
+      "id": "hooks",
+      "name": "Customer webhook endpoints",
+      "kind": "external",
+      "deployable": null
+    }
+  ],
+  "flows": [
+    {
+      "from": "client",
+      "to": "gateway",
+      "sync": true,
+      "boundary": "TB1",
+      "data": "requests, bearer tokens, ticket text"
+    },
+    {
+      "from": "gateway",
+      "to": "tasks",
+      "sync": true,
+      "boundary": "TB5",
+      "data": "requests with forwarded identity"
+    },
+    {
+      "from": "gateway",
+      "to": "escalation",
+      "sync": true,
+      "boundary": "TB5",
+      "data": "requests with forwarded identity"
+    },
+    {
+      "from": "gateway",
+      "to": "triage",
+      "sync": true,
+      "boundary": "TB5",
+      "data": "ticket text"
+    },
+    {
+      "from": "escalation",
+      "to": "tasks",
+      "sync": true,
+      "boundary": "TB5",
+      "data": "acknowledgement and project-visibility checks"
+    },
+    {
+      "from": "tasks",
+      "to": "tasks-db",
+      "sync": true,
+      "boundary": null,
+      "data": "tasks"
+    },
+    {
+      "from": "escalation",
+      "to": "escalation-db",
+      "sync": true,
+      "boundary": null,
+      "data": "rules, step state, flood-cap counts"
+    },
+    {
+      "from": "triage",
+      "to": "triage-db",
+      "sync": true,
+      "boundary": null,
+      "data": "jobs and suggestions"
+    },
+    {
+      "from": "notify",
+      "to": "notify-db",
+      "sync": true,
+      "boundary": null,
+      "data": "deliveries and flood-cap counts"
+    },
+    {
+      "from": "tasks",
+      "to": "broker",
+      "sync": false,
+      "boundary": "TB6",
+      "data": "task.priority_set events (with titles unless filtered)"
+    },
+    {
+      "from": "triage",
+      "to": "broker",
+      "sync": false,
+      "boundary": "TB6",
+      "data": "triage.suggested events"
+    },
+    {
+      "from": "escalation",
+      "to": "broker",
+      "sync": false,
+      "boundary": "TB6",
+      "data": "step.fired events"
+    },
+    {
+      "from": "broker",
+      "to": "notify",
+      "sync": false,
+      "boundary": "TB6",
+      "data": "step.fired events"
+    },
+    {
+      "from": "triage",
+      "to": "model",
+      "sync": true,
+      "boundary": "TB2",
+      "data": "ticket text out; suggested labels back"
+    },
+    {
+      "from": "notify",
+      "to": "email",
+      "sync": true,
+      "boundary": "TB3",
+      "data": "escalation emails"
+    },
+    {
+      "from": "notify",
+      "to": "hooks",
+      "sync": true,
+      "boundary": "TB4",
+      "data": "signed task.escalated events"
+    }
+  ],
+  "boundaries": {
+    "TB1": "Internet to the API gateway",
+    "TB2": "triage-svc to the model provider",
+    "TB3": "notify-svc to the email provider",
+    "TB4": "notify-svc to customer webhook endpoints",
+    "TB5": "Gateway and services on the internal network",
+    "TB6": "Services to the message broker"
+  },
+  "step_path": [
+    "escalation",
+    "escalation-db",
+    "tasks",
+    "tasks-db",
+    "broker",
+    "notify",
+    "notify-db"
+  ],
+  "scores": {
+    "ESC-N01": [
+      2,
+      "triage-svc publishes suggestions as events; every consumer must ignore unconfirmed ones, a rule kept by contract between services rather than in one place."
+    ],
+    "ESC-N03": [
+      1,
+      "Each service checks permissions itself or calls a shared one; audit entries are spread across four databases, each needing 400-day retention."
+    ],
+    "ESC-N04": [
+      1,
+      "A cap across all rules needs one count shared by escalation-svc and notify-svc; a distributed counter or a second source of truth."
+    ],
+    "ESC-N05": [
+      2,
+      "Target validation lives in escalation-svc; either option can do it."
+    ],
+    "ESC-N06": [
+      2,
+      "The rule change and its notification cross the broker; the outbox pattern makes it reliable at extra cost."
+    ],
+    "ESC-N07": [
+      1,
+      "Task content crosses the internal network and the broker; every consumer and the broker's retention must keep titles out of outbound messages."
+    ],
+    "ESC-N09": [
+      2,
+      "Each service fails on its own, but a step needs seven components up to fire; more dashboards to watch."
+    ],
+    "ESC-N10": [
+      1,
+      "Adds a managed broker to the services escalation calls, so ESC-AC31's list is no longer only email and webhooks."
+    ],
+    "CON-1": [
+      1,
+      "Five pipelines, four databases and a broker for one rota of eight; each service needs an owner on call."
+    ],
+    "CON-2": [
+      1,
+      "Five deploys a day on one train; a cross-service change needs versioned contracts and an ordered rollout."
+    ],
+    "CON-3": [
+      3,
+      "The gateway is the natural single place for the limit."
+    ],
+    "CON-4": [
+      3,
+      "The gateway hands tickets to triage-svc asynchronously; no request waits for the model."
+    ],
+    "CON-5": [
+      2,
+      "notify-svc owns deliveries and retries; the same idempotency rule applies."
+    ],
+    "CON-6": [
+      3,
+      "triage-svc scales on its own."
+    ]
+  }
+}

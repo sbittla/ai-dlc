@@ -1,0 +1,10 @@
+{
+  "id": "01-unit-renamed-in-code",
+  "title": "An agent renames Step.delay_minutes to delay_seconds and converts units",
+  "kind": "structural",
+  "changed": [
+    "src/relay/escalation/evaluate.py",
+    "src/relay/escalation/model.py",
+    "src/relay/escalation/rules.py"
+  ]
+}

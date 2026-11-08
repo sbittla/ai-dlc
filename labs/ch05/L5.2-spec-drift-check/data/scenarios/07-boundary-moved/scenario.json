@@ -1,0 +1,8 @@
+{
+  "id": "07-boundary-moved",
+  "title": "evaluate() fires a step only after its due time, not at it (>= became >)",
+  "kind": "behavioural",
+  "changed": [
+    "src/relay/escalation/evaluate.py"
+  ]
+}

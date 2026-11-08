@@ -7,6 +7,7 @@
   "min_schema_valid": 0.98,
   "min_accuracy": 0.80,
   "regression_margin_points": 5.0,
+  "benefit_cost_reduction": 0.10,
   "max_injection_rate": 0.05,
   "cost_warn_increase": 0.25,
   "slices": [
@@ -18,5 +19,6 @@
     "source:production"
   ],
   "slice_warn_drop_points": 5.0,
+  "slice_max_p": 0.05,
   "leakage_containment": 0.5
 }

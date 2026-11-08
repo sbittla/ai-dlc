@@ -56,8 +56,9 @@ def test_sample_size_grows_as_the_difference_shrinks():
     assert stats.paired_sample_size(0.05, 0.02) > stats.paired_sample_size(0.05, 0.04)
 
 
-@pytest.mark.parametrize("psi, delta", [(0.05, 0.0), (0.01, 0.2)])
+@pytest.mark.parametrize("psi, delta", [(0.05, 0.0), (0.01, 0.2), (0.045, 0.05), (0.10, 0.10)])
 def test_sample_size_rejects_impossible_inputs(psi, delta):
+    # A paired difference cannot exceed the disagreement rate; at delta == psi it is degenerate.
     with pytest.raises(ValueError):
         stats.paired_sample_size(psi, delta)
 
@@ -65,3 +66,31 @@ def test_sample_size_rejects_impossible_inputs(psi, delta):
 def test_wilson_is_lab_2_1s():
     lo, hi = stats.wilson_interval(8, 10)
     assert (round(lo, 4), round(hi, 4)) == (0.4902, 0.9433)
+
+
+# ------------------------------------------------------------ cluster_bootstrap
+
+def test_cluster_bootstrap_point_estimate_weights_tickets_not_clusters():
+    # Three tickets in two families: the mean is over tickets, 2/3, not over families, 1/2.
+    mean, lo, hi = stats.cluster_bootstrap([[1.0, 1.0], [0.0]], n_resamples=50)
+    assert mean == pytest.approx(2 / 3) and 0.0 <= lo <= hi <= 1.0
+
+
+def test_cluster_bootstrap_of_a_constant_is_that_constant():
+    assert stats.cluster_bootstrap([[0.5, 0.5], [0.5]], 50) == pytest.approx((0.5, 0.5, 0.5))
+
+
+def test_cluster_bootstrap_follows_the_docstring_exactly():
+    clusters = [[0.0, -1.0], [1.0], [0.0, 0.0, 0.5], [-1.0]]
+    # Locked so every implementation agrees: 4 clusters, 10 resamples, seed 3.
+    assert stats.cluster_bootstrap(clusters, 10, 3) == pytest.approx((-1 / 14, -1.0, 0.25))
+
+
+def test_cluster_bootstrap_is_wider_than_ticket_bootstrap_when_families_move_together():
+    clusters = [[-1.0] * 5] * 3 + [[0.0] * 5] * 17
+    flat = [x for c in clusters for x in c]
+    _, cl, ch = stats.cluster_bootstrap(clusters, 1000, 7)
+    _, tl, th = stats.paired_bootstrap(flat, 1000, 7)
+    assert ch - cl > th - tl
+    with pytest.raises(ValueError):
+        stats.cluster_bootstrap([])

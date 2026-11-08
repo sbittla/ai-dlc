@@ -1,0 +1,8 @@
+{
+  "id": "03-spec-bumped",
+  "title": "The spec moves to 1.1.0 and adds ESC-AC12; contract, code and tests stay at 1.0.0",
+  "kind": "structural",
+  "changed": [
+    "specs/001-escalation-rules/spec.md"
+  ]
+}

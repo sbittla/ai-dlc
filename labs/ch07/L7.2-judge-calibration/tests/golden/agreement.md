@@ -1,3 +1,5 @@
+Kappa intervals: 95% percentile bootstrap over answers (2,000 resamples, seed 7), not Wilson.
+
 | Judge | Split | Answers | Accuracy | Cohen's kappa (95%) | Humans' kappa | TP | FP | FN | TN | False-pass rate |
 | --- | --- | ---: | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | judge-v1 | calibration | 60 | 78.3% | 0.57 (0.36 to 0.77) | 0.83 | 27 | 10 | 3 | 20 | 33.3% |

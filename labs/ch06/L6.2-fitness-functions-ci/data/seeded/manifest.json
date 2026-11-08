@@ -1,0 +1,107 @@
+[
+  {
+    "id": "V01",
+    "title": "A domain module imports the worker",
+    "expect": [
+      "FF001"
+    ],
+    "files": [
+      "src/relay/api.py"
+    ]
+  },
+  {
+    "id": "V02",
+    "title": "The service imports a worker submodule",
+    "expect": [
+      "FF002"
+    ],
+    "files": [
+      "src/relay/service/app.py"
+    ]
+  },
+  {
+    "id": "V03",
+    "title": "The worker imports the service, closing a cycle",
+    "expect": [
+      "FF003",
+      "FF006"
+    ],
+    "files": [
+      "src/relay/worker/runner.py"
+    ]
+  },
+  {
+    "id": "V04",
+    "title": "The task store calls a web API",
+    "expect": [
+      "FF004"
+    ],
+    "files": [
+      "src/relay/store.py"
+    ]
+  },
+  {
+    "id": "V05",
+    "title": "The service imports an undeclared package with no ADR",
+    "expect": [
+      "FF005"
+    ],
+    "files": [
+      "src/relay/service/app.py"
+    ]
+  },
+  {
+    "id": "V06",
+    "title": "A declared package with no ADR",
+    "expect": [
+      "FF005"
+    ],
+    "files": [
+      "pyproject.toml",
+      "src/relay/service/app.py"
+    ]
+  },
+  {
+    "id": "V07",
+    "title": "Control: a declared package with an accepted ADR",
+    "expect": [],
+    "files": [
+      "docs/adr/ADR-009-httpx.md",
+      "pyproject.toml",
+      "src/relay/service/app.py"
+    ]
+  },
+  {
+    "id": "V08",
+    "title": "A domain module imports worker internals dynamically",
+    "expect": [
+      "FF001"
+    ],
+    "blind_spot": "importlib.import_module takes a string at run time; static analysis sees no import",
+    "files": [
+      "src/relay/api.py"
+    ]
+  },
+  {
+    "id": "V09",
+    "title": "The task store reaches the network through a subprocess",
+    "expect": [
+      "FF004"
+    ],
+    "blind_spot": "subprocess is not a network module; the call to curl is data, not an import",
+    "files": [
+      "src/relay/store.py"
+    ]
+  },
+  {
+    "id": "V10",
+    "title": "A type-checking-only import of a worker submodule",
+    "expect": [
+      "FF002"
+    ],
+    "note": "Flagged by design: no import at run time, but the service now depends on the queue's types",
+    "files": [
+      "src/relay/service/app.py"
+    ]
+  }
+]

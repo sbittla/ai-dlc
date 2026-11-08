@@ -1,0 +1,82 @@
+{
+  "version": "relay-fitness-v1",
+  "package": "relay",
+  "patterns": "'x' matches module x; 'x.*' matches x and every module under it; 'x.+' only modules under x",
+  "layers": [
+    {
+      "id": "FF001",
+      "adr": "ADR-007",
+      "name": "Domain modules depend on neither the service nor the worker",
+      "from": [
+        "relay",
+        "relay.api",
+        "relay.duedates",
+        "relay.models",
+        "relay.roles",
+        "relay.store",
+        "relay.timezones"
+      ],
+      "forbid": [
+        "relay.service.*",
+        "relay.worker.*"
+      ]
+    },
+    {
+      "id": "FF002",
+      "adr": "ADR-007",
+      "name": "The service uses only the worker's public interface",
+      "from": [
+        "relay.service.*"
+      ],
+      "forbid": [
+        "relay.worker.+"
+      ]
+    },
+    {
+      "id": "FF003",
+      "adr": "ADR-007",
+      "name": "The worker does not depend on the service",
+      "from": [
+        "relay.worker.*"
+      ],
+      "forbid": [
+        "relay.service.*"
+      ]
+    }
+  ],
+  "network": {
+    "id": "FF004",
+    "adr": "ADR-007",
+    "name": "Only the service imports network modules",
+    "allowed_in": [
+      "relay.service.*"
+    ],
+    "modules": [
+      "aiohttp",
+      "asyncio",
+      "ftplib",
+      "http",
+      "httpx",
+      "requests",
+      "smtplib",
+      "socket",
+      "socketserver",
+      "ssl",
+      "urllib",
+      "urllib3",
+      "wsgiref",
+      "xmlrpc"
+    ]
+  },
+  "dependencies": {
+    "id": "FF005",
+    "adr": "ADR-008",
+    "name": "Every third-party import is declared in pyproject.toml and named by an accepted ADR",
+    "adr_dir": "docs/adr"
+  },
+  "cycles": {
+    "id": "FF006",
+    "adr": "ADR-007",
+    "name": "No import cycles between Relay modules"
+  }
+}

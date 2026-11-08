@@ -1,0 +1,33 @@
+{
+  "agent": "A",
+  "prompt": "Add escalation rules to Relay so that urgent tasks escalate to the right people when nobody responds.",
+  "signature": "escalate(task, rules) -> list[Notification]",
+  "rule_example": {
+    "id": "rule-1",
+    "priority": "P1",
+    "levels": [
+      {
+        "after": 600,
+        "notify": [
+          "shift.lead@customer.example"
+        ]
+      },
+      {
+        "after": 1800,
+        "notify": [
+          "owner@customer.example"
+        ]
+      }
+    ]
+  },
+  "evaluation_example": {
+    "task": 7,
+    "notifications": [
+      {
+        "level": 0,
+        "to": "shift.lead@customer.example",
+        "subject": "P1: Scanner gateway down in hall 3"
+      }
+    ]
+  }
+}

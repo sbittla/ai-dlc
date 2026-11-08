@@ -1,0 +1,8 @@
+{
+  "id": "04-status-added-in-code",
+  "title": "An agent adds a 'snoozed' status to the code only",
+  "kind": "structural",
+  "changed": [
+    "src/relay/escalation/model.py"
+  ]
+}

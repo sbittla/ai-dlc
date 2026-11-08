@@ -1,0 +1,8 @@
+{
+  "id": "05-type-drift",
+  "title": "Step.delay_minutes becomes a float in the code; the contract says integer",
+  "kind": "structural",
+  "changed": [
+    "src/relay/escalation/model.py"
+  ]
+}

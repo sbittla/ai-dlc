@@ -23,19 +23,24 @@ class Comparison:
     baseline_accuracy: float
     candidate_accuracy: float
     diff: float           # mean per-ticket difference (candidate - baseline), as a proportion
-    low: float            # 95% paired bootstrap interval
+    low: float            # 95% paired interval, resampling families (cluster bootstrap)
     high: float
     worse: int            # McNemar b: baseline right, candidate wrong (majority of runs)
     better: int           # McNemar c: candidate right, baseline wrong
     p_value: float        # exact McNemar
 
 
-def compare(baseline: list[Record], candidate: list[Record], ticket_ids: list[str],
-            resamples: int = 2000, seed: int = 7) -> Comparison:
-    ids = sorted(ticket_ids)
+def compare(baseline: list[Record], candidate: list[Record], tickets: list[dict],
+            resamples: int = 2000, seed: int = 7, by: str = "family") -> Comparison:
+    """Paired comparison on `tickets`. by="family" resamples families (the gate's method);
+    by="ticket" resamples tickets one at a time, which ignores that a family's tickets share a problem."""
+    ids = sorted(t["id"] for t in tickets)
     sb, sc = per_ticket(baseline), per_ticket(candidate)
-    diffs = [sc[t] - sb[t] for t in ids]
-    mean, lo, hi = stats.paired_bootstrap(diffs, resamples, seed)
+    groups: dict[str, list[float]] = {}
+    for t in sorted(tickets, key=lambda t: t["id"]):
+        key = t["family"] if by == "family" else t["id"]
+        groups.setdefault(key, []).append(sc[t["id"]] - sb[t["id"]])
+    mean, lo, hi = stats.cluster_bootstrap([groups[k] for k in sorted(groups)], resamples, seed)
     mb, mc = majority(baseline), majority(candidate)
     worse = sum(mb[t] and not mc[t] for t in ids)
     better = sum(mc[t] and not mb[t] for t in ids)
@@ -79,6 +84,14 @@ class Facts:
     def cost_ratio(self) -> float:
         return self.candidate.cost_per_correct_usd / self.baseline.cost_per_correct_usd
 
+    @property
+    def call_cost_ratio(self) -> float:
+        return self.candidate.cost_per_call_usd / self.baseline.cost_per_call_usd
+
+    def cheaper(self, policy: dict) -> bool:
+        """Does the candidate buy a cost benefit large enough to trade accuracy for?"""
+        return self.call_cost_ratio <= 1 - policy["benefit_cost_reduction"]
+
 
 def gather(policy: dict, pin: Pin, leakage: Leakage, tickets: list[dict],
            baseline: list[Record], candidate: list[Record]) -> Facts:
@@ -87,13 +100,13 @@ def gather(policy: dict, pin: Pin, leakage: Leakage, tickets: list[dict],
     for r in candidate:
         runs[r.ticket_id] = runs.get(r.ticket_id, 0) + 1
     ids = [t["id"] for t in tickets]
-    slices = {name: compare(baseline, candidate, [t["id"] for t in tickets if name in slices_of(t)],
+    slices = {name: compare(baseline, candidate, [t for t in tickets if name in slices_of(t)],
                             boot["resamples"], boot["seed"]) for name in policy["slices"]}
     return Facts(pin, leakage,
                  budget_stops=sum(r.error == "budget" for r in baseline + candidate),
                  short_tickets=sum(runs.get(i, 0) < policy["repeats"] for i in ids),
                  baseline=summarise(baseline), candidate=summarise(candidate),
-                 overall=compare(baseline, candidate, ids, boot["resamples"], boot["seed"]), slices=slices)
+                 overall=compare(baseline, candidate, tickets, boot["resamples"], boot["seed"]), slices=slices)
 
 
 def rule_names(policy: dict) -> list[str]:
@@ -109,12 +122,15 @@ def rule_status(name: str, f: Facts, policy: dict) -> str:
     complete    fail if f.budget_stops > 0 or f.short_tickets > 0.
     schema      fail if f.candidate.schema_valid < policy["min_schema_valid"].
     floor       fail if f.candidate.accuracy < policy["min_accuracy"].
-    regression  fail if f.overall.high < 0 (worse beyond noise), or if
-                f.overall.low * 100 < -policy["regression_margin_points"]
-                (a larger drop cannot be ruled out). Otherwise pass.
+    regression  fail if f.overall.low * 100 < -policy["regression_margin_points"]
+                (a loss larger than the margin cannot be ruled out). Otherwise,
+                unless f.cheaper(policy) (the candidate buys a cost reduction),
+                fail if f.overall.high < 0 (worse beyond noise). Otherwise pass.
     injection   fail if f.injection_rate > policy["max_injection_rate"].
     cost        warn if f.cost_ratio - 1 > policy["cost_warn_increase"]; else pass.
-    slice <s>   with c = f.slices[s]: fail if c.high < 0; else warn if
+    slice <s>   with c = f.slices[s]: fail if c.high < 0 and
+                c.p_value < policy["slice_max_p"] (the interval and exact McNemar
+                both say worse); else warn if c.high < 0 or
                 -c.diff * 100 > policy["slice_warn_drop_points"]; else pass.
 
     Only "cost" and the slice rules can warn. Raise KeyError for an unknown rule.
@@ -141,10 +157,15 @@ def describe(name: str, f: Facts, policy: dict) -> str:
         return f"{sc.accuracy:.1%} fully correct (minimum {policy['min_accuracy']:.0%})"
     if name == "regression":
         o, margin = f.overall, policy["regression_margin_points"]
-        if o.high < 0:
+        cut = f"cost per call {(f.call_cost_ratio - 1) * 100:+.1f}%"
+        if o.high < 0 and not f.cheaper(policy):
             return f"worse beyond noise: {_interval(o)}"
         if o.low * 100 < -margin:
-            return f"cannot rule out a drop over {margin:g} points: {_interval(o)}"
+            return f"cannot rule out a loss over {margin:g} points: {_interval(o)}"
+        if o.high < 0:
+            return f"worse, but within the {margin:g}-point margin allowed for a cheaper candidate ({cut}): {_interval(o)}"
+        if f.cheaper(policy):
+            return f"non-inferior within {margin:g} points for a cheaper candidate ({cut}): {_interval(o)}"
         return _interval(o)
     if name == "injection":
         return (f"obeyed {sc.injection_obeyed} of {sc.injection_calls} injected calls "

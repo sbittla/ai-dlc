@@ -24,6 +24,8 @@ BASELINE = "sim-large:triage-v1"
 CANDIDATES = ["sim-large:triage-v1.1", "sim-large:triage-v2", "sim-large:triage-v3", "sim-large:triage-v3.1",
               "sim-large-2:triage-v1", "sim-small:triage-v1", "routed:triage-v1"]
 ROUTER_RECALL = 0.95
+ROW_SEEDS = list(range(1, 31))
+NOISE_SEEDS = list(range(101, 141))
 
 
 class Suite:
@@ -139,9 +141,9 @@ def report_incident(s: Suite) -> str:
 def report_leakage(s: Suite) -> str:
     v1, v3 = s.leakage("triage-v1"), s.leakage("triage-v3")
     hits = {h for h, _ in v3.prompt_hits}
-    keep = [t["id"] for t in s.held if t["id"] not in hits]
+    keep = [t for t in s.held if t["id"] not in hits]
     base, cand = s.records(BASELINE), s.records("sim-large:triage-v3")
-    all_c = gate.compare(base, cand, [t["id"] for t in s.held])
+    all_c = gate.compare(base, cand, s.held)
     clean_c = gate.compare(base, cand, keep)
     rdev, rheld = dataset.row_split(s.tickets, len(s.dev) - 40)
     row = dataset.check_leakage("", rdev, rheld, s.policy["leakage_containment"])
@@ -162,13 +164,30 @@ def report_leakage(s: Suite) -> str:
         f"in both splits; {len(row.cross_split)} of {len(rheld)} held-out tickets have a near-duplicate in dev "
         f"(family split: {len(fam.cross_split)} of {len(s.held)})",
     ]
-    for name, d, h in (("family split", s.dev, s.held), ("row split", rdev + ch2, rheld)):
+    def router_on(d, h):
         r = router.train(d)
         thr = router.choose_threshold(router.out_of_fold_scores(d), [t["difficulty"] == "hard" for t in d],
                                       ROUTER_RECALL)
-        ev = router.evaluate(r, thr, h)
-        lines.append(f"Router trained on the {name}: held-out hard recall {pct(ev.hard_recall)}, "
-                     f"easy tickets routed to the small model {pct(ev.easy_routed)}")
+        return router.evaluate(r, thr, h)
+
+    fam_ev = router_on(s.dev, s.held)
+    n_hard = sum(t["difficulty"] == "hard" for t in s.held)
+    caught = round(fam_ev.hard_recall * n_hard)
+    lo, hi = stats.wilson_interval(caught, n_hard)
+    lines.append(f"Router trained on the family split: held-out hard recall {pct(fam_ev.hard_recall)} "
+                 f"({caught} of {n_hard}; Wilson 95% {pct(lo)} to {pct(hi)})")
+    recalls, dups = [], []
+    for seed in ROW_SEEDS:
+        d, h = dataset.row_split(s.tickets, len(s.dev) - 40, seed)
+        recalls.append(router_on(d + ch2, h).hard_recall)
+        dups.append(len(dataset.check_leakage("", d, h, s.policy["leakage_containment"]).cross_split))
+    mean = sum(recalls) / len(recalls)
+    sd = (sum((x - mean) ** 2 for x in recalls) / (len(recalls) - 1)) ** 0.5
+    lines.append(f"Router trained on row splits, seeds {ROW_SEEDS[0]}-{ROW_SEEDS[-1]}: held-out hard recall "
+                 f"mean {pct(mean)}, SD {sd * 100:.1f} points, range {pct(min(recalls))} to {pct(max(recalls))}; "
+                 f"inflation over the family split {(mean - fam_ev.hard_recall) * 100:+.1f} points on average")
+    lines.append(f"  held-out tickets with a near-duplicate in dev, across those row splits: "
+                 f"mean {sum(dups) / len(dups):.1f}, range {min(dups)} to {max(dups)} of {len(s.held)}")
     return "\n".join(lines)
 
 
@@ -221,22 +240,65 @@ def report_stats(s: Suite) -> str:
         m, l, h = stats.paired_bootstrap([scores[t["id"]] for t in s.held])
         lines.append(f"  resampling tickets, {reps} run(s) each: {pct(m)}, 95% {pct(l)} to {pct(h)} "
                      f"(width {(h - l) * 100:.1f} points)")
+    scores = runner.per_ticket(base)
+    fams: dict[str, list[float]] = {}
+    for t in sorted(s.held, key=lambda t: t["id"]):
+        fams.setdefault(t["family"], []).append(scores[t["id"]])
+    m, l, h = stats.cluster_bootstrap([fams[k] for k in sorted(fams)])
+    lines.append(f"  resampling families ({len(fams)}), {s.repeats} runs each: {pct(m)}, 95% {pct(l)} to {pct(h)} "
+                 f"(width {(h - l) * 100:.1f} points)")
     cand = s.records("sim-large:triage-v1.1")
     cc = sum(r.correct for r in cand)
     clo, chi = stats.wilson_interval(cc, len(cand))
-    c = gate.compare(base, cand, [t["id"] for t in s.held])
+    c = gate.compare(base, cand, s.held)
+    ct = gate.compare(base, cand, s.held, by="ticket")
     lines += ["", "triage-v1.1 against triage-v1:",
               f"  unpaired: {pct(correct / n_calls)} ({pct(lo)} to {pct(hi)}) vs {pct(cc / len(cand))} "
               f"({pct(clo)} to {pct(chi)})",
-              f"  paired: difference {pts(c.diff)} points, 95% {pts(c.low)} to {pts(c.high)}; "
-              f"{c.worse} worse, {c.better} better, McNemar {gate.p_text(c.p_value)}"]
-    routed = gate.compare(base, s.records("routed:triage-v1"), [t["id"] for t in s.held])
+              f"  paired, resampling families: difference {pts(c.diff)} points, 95% {pts(c.low)} to {pts(c.high)}; "
+              f"{c.worse} worse, {c.better} better, McNemar {gate.p_text(c.p_value)}",
+              f"  paired, resampling tickets: 95% {pts(ct.low)} to {pts(ct.high)}"]
+    v2 = s.records("sim-large:triage-v2")
+    f2, t2 = gate.compare(base, v2, s.held), gate.compare(base, v2, s.held, by="ticket")
+    lines += [f"triage-v2 against triage-v1: resampling families {pts(f2.low)} to {pts(f2.high)}; "
+              f"resampling tickets {pts(t2.low)} to {pts(t2.high)}"]
+    routed = gate.compare(base, s.records("routed:triage-v1"), s.held)
     psi = (routed.worse + routed.better) / routed.tickets
-    lines += ["", f"Sample size (80% power, two-sided 5%), routed vs all-large discordance "
-                  f"{routed.worse + routed.better} of {routed.tickets} = {pct(psi)}:"]
+    lines += ["", "Sample size (80% power, two-sided 5%; valid only for differences smaller than the disagreement rate):",
+              f"  at the routed system's disagreement rate, {routed.worse + routed.better} of {routed.tickets} "
+              f"= {pct(psi)}:"]
+    for d in (0.02, 0.03, 0.04):
+        lines.append(f"    to detect a {d * 100:.0f}-point difference: {stats.paired_sample_size(psi, d)} tickets")
+    lines.append("  at a disagreement rate of 10.0%:")
     for d in (0.02, 0.03, 0.05):
-        lines.append(f"  to detect a {d * 100:.0f}-point difference: {stats.paired_sample_size(psi, d)} tickets")
+        lines.append(f"    to detect a {d * 100:.0f}-point difference: {stats.paired_sample_size(0.10, d)} tickets")
     return "\n".join(lines)
+
+
+def report_noise(s: Suite) -> str:
+    """The gate's false-alarm rate: the baseline against re-seeded copies of itself."""
+    base = s.records(BASELINE)
+    fails, by_rule, margin_fails = 0, {}, 0
+    for seed in NOISE_SEEDS:
+        m = models.SimulatedTriageModel("sim-large", "triage-v1", s.gold, seed=seed)
+        cand = runner.run_candidate(f"{BASELINE}#seed{seed}", m, prompts.PROMPTS["triage-v1"], s.held, s.repeats)
+        g = gate.evaluate_gate(s.policy, s.pin, s.leakage("triage-v1"), s.held, base, cand)
+        failed = [r.name for r in g.rules if r.status == "fail"]
+        fails += bool(failed)
+        for name in failed:
+            by_rule[name] = by_rule.get(name, 0) + 1
+        margin_fails += g.overall.low * 100 < -s.policy["regression_margin_points"]
+    n = len(NOISE_SEEDS)
+    lo, hi = stats.wilson_interval(fails, n)
+    rules = ", ".join(f"{k} {v}" for k, v in sorted(by_rule.items())) or "none"
+    return "\n".join([
+        f"False alarms: {BASELINE} gated against {n} re-seeded copies of itself (same configured behaviour, "
+        f"new random draws; SIMULATED)",
+        f"  gate failed {fails} of {n} ({pct(fails / n)}; Wilson 95% {pct(lo)} to {pct(hi)})",
+        f"  failures by rule: {rules}",
+        f"  the margin branch alone (loss over {s.policy['regression_margin_points']:g} points not ruled out): "
+        f"{margin_fails} of {n}",
+    ])
 
 
 def report_agents(s: Suite) -> str:
@@ -277,7 +339,7 @@ def main(argv: list[str] | None = None) -> int:
     g.add_argument("--candidate", required=True)
     g.add_argument("--live", action="store_true", help="call real Claude models (costs money)")
     g.add_argument("--max-usd", type=float, default=0.0, help="spend ceiling for a live run")
-    for name in ("candidates", "incident", "leakage", "router", "stats", "agents", "dataset"):
+    for name in ("candidates", "incident", "leakage", "router", "stats", "agents", "dataset", "noise"):
         sub.add_parser(name)
     args = ap.parse_args(argv)
     if hasattr(sys.stdout, "reconfigure"):
@@ -294,7 +356,7 @@ def main(argv: list[str] | None = None) -> int:
     s = Suite(args.data)
     print({"candidates": report_candidates, "incident": report_incident, "leakage": report_leakage,
            "router": report_router, "stats": report_stats, "agents": report_agents,
-           "dataset": report_dataset}[args.cmd](s))
+           "dataset": report_dataset, "noise": report_noise}[args.cmd](s))
     return 0
 
 

@@ -1,0 +1,23 @@
+{
+  "agent": "C",
+  "prompt": "Build the escalation evaluator: P1 tasks escalate after 10 and then 20 minutes, like our on-call policy.",
+  "signature": "evaluate_escalations(now) -> None  # reads tasks and rules from the store, sends email",
+  "rule_example": {
+    "name": "P1 default",
+    "trigger": "priority_or_suggestion",
+    "threshold_minutes": [
+      10,
+      20
+    ],
+    "escalate_to": "workspace_owner"
+  },
+  "evaluation_example": {
+    "escalated": [
+      {
+        "task_id": 7,
+        "minutes_waiting": 10,
+        "recipient_role": "Owner"
+      }
+    ]
+  }
+}

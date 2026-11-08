@@ -13,7 +13,7 @@ Arithmetic in Apply answers was checked by running Lab 7.1's `stats.mcnemar_exac
 
 The same: both state what correct means, run on every change, and block the merge on failure. Full marks need the requirement for each difference, not only the difference.
 
-**2. Families.** A family is a group of cases sharing one underlying input, such as one customer problem written several ways, with one label. If a family crosses the split, anything tuned on dev has effectively seen held-out cases, so held-out scores measure memory (evaluation leakage, Chapter 2). Lab 7.1 measured it: a row split put 37 families on both sides and gave 47 of 200 held-out tickets a near-duplicate in dev (none with the family split). The router's held-out hard recall rose from 88.4% to 96.9%, an inflation of 8.5 points that is a measurement, not a configured effect.
+**2. Families.** A family is a group of cases sharing one underlying input, such as one customer problem written several ways, with one label. If a family crosses the split, anything tuned on dev has effectively seen held-out cases, so held-out scores measure memory (evaluation leakage, Chapter 2). Lab 7.1 measured it over 30 row splits: 36 to 58 of 200 held-out tickets had a near-duplicate in dev (none with the family split). The router's held-out hard recall averaged 95.5% (SD 3.1 points, range 88.3% to 100%) against 88.4% for the family split, about 7 points higher on average. The inflation is measured, not configured, but its size depends on how alike the generator makes a family's variants, so good answers say it belongs to this synthetic dataset. Deduct for quoting one row split as the effect.
 
 **3. Judge biases.**
 
@@ -29,7 +29,7 @@ The same: both state what correct means, run on every change, and block the merg
 
 **5. McNemar and the regression rule.** n = 14 + 5 = 19 discordant tickets, k = min = 5. The lower tail is (1 + 19 + 171 + 969 + 3,876 + 11,628) / 2¹⁹ = 16,664 / 524,288 = 0.0318, so the two-sided p ≈ **0.064**. It is not significant at 5%, though 14 against 5 leans clearly towards a loss.
 
-Regression rule: the upper bound (+0.2) is not below 0, so not "worse beyond noise". The lower bound (−6.1) is below −5, so **FAIL: a drop larger than the margin cannot be ruled out**. Full marks need the p-value, the rule's second branch named, and a next step: more held-out tickets, or a reason to accept a wider margin written into the policy before re-running. Deduct for "passes because p > 0.05".
+Regression rule (Figure 7.2): the lower bound (−6.1) is below −5, so **FAIL: a loss larger than the margin cannot be ruled out**. This branch applies to every candidate, whether or not it is cheaper, so the cost question never arises. (The upper bound, +0.2, is not below 0, so the "worse beyond noise" branch would not have failed it.) Full marks need the p-value, the margin branch named, and a next step: more held-out tickets, or a reason to accept a wider margin written into the policy before re-running. Deduct for "passes because p > 0.05".
 
 **6. Judge on 200 answers.**
 - Accuracy = (90 + 88) / 200 = **89.0%**.
@@ -40,9 +40,11 @@ Checks you can apply: items (200 ≥ 100, passes) and false pass (12% > 10%, **f
 
 **7. Sample size.** With ψ = 0.10, two-sided 5% (z = 1.960) and 80% power (z = 0.842):
 - δ = 0.05: (1.960 × √0.10 + 0.842 × √0.0975)² / 0.0025 = **312 tickets**.
-- δ = 0.10: (1.960 × √0.10 + 0.842 × √0.09)² / 0.01 = **77 tickets**.
+- δ = 0.08: (1.960 × √0.10 + 0.842 × √0.0936)² / 0.0064 = **121 tickets**.
 
-A 20-ticket slice cannot reliably detect even a 10-point difference at this disagreement rate, so a slice result inside the noise is not evidence of no change. That is why Relay's slice rules fail only on an interval entirely below zero and otherwise warn, and why slices that matter need more cases.
+A 10-point difference cannot be used: a paired difference can never exceed the disagreement rate, and at δ = ψ every disagreement goes one way, so the formula's assumptions fail (Connor, 1987, requires δ < ψ). Lab 7.1's `paired_sample_size` raises an error for it.
+
+Even an 8-point difference needs about six times the tickets in one of Relay's 20-ticket language slices. A slice result inside the noise is therefore not evidence of no change. That is why Relay's slice rules need both an interval below zero and McNemar p < 0.05 to fail, warn otherwise, and why slices that matter need more cases.
 
 ## Design
 
@@ -54,4 +56,4 @@ A 20-ticket slice cannot reliably detect even a 10-point difference at this disa
 - **Online:** weekly sample labelled by support leads; edits the human agents make to drafts tracked as a signal; new failure kinds added to dev.
 Full marks need an absolute rule for leakage of other customers' data and a judge calibrated before it gates.
 
-**9. Upgrade plan.** Look for the playbook's steps in order: offline gate (done: fails the German slice, −25.0 points on 20 tickets, interval −43.3 to −8.3); study the failure on dev German tickets only; re-tune the prompt on dev and re-gate; shadow; canary with online evaluation; rollback by configuration. A split rollout routes by language: English and Spanish to the new model, German to the old, each route gated separately on its own slice with enough tickets (Equation 7.3). Costs: two models to operate and evaluate, a language detector that itself needs an evaluation, and a deadline set by the old model's retirement, which must be in the plan. Deduct for shipping on the overall +2.2 points, whose interval includes zero.
+**9. Upgrade plan.** Look for the playbook's steps in order: offline gate (done: passes overall, with a German warning, −25.0 points on 20 tickets, interval −43.3 to −8.3, 5 worse and 0 better, McNemar p = 0.062); the reviewer's decision not to acknowledge the warning, with its reason; study the failure on dev German tickets only, and add held-out German tickets from fresh production samples; re-tune the prompt on dev and re-gate; shadow; canary with online evaluation; rollback by configuration. A split rollout routes by language: English and Spanish to the new model, German to the old, each route gated separately on its own slice with enough tickets (Equation 7.3). Costs: two models to operate and evaluate, a language detector that itself needs an evaluation, and a deadline set by the old model's retirement, which must be in the plan. Deduct for shipping on the overall +2.2 points, whose interval includes zero.

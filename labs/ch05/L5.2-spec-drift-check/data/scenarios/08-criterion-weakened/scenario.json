@@ -1,0 +1,9 @@
+{
+  "id": "08-criterion-weakened",
+  "title": "The delay message stops naming the range, and the test's assertion is removed",
+  "kind": "behavioural",
+  "changed": [
+    "src/relay/escalation/rules.py",
+    "tests/escalation/test_escalation_acceptance.py"
+  ]
+}

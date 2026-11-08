@@ -1,0 +1,12 @@
+# A CI job for Relay's fitness rules. Copy into Relay's .github/workflows/ci.yml (a change to .github/ needs a
+# @relay/platform-leads review) and add "fitness" to the required status checks in governance/branch-protection.json.
+# ILLUSTRATIVE: Relay 4.19.0 does not vendor fitcheck. Relay's own tests/test_architecture.py already runs rules
+# AR1-AR5 inside the required "tests" check; this job adds FF005 (dependencies need ADRs) and FF006 (cycles).
+  fitness:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.11"}
+      # fitcheck reads source with ast and never imports it, so it is safe on untrusted pull requests.
+      - run: python -m fitcheck.report --repo . --rules governance/fitness-rules.json --gate

@@ -1,0 +1,14 @@
+# A spec-drift job for Relay's CI (illustrative: Relay's repository does not vendor driftcheck).
+# Add it to .github/workflows/ci.yml and list `spec-drift` as a required status check in
+# governance/branch-protection.json, next to `tests` and `secret-scan`.
+  spec-drift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.11"}
+      # The checker comes from the platform team's repository at a pinned commit, not from this one,
+      # so a pull request cannot weaken the check that reviews it.
+      - run: python -m pip install "driftcheck @ git+https://example.invalid/platform/driftcheck@<pinned-commit>"
+      # Exit 0: no blocking drift. 1: blocking drift. 2: an artifact could not be read (fails the job too).
+      - run: python -m driftcheck.gate .

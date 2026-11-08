@@ -1,0 +1,33 @@
+{
+  "agent": "B",
+  "prompt": "Implement escalation rules from the PRD's P1 path: rules have steps with delays in minutes and target users.",
+  "signature": "RuleEngine.check(rule, task_state, now) -> EscalationResult",
+  "rule_example": {
+    "rule_id": "R-ROT-P1",
+    "project": "Rotterdam",
+    "steps": [
+      {
+        "step": 1,
+        "delay_minutes": 10,
+        "user_ids": [
+          5
+        ]
+      },
+      {
+        "step": 2,
+        "delay_minutes": 20,
+        "user_ids": [
+          2
+        ]
+      }
+    ]
+  },
+  "evaluation_example": {
+    "task_id": 7,
+    "task_title": "Scanner gateway down in hall 3",
+    "due_steps": [
+      1
+    ],
+    "state": "ESCALATING"
+  }
+}

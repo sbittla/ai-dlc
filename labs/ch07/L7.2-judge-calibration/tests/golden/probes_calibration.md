@@ -1,4 +1,4 @@
-Bias probes on the calibration split (SIMULATED judges; biases are configured)
+Bias probes on the calibration split (SIMULATED judges; biases are configured). The self-preference probe compares answers labelled with the judge's family; it means something only if those answers really were written by that family.
 
 | Probe | judge-v1 | judge-v2 |
 | --- | ---: | ---: |

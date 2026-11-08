@@ -1,0 +1,161 @@
+{
+  "id": "A",
+  "name": "Modular monolith with an asynchronous triage worker",
+  "summary": "One codebase and one deployable artifact, run as two process types: the HTTP service and the worker. One database; each module owns its tables. Triage runs from a durable queue table, so no request waits for the model.",
+  "components": [
+    {
+      "id": "client",
+      "name": "Browsers, API clients and the support inbox",
+      "kind": "external",
+      "deployable": null
+    },
+    {
+      "id": "web",
+      "name": "relay.service: HTTP service",
+      "kind": "process",
+      "deployable": "relay"
+    },
+    {
+      "id": "worker",
+      "name": "relay.worker: triage worker (later also the escalation evaluator)",
+      "kind": "process",
+      "deployable": "relay"
+    },
+    {
+      "id": "db",
+      "name": "Relay database: tasks, rules, triage_jobs; tables owned by modules",
+      "kind": "datastore",
+      "deployable": null
+    },
+    {
+      "id": "model",
+      "name": "Triage model provider (hosted)",
+      "kind": "external",
+      "deployable": null
+    },
+    {
+      "id": "email",
+      "name": "Email delivery provider",
+      "kind": "external",
+      "deployable": null
+    },
+    {
+      "id": "hooks",
+      "name": "Customer webhook endpoints",
+      "kind": "external",
+      "deployable": null
+    }
+  ],
+  "flows": [
+    {
+      "from": "client",
+      "to": "web",
+      "sync": true,
+      "boundary": "TB1",
+      "data": "requests, bearer tokens, ticket text"
+    },
+    {
+      "from": "web",
+      "to": "db",
+      "sync": true,
+      "boundary": null,
+      "data": "task reads, triage job inserts"
+    },
+    {
+      "from": "worker",
+      "to": "db",
+      "sync": true,
+      "boundary": null,
+      "data": "job claims, suggestions, step state"
+    },
+    {
+      "from": "worker",
+      "to": "model",
+      "sync": true,
+      "boundary": "TB2",
+      "data": "ticket text out; suggested labels back"
+    },
+    {
+      "from": "worker",
+      "to": "email",
+      "sync": true,
+      "boundary": "TB3",
+      "data": "escalation emails: link, priority, rule, step; never the title"
+    },
+    {
+      "from": "worker",
+      "to": "hooks",
+      "sync": true,
+      "boundary": "TB4",
+      "data": "signed task.escalated events"
+    }
+  ],
+  "boundaries": {
+    "TB1": "Internet to the Relay service",
+    "TB2": "Relay to the model provider",
+    "TB3": "Relay to the email provider",
+    "TB4": "Relay to customer webhook endpoints"
+  },
+  "step_path": [
+    "worker",
+    "db"
+  ],
+  "scores": {
+    "ESC-N01": [
+      3,
+      "The worker writes suggestions to its own table and never touches a task; one fitness test checks that no module but the service reaches the worker, and code review sees every path in one repository."
+    ],
+    "ESC-N03": [
+      2,
+      "One permission module (relay.roles) and one audit table serve every route; the 400-day retention is one setting on one database."
+    ],
+    "ESC-N04": [
+      3,
+      "The cap counts emails per target across all rules; with one database the count and the send are in one transaction."
+    ],
+    "ESC-N05": [
+      2,
+      "Target validation lives in one module; either option can do it."
+    ],
+    "ESC-N06": [
+      2,
+      "A rule change and its notification are written in one transaction; the worker sends it."
+    ],
+    "ESC-N07": [
+      2,
+      "Task titles never leave the process except as a link; one place to test."
+    ],
+    "ESC-N09": [
+      2,
+      "One worker heartbeat and one queue to watch; the 5-minute stall flag is in /healthz."
+    ],
+    "ESC-N10": [
+      2,
+      "Calls only email and webhook delivery; no new paid service."
+    ],
+    "CON-1": [
+      3,
+      "One artifact, one pipeline, one database and one set of dashboards for one rota."
+    ],
+    "CON-2": [
+      3,
+      "One artifact on the daily train; a change across modules ships as one change."
+    ],
+    "CON-3": [
+      2,
+      "The limiter is in the service; exact for one process, needs shared storage for several (a recorded consequence)."
+    ],
+    "CON-4": [
+      3,
+      "POST /v1/triage-jobs inserts a row and returns 202; the model is called by the worker."
+    ],
+    "CON-5": [
+      2,
+      "Webhook sends are jobs with idempotency keys; receivers get the same delivery ID twice."
+    ],
+    "CON-6": [
+      2,
+      "Worker processes scale separately from web processes, from the same artifact."
+    ]
+  }
+}
