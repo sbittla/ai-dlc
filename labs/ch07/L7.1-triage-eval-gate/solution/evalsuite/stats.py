@@ -1,0 +1,71 @@
+"""Statistics for comparing two candidates on the same tickets (reference solution)."""
+
+from __future__ import annotations
+
+import math
+import random
+from statistics import NormalDist
+
+
+def wilson_interval(successes: int, n: int, z: float = 1.96) -> tuple[float, float]:
+    """95% Wilson score interval for a proportion (copied from Lab 2.1)."""
+    if n <= 0:
+        raise ValueError("n must be positive")
+    p = successes / n
+    denom = 1 + z * z / n
+    centre = (p + z * z / (2 * n)) / denom
+    half = z * math.sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / denom
+    return max(0.0, centre - half), min(1.0, centre + half)
+
+
+def mcnemar_exact(b: int, c: int) -> float:
+    """Two-sided exact McNemar test on discordant pairs.
+
+    b = tickets the baseline got right and the candidate got wrong;
+    c = tickets the candidate got right and the baseline got wrong.
+    Under "no difference", each discordant ticket is equally likely to fall
+    either way, so min(b, c) follows Binomial(b + c, 0.5). The p-value is
+    twice the lower tail, capped at 1. With no discordant tickets, p = 1.
+    """
+    if b < 0 or c < 0:
+        raise ValueError("counts must be non-negative")
+    n = b + c
+    if n == 0:
+        return 1.0
+    k = min(b, c)
+    tail = sum(math.comb(n, i) for i in range(k + 1)) / 2 ** n
+    return min(1.0, 2 * tail)
+
+
+def paired_bootstrap(diffs: list[float], n_resamples: int = 2000, seed: int = 7) -> tuple[float, float, float]:
+    """Mean of per-ticket differences and its 95% percentile bootstrap interval.
+
+    rng = random.Random(seed). For each of n_resamples rounds, draw
+    len(diffs) values with replacement using rng.choice, and record their
+    mean. Sort the means; the interval is (means[int(0.025 * n_resamples)],
+    means[int(0.975 * n_resamples) - 1]). Returns (mean, low, high).
+    The same tickets are used for both candidates in every resample, which
+    is what makes the comparison paired.
+    """
+    if not diffs:
+        raise ValueError("no differences")
+    rng = random.Random(seed)
+    n = len(diffs)
+    means = sorted(sum(rng.choice(diffs) for _ in range(n)) / n for _ in range(n_resamples))
+    return sum(diffs) / n, means[int(0.025 * n_resamples)], means[int(0.975 * n_resamples) - 1]
+
+
+def paired_sample_size(discordant_rate: float, delta: float, alpha: float = 0.05, power: float = 0.80) -> int:
+    """Tickets needed to detect a paired accuracy difference `delta` (Connor, 1987).
+
+    n = (z_a * sqrt(psi) + z_b * sqrt(psi - delta**2))**2 / delta**2, rounded
+    up, where psi is the share of tickets on which the two candidates
+    disagree, z_a = NormalDist().inv_cdf(1 - alpha / 2) and
+    z_b = NormalDist().inv_cdf(power). Requires 0 < delta and delta**2 < psi.
+    """
+    if delta <= 0 or delta * delta >= discordant_rate:
+        raise ValueError("need 0 < delta and delta**2 < discordant_rate")
+    z_a = NormalDist().inv_cdf(1 - alpha / 2)
+    z_b = NormalDist().inv_cdf(power)
+    n = (z_a * math.sqrt(discordant_rate) + z_b * math.sqrt(discordant_rate - delta * delta)) ** 2 / delta ** 2
+    return math.ceil(n)

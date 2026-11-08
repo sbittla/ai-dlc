@@ -81,6 +81,8 @@ def check_sandbox(repo: Path, policy: dict) -> list[Finding]:
         WS021 with the next argument as its value, which is then skipped;
         "<flag>=<value>" is the same. Message: "run argument mounts '<value>'".
       - any other argument not in allowed_run_args: WS022, message "run argument '<arg>'".
+        Arguments are checked one at a time, so a flag and its separate value
+        (["--network", "host"]) produce two WS022 findings; "--network=host" produces one.
     - WS022 once more if "privileged" is true. Message: "privileged: true".
     - WS023 if require_image_digest, the config has an "image", and the image
       does not contain "@sha256:". Message: "image '<image>' is pinned by tag, not digest".

@@ -1,0 +1,96 @@
+{
+  "lexicon_version": "reqcheck-lexicon-v1",
+  "min_quote_words": 5,
+  "vague_terms": [
+    "adequate",
+    "and/or",
+    "appropriate",
+    "as needed",
+    "easy",
+    "efficient",
+    "etc.",
+    "fast",
+    "flexible",
+    "intuitive",
+    "minimal",
+    "quickly",
+    "reasonable",
+    "relevant",
+    "right people",
+    "robust",
+    "seamless",
+    "secure",
+    "simple",
+    "timely",
+    "urgent",
+    "user-friendly"
+  ],
+  "weak_modals": [
+    "should",
+    "may",
+    "might",
+    "could",
+    "ideally",
+    "where possible",
+    "if possible",
+    "try to"
+  ],
+  "measurable_patterns": [
+    "\\$\\d",
+    "\\b\\d+(\\.\\d+)?\\s*(%|(ms|milliseconds?|seconds?|minutes?|hours?|business hours|days?)\\b)",
+    "\\b(at most|at least|no more than) \\d+\\b",
+    "\\bWCAG \\d\\.\\d\\b",
+    "\\bmust not\\b"
+  ],
+  "required_nfr_categories": [
+    "security",
+    "abuse",
+    "privacy",
+    "accessibility",
+    "operability",
+    "cost",
+    "human-ai"
+  ],
+  "concepts": {
+    "task_priority": [
+      "priority",
+      "priorities",
+      "P1",
+      "P2",
+      "P3",
+      "P4"
+    ],
+    "acknowledgement": [
+      "acknowledge",
+      "acknowledged",
+      "acknowledgement",
+      "unacknowledged"
+    ],
+    "business_hours": [
+      "business hours",
+      "working day"
+    ],
+    "sms": [
+      "SMS",
+      "text message",
+      "text messages",
+      "voice call"
+    ],
+    "on_call_rota": [
+      "rota",
+      "secondary",
+      "on duty",
+      "on-duty",
+      "shift lead"
+    ],
+    "model_confidence": [
+      "confidence",
+      "confident"
+    ]
+  },
+  "injection_patterns": [
+    "(?i)\\bignore (all |any |your )?(previous|prior|above) instructions\\b",
+    "(?i)\\b(note|notes|instructions?|message) (for|to) (any |all )?(ai|llm|language model|assistant|model)s?\\b",
+    "(?i)\\b(ai|llm) assistants?\\b[^.]{0,80}\\b(record|list|mark|treat|approve)\\b"
+  ]
+}

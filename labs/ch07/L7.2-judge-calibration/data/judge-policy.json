@@ -1,0 +1,18 @@
+{
+  "policy": "judge-policy-v1",
+  "dataset": {"name": "relay-assistant-judge-calibration", "version": "2026.11.1"},
+  "decide_on": "heldout",
+  "min_items": 100,
+  "min_kappa_lower": 0.60,
+  "max_kappa_gap": 0.15,
+  "max_false_pass_rate": 0.10,
+  "max_bias_gap_points": 10,
+  "min_pairs": 50,
+  "min_swap_consistency": 0.90,
+  "min_pair_accuracy": 0.90,
+  "after_approval": [
+    "humans re-label a random 10% of judged items each release and the policy is re-checked on them",
+    "any change to the judge model, the judge prompt or the rubric repeats the calibration",
+    "adversarial and safety items are always labelled by humans"
+  ]
+}

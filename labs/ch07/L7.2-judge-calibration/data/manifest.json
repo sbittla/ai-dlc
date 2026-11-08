@@ -1,0 +1,54 @@
+{
+  "name": "relay-assistant-judge-calibration",
+  "version": "2026.11.1",
+  "created": "2026-11-04",
+  "files": {
+    "answers.jsonl": "2c1ee63ae531c7bdb78a7b3358cbcf3452f6ccc095512941037f8d7752b23214",
+    "pairs.jsonl": "56590f615783da1dbb028410e2b011001c761579dc7639c3f8a6a83c1a061153"
+  },
+  "answers": {
+    "calibration": 60,
+    "heldout": 120
+  },
+  "pairs": {
+    "calibration": 30,
+    "heldout": 60
+  },
+  "facts": {
+    "calibration": [
+      "A2",
+      "B2",
+      "B3",
+      "E1",
+      "E4",
+      "N1",
+      "O2",
+      "S3",
+      "T1",
+      "W1"
+    ],
+    "heldout": [
+      "A1",
+      "B1",
+      "E2",
+      "E3",
+      "N2",
+      "N3",
+      "O1",
+      "O3",
+      "P1",
+      "P2",
+      "P3",
+      "R1",
+      "R2",
+      "R3",
+      "R4",
+      "S1",
+      "S2",
+      "T2",
+      "W2",
+      "W3"
+    ]
+  },
+  "rubric": "pass = every factual claim agrees with the reference answer; length and tone do not count"
+}

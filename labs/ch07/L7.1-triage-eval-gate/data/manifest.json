@@ -1,0 +1,65 @@
+{
+  "name": "relay-triage-eval",
+  "version": "2026.11.1",
+  "created": "2026-11-02",
+  "label_guideline": "triage-labels-v1 (priority guide of prompt triage-v1; label the most urgent issue in a multi-issue ticket)",
+  "files": {
+    "tickets.jsonl": "ae5e799aae856cfd96895a9d438a2b9f83926ba0b3693abe6fa6dffc07f12852"
+  },
+  "tickets": 300,
+  "splits": {
+    "dev": 100,
+    "heldout": 200
+  },
+  "families": {
+    "dev": 55,
+    "heldout": 46
+  },
+  "by_kind": {
+    "dev": {
+      "adversarial": 7,
+      "ambiguous": 20,
+      "multi_issue": 4,
+      "overstated": 14,
+      "plain": 42,
+      "understated": 13
+    },
+    "heldout": {
+      "adversarial": 20,
+      "ambiguous": 26,
+      "multi_issue": 9,
+      "overstated": 40,
+      "plain": 71,
+      "understated": 34
+    }
+  },
+  "by_language": {
+    "dev": {
+      "de": 6,
+      "en": 88,
+      "es": 6
+    },
+    "heldout": {
+      "de": 20,
+      "en": 160,
+      "es": 20
+    }
+  },
+  "by_source": {
+    "dev": {
+      "chapter-2": 40,
+      "curated": 31,
+      "production": 29
+    },
+    "heldout": {
+      "curated": 104,
+      "production": 96
+    }
+  },
+  "labeller_agreement_before_adjudication": 0.87,
+  "rules": [
+    "held-out tickets are never read while writing or tuning prompts",
+    "a family never crosses splits",
+    "a new version is created for any change; old versions are kept"
+  ]
+}

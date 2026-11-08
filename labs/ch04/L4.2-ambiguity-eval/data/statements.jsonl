@@ -1,0 +1,96 @@
+{"id": "S001", "set": "D01", "split": "dev", "topic": "escalation timing", "text": "When a P1 task stays unacknowledged for 10 minutes, Relay must notify the first step's targets.", "defects": ["contradiction"], "conflicts_with": "S002"}
+{"id": "S002", "set": "D01", "split": "dev", "topic": "escalation timing", "text": "When a P1 task stays unacknowledged for 15 minutes, Relay must notify the first step's targets.", "defects": ["contradiction"], "conflicts_with": "S001"}
+{"id": "S003", "set": "D01", "split": "dev", "topic": "escalation timing", "text": "Relay must notify the relevant people within 20 minutes when a P1 task is still unacknowledged.", "defects": ["ambiguity"], "conflicts_with": null}
+{"id": "S004", "set": "D01", "split": "dev", "topic": "escalation timing", "text": "An Admin can set each step's delay to a whole number of minutes from 5 to 240.", "defects": [], "conflicts_with": null}
+{"id": "S005", "set": "D02", "split": "dev", "topic": "rule editing", "text": "Only an Owner or an Admin can change an escalation rule.", "defects": ["contradiction"], "conflicts_with": "S006"}
+{"id": "S006", "set": "D02", "split": "dev", "topic": "rule editing", "text": "A Member can change the escalation rules of any project they belong to.", "defects": ["contradiction"], "conflicts_with": "S005"}
+{"id": "S007", "set": "D02", "split": "dev", "topic": "rule editing", "text": "The rule editor should show a preview of each step before saving.", "defects": ["untestable"], "conflicts_with": null}
+{"id": "S008", "set": "D02", "split": "dev", "topic": "rule editing", "text": "A warning is shown within 1 minute when a rule has no valid target.", "defects": ["missing_actor"], "conflicts_with": null}
+{"id": "S009", "set": "D03", "split": "dev", "topic": "notifications", "text": "Relay must email each target within 60 seconds of a step firing.", "defects": [], "conflicts_with": null}
+{"id": "S010", "set": "D03", "split": "dev", "topic": "notifications", "text": "Escalation emails must contain the appropriate task details and the task's link.", "defects": ["ambiguity"], "conflicts_with": null}
+{"id": "S011", "set": "D03", "split": "dev", "topic": "notifications", "text": "A summary email is sent at the end of each hour.", "defects": ["missing_actor"], "conflicts_with": null}
+{"id": "S012", "set": "D03", "split": "dev", "topic": "notifications", "text": "Relay must send at most 20 escalation emails per target per hour.", "defects": [], "conflicts_with": null}
+{"id": "S013", "set": "D04", "split": "dev", "topic": "webhooks", "text": "Relay must sign every task.escalated webhook event with HMAC-SHA256 in the X-Relay-Signature header.", "defects": [], "conflicts_with": null}
+{"id": "S014", "set": "D04", "split": "dev", "topic": "webhooks", "text": "Webhook delivery must be highly available.", "defects": ["untestable"], "conflicts_with": null}
+{"id": "S015", "set": "D04", "split": "dev", "topic": "webhooks", "text": "Relay must retry a failed webhook delivery 8 times, with the last attempt 6 hours after the first.", "defects": [], "conflicts_with": null}
+{"id": "S016", "set": "D04", "split": "dev", "topic": "webhooks", "text": "Webhook payloads must stay under 256 KB and include large attachments by reference when needed.", "defects": ["ambiguity"], "conflicts_with": null}
+{"id": "S017", "set": "D05", "split": "dev", "topic": "acknowledgement", "text": "An assignee can acknowledge a task from the task page or from the escalation email.", "defects": [], "conflicts_with": null}
+{"id": "S018", "set": "D05", "split": "dev", "topic": "acknowledgement", "text": "Acknowledgement should happen soon after the first notification.", "defects": ["ambiguity", "untestable"], "conflicts_with": null}
+{"id": "S019", "set": "D05", "split": "dev", "topic": "acknowledgement", "text": "A comment added by a service token must not count as an acknowledgement.", "defects": [], "conflicts_with": null}
+{"id": "S020", "set": "D05", "split": "dev", "topic": "acknowledgement", "text": "The acknowledgement time is displayed in UTC.", "defects": ["missing_actor"], "conflicts_with": null}
+{"id": "S021", "set": "D06", "split": "dev", "topic": "business hours", "text": "A P2 rule counts only its own business hours, from a daily start time to an end time in one time zone.", "defects": [], "conflicts_with": null}
+{"id": "S022", "set": "D06", "split": "dev", "topic": "business hours", "text": "A new P2 rule must start with one step at 4 business hours.", "defects": ["contradiction"], "conflicts_with": "S023"}
+{"id": "S023", "set": "D06", "split": "dev", "topic": "business hours", "text": "A new P2 rule must start with one step at 8 business hours.", "defects": ["contradiction"], "conflicts_with": "S022"}
+{"id": "S024", "set": "D06", "split": "dev", "topic": "business hours", "text": "Business hours must be flexible enough for every warehouse, with up to 7 schedules per rule.", "defects": ["ambiguity"], "conflicts_with": null}
+{"id": "S025", "set": "D07", "split": "dev", "topic": "suggested priority", "text": "A priority suggested by the triage model must not start an escalation.", "defects": [], "conflicts_with": null}
+{"id": "S026", "set": "D07", "split": "dev", "topic": "suggested priority", "text": "The task page must show the model's confidence as a percentage next to its suggestion.", "defects": [], "conflicts_with": null}
+{"id": "S027", "set": "D07", "split": "dev", "topic": "suggested priority", "text": "Support agents should be able to override a suggested priority.", "defects": ["untestable"], "conflicts_with": null}
+{"id": "S028", "set": "D07", "split": "dev", "topic": "suggested priority", "text": "Overrides are logged as appropriate.", "defects": ["ambiguity", "missing_actor"], "conflicts_with": null}
+{"id": "S029", "set": "D08", "split": "dev", "topic": "exports", "text": "An Admin can export up to 50,000 tasks as CSV or JSON.", "defects": [], "conflicts_with": null}
+{"id": "S030", "set": "D08", "split": "dev", "topic": "exports", "text": "Relay must keep each export file for 7 days and then delete it.", "defects": [], "conflicts_with": null}
+{"id": "S031", "set": "D08", "split": "dev", "topic": "exports", "text": "Exports must scale to any workspace size.", "defects": ["untestable"], "conflicts_with": null}
+{"id": "S032", "set": "D08", "split": "dev", "topic": "exports", "text": "Export files are emailed when they are ready.", "defects": ["missing_actor"], "conflicts_with": null}
+{"id": "S033", "set": "D09", "split": "dev", "topic": "notification settings", "text": "A user can turn off each notification type in Profile settings.", "defects": [], "conflicts_with": null}
+{"id": "S034", "set": "D09", "split": "dev", "topic": "notification settings", "text": "Relay must suppress email to an address for 30 days after it is marked as spam.", "defects": [], "conflicts_with": null}
+{"id": "S035", "set": "D09", "split": "dev", "topic": "notification settings", "text": "The settings page must remind users several times that escalation emails ignore notification settings.", "defects": ["ambiguity"], "conflicts_with": null}
+{"id": "S036", "set": "D09", "split": "dev", "topic": "notification settings", "text": "Admins can set default notification preferences for new members.", "defects": [], "conflicts_with": null}
+{"id": "S037", "set": "D10", "split": "dev", "topic": "SSO sessions", "text": "On the Business plan, an Admin can require SSO with SAML 2.0 or OpenID Connect.", "defects": [], "conflicts_with": null}
+{"id": "S038", "set": "D10", "split": "dev", "topic": "SSO sessions", "text": "SSO sessions must last 12 hours by default.", "defects": ["contradiction"], "conflicts_with": "S039"}
+{"id": "S039", "set": "D10", "split": "dev", "topic": "SSO sessions", "text": "SSO sessions must last 8 hours by default.", "defects": ["contradiction"], "conflicts_with": "S038"}
+{"id": "S040", "set": "D10", "split": "dev", "topic": "SSO sessions", "text": "Session expiry should be handled gracefully.", "defects": ["missing_actor", "untestable"], "conflicts_with": null}
+{"id": "S041", "set": "D11", "split": "dev", "topic": "API limits", "text": "Relay must answer requests above 600 per minute per workspace token with HTTP 429 and a Retry-After header.", "defects": [], "conflicts_with": null}
+{"id": "S042", "set": "D11", "split": "dev", "topic": "API limits", "text": "Bulk endpoints must count as 10 requests each.", "defects": [], "conflicts_with": null}
+{"id": "S043", "set": "D11", "split": "dev", "topic": "API limits", "text": "The API must handle bursts reliably.", "defects": ["untestable"], "conflicts_with": null}
+{"id": "S044", "set": "D11", "split": "dev", "topic": "API limits", "text": "Repeated violations for more than 15 minutes trigger an alert.", "defects": ["missing_actor"], "conflicts_with": null}
+{"id": "S045", "set": "D12", "split": "dev", "topic": "roles", "text": "Only the Owner can see the Billing tab.", "defects": [], "conflicts_with": null}
+{"id": "S046", "set": "D12", "split": "dev", "topic": "roles", "text": "A Guest can see only the projects they are invited to.", "defects": [], "conflicts_with": null}
+{"id": "S047", "set": "D12", "split": "dev", "topic": "roles", "text": "Guests must not see the member directory, except when it is relevant to their project.", "defects": ["ambiguity"], "conflicts_with": null}
+{"id": "S048", "set": "D12", "split": "dev", "topic": "roles", "text": "A workspace must have exactly one Owner, and ownership can be transferred quickly.", "defects": ["ambiguity", "untestable"], "conflicts_with": null}
+{"id": "S049", "set": "H01", "split": "heldout", "topic": "escalation steps", "text": "Each rule must have at least 1 step and each step at least 1 target.", "defects": [], "conflicts_with": null}
+{"id": "S050", "set": "H01", "split": "heldout", "topic": "escalation steps", "text": "Relay must cancel the remaining steps within 30 seconds of an acknowledgement.", "defects": [], "conflicts_with": null}
+{"id": "S051", "set": "H01", "split": "heldout", "topic": "escalation steps", "text": "A step that has already fired must not fire again for the same task.", "defects": ["contradiction"], "conflicts_with": "S052"}
+{"id": "S052", "set": "H01", "split": "heldout", "topic": "escalation steps", "text": "Relay must repeat the last step every 10 minutes until the task is acknowledged.", "defects": ["contradiction"], "conflicts_with": "S051"}
+{"id": "S053", "set": "H02", "split": "heldout", "topic": "targets", "text": "A Guest can be a target only in projects they are invited to.", "defects": [], "conflicts_with": null}
+{"id": "S054", "set": "H02", "split": "heldout", "topic": "targets", "text": "Targets outside the workspace must never be accepted.", "defects": ["missing_actor"], "conflicts_with": null}
+{"id": "S055", "set": "H02", "split": "heldout", "topic": "targets", "text": "Relay must refuse a rule whose targets include a user who cannot view the project.", "defects": [], "conflicts_with": null}
+{"id": "S056", "set": "H02", "split": "heldout", "topic": "targets", "text": "Rules must support a reasonable number of targets.", "defects": ["ambiguity", "untestable"], "conflicts_with": null}
+{"id": "S057", "set": "H03", "split": "heldout", "topic": "email content", "text": "Escalation emails must not contain the task's title or description.", "defects": [], "conflicts_with": null}
+{"id": "S058", "set": "H03", "split": "heldout", "topic": "email content", "text": "Escalation emails must carry the task's link, its priority and the rule's name.", "defects": [], "conflicts_with": null}
+{"id": "S059", "set": "H03", "split": "heldout", "topic": "email content", "text": "Delivery failures are reported to the workspace.", "defects": ["missing_actor"], "conflicts_with": null}
+{"id": "S060", "set": "H03", "split": "heldout", "topic": "email content", "text": "Email delivery is expected to succeed in most cases.", "defects": ["untestable"], "conflicts_with": null}
+{"id": "S061", "set": "H04", "split": "heldout", "topic": "flood limits", "text": "Relay must send at most 20 escalation emails per target per hour.", "defects": ["contradiction"], "conflicts_with": "S062"}
+{"id": "S062", "set": "H04", "split": "heldout", "topic": "flood limits", "text": "Relay must send at most 50 escalation emails per target per hour.", "defects": ["contradiction"], "conflicts_with": "S061"}
+{"id": "S063", "set": "H04", "split": "heldout", "topic": "flood limits", "text": "Excess escalations must be listed in one summary email at the end of the hour.", "defects": ["missing_actor"], "conflicts_with": null}
+{"id": "S064", "set": "H04", "split": "heldout", "topic": "flood limits", "text": "The flood limit should be adjustable by Admins.", "defects": ["untestable"], "conflicts_with": null}
+{"id": "S065", "set": "H05", "split": "heldout", "topic": "audit", "text": "Relay must write an audit log entry for every rule change within 5 seconds.", "defects": [], "conflicts_with": null}
+{"id": "S066", "set": "H05", "split": "heldout", "topic": "audit", "text": "Relay must keep audit entries for 400 days on the Business plan.", "defects": ["contradiction"], "conflicts_with": "S067"}
+{"id": "S067", "set": "H05", "split": "heldout", "topic": "audit", "text": "Relay must keep audit entries for 90 days on the Business plan.", "defects": ["contradiction"], "conflicts_with": "S066"}
+{"id": "S068", "set": "H05", "split": "heldout", "topic": "audit", "text": "The audit view must be intuitive for Admins.", "defects": ["ambiguity", "untestable"], "conflicts_with": null}
+{"id": "S069", "set": "H06", "split": "heldout", "topic": "accessibility", "text": "The rule editor must meet WCAG 2.2 level AA.", "defects": [], "conflicts_with": null}
+{"id": "S070", "set": "H06", "split": "heldout", "topic": "accessibility", "text": "Every rule action must be possible with the keyboard alone.", "defects": [], "conflicts_with": null}
+{"id": "S071", "set": "H06", "split": "heldout", "topic": "accessibility", "text": "Screen readers must announce each field's label.", "defects": [], "conflicts_with": null}
+{"id": "S072", "set": "H06", "split": "heldout", "topic": "accessibility", "text": "Error messages must be adequate for screen-reader users.", "defects": ["ambiguity", "untestable"], "conflicts_with": null}
+{"id": "S073", "set": "H07", "split": "heldout", "topic": "operability", "text": "95% of steps must fire within 60 seconds of their due time, measured weekly.", "defects": [], "conflicts_with": null}
+{"id": "S074", "set": "H07", "split": "heldout", "topic": "operability", "text": "If the evaluator stops for 5 minutes, Relay must page the platform on-call engineer.", "defects": [], "conflicts_with": null}
+{"id": "S075", "set": "H07", "split": "heldout", "topic": "operability", "text": "The evaluator must recover robustly from crashes.", "defects": ["untestable"], "conflicts_with": null}
+{"id": "S076", "set": "H07", "split": "heldout", "topic": "operability", "text": "Stalls are surfaced on a dashboard.", "defects": ["missing_actor"], "conflicts_with": null}
+{"id": "S077", "set": "H08", "split": "heldout", "topic": "cost", "text": "Version 1 must add $0 per notification beyond Relay's existing email and webhook delivery.", "defects": [], "conflicts_with": null}
+{"id": "S078", "set": "H08", "split": "heldout", "topic": "cost", "text": "Escalation evaluation must add at most 5% to the worker's CPU time.", "defects": [], "conflicts_with": null}
+{"id": "S079", "set": "H08", "split": "heldout", "topic": "cost", "text": "Costs must remain sufficient for the pilot's budget.", "defects": ["ambiguity", "untestable"], "conflicts_with": null}
+{"id": "S080", "set": "H08", "split": "heldout", "topic": "cost", "text": "SMS may be added later if a customer pays for it.", "defects": ["untestable"], "conflicts_with": null}
+{"id": "S081", "set": "H09", "split": "heldout", "topic": "suggested priority", "text": "The task must show 'Suggested: P1 (91%)' when the model suggests P1 with 91% confidence.", "defects": [], "conflicts_with": null}
+{"id": "S082", "set": "H09", "split": "heldout", "topic": "suggested priority", "text": "A person must confirm a suggested P1 before any step starts.", "defects": ["contradiction"], "conflicts_with": "S083"}
+{"id": "S083", "set": "H09", "split": "heldout", "topic": "suggested priority", "text": "A suggested P1 with confidence of 95% or more must start the first step without confirmation.", "defects": ["contradiction"], "conflicts_with": "S082"}
+{"id": "S084", "set": "H09", "split": "heldout", "topic": "suggested priority", "text": "Overrides are recorded with the time.", "defects": ["missing_actor"], "conflicts_with": null}
+{"id": "S085", "set": "H10", "split": "heldout", "topic": "retention", "text": "Relay must keep deleted rules in the trash for 30 days.", "defects": [], "conflicts_with": null}
+{"id": "S086", "set": "H10", "split": "heldout", "topic": "retention", "text": "Any Admin can restore a deleted rule within 30 days.", "defects": [], "conflicts_with": null}
+{"id": "S087", "set": "H10", "split": "heldout", "topic": "retention", "text": "Rules deleted after that are purged shortly.", "defects": ["ambiguity", "missing_actor", "untestable"], "conflicts_with": null}
+{"id": "S088", "set": "H10", "split": "heldout", "topic": "retention", "text": "Relay must keep backups of rules for a significant time.", "defects": ["ambiguity", "untestable"], "conflicts_with": null}
+{"id": "S089", "set": "H11", "split": "heldout", "topic": "exports", "text": "An Admin can start at most 5 concurrent export jobs per workspace.", "defects": [], "conflicts_with": null}
+{"id": "S090", "set": "H11", "split": "heldout", "topic": "exports", "text": "Relay must include each task's escalation history in JSON exports.", "defects": [], "conflicts_with": null}
+{"id": "S091", "set": "H11", "split": "heldout", "topic": "exports", "text": "Exports started during a deploy must be retried automatically where possible.", "defects": ["missing_actor", "untestable"], "conflicts_with": null}
+{"id": "S092", "set": "H11", "split": "heldout", "topic": "exports", "text": "Export links must expire regularly.", "defects": ["ambiguity", "untestable"], "conflicts_with": null}
+{"id": "S093", "set": "H12", "split": "heldout", "topic": "webhook payloads", "text": "Relay must emit one task.escalated event per fired step.", "defects": [], "conflicts_with": null}
+{"id": "S094", "set": "H12", "split": "heldout", "topic": "webhook payloads", "text": "Receivers must verify the X-Relay-Signature header with the webhook secret.", "defects": [], "conflicts_with": null}
+{"id": "S095", "set": "H12", "split": "heldout", "topic": "webhook payloads", "text": "Payloads larger than 256 KB must be truncated and flagged.", "defects": ["missing_actor"], "conflicts_with": null}
+{"id": "S096", "set": "H12", "split": "heldout", "topic": "webhook payloads", "text": "Relay must emit the event within 60 seconds of the step firing.", "defects": [], "conflicts_with": null}

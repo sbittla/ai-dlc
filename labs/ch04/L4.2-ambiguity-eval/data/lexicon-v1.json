@@ -1,0 +1,81 @@
+{
+  "lexicon_version": "detector-lexicon-v1",
+  "note": "Carried over from Lab 4.1's lexicon, plus a first list of quality words and actor terms.",
+  "vague_terms": [
+    "adequate",
+    "and/or",
+    "appropriate",
+    "as needed",
+    "easy",
+    "efficient",
+    "etc.",
+    "fast",
+    "flexible",
+    "intuitive",
+    "minimal",
+    "quickly",
+    "reasonable",
+    "relevant",
+    "right people",
+    "robust",
+    "seamless",
+    "secure",
+    "simple",
+    "timely",
+    "urgent",
+    "user-friendly"
+  ],
+  "weak_modals": [
+    "should",
+    "may",
+    "might",
+    "could",
+    "ideally",
+    "where possible",
+    "if possible",
+    "try to"
+  ],
+  "quality_terms": [
+    "available",
+    "reliable",
+    "reliably",
+    "secure"
+  ],
+  "measurable_patterns": [
+    "\\$\\d",
+    "\\b\\d+(\\.\\d+)?\\s*(%|(ms|milliseconds?|seconds?|minutes?|hours?|business hours|days?|KB|MB)\\b)",
+    "\\b(at most|at least|no more than|up to) \\d+",
+    "\\bWCAG \\d\\.\\d\\b",
+    "\\bmust not\\b"
+  ],
+  "actor_terms": [
+    "Relay",
+    "Owner",
+    "Owners",
+    "Admin",
+    "Admins",
+    "Member",
+    "Members",
+    "Guest",
+    "Guests",
+    "user",
+    "users",
+    "assignee",
+    "target",
+    "targets",
+    "person",
+    "agent",
+    "agents",
+    "engineer",
+    "manager",
+    "customer",
+    "receivers",
+    "reviewer",
+    "caller"
+  ],
+  "passive_pattern": "(?i)\\b(is|are|be|been|being|was|were)\\s+(\\w+ed|sent|shown|kept|done|made|given|taken|seen|written|run|set|built|held)\\b",
+  "contradiction": {
+    "min_overlap": 0.5,
+    "min_overlap_polarity": 0.6
+  }
+}

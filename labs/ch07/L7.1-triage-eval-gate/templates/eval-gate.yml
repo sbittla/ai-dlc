@@ -1,0 +1,41 @@
+# Relay: the triage eval gate as a required status check (illustrative).
+#
+# Copy into the repository that owns the triage prompt, as .github/workflows/eval-gate.yml,
+# and add "triage-eval" to branch protection's required status checks (Chapter 3).
+# Paths assume the eval suite lives in evals/triage/ with this lab's layout, and that the
+# pull request states its candidate in evals/triage/candidate.txt (for example
+# "claude-opus-5-5:triage-v3.1").
+name: triage-eval
+
+on:
+  pull_request:
+    paths:
+      - "triage/prompts/**"      # any prompt change
+      - "triage/models.yaml"     # any model or model-version change
+      - "triage/tools/**"        # any tool the triage step can call
+      - "evals/triage/**"        # the suite, its policy and its pinned dataset
+
+permissions:
+  contents: read
+
+jobs:
+  triage-eval:
+    runs-on: ubuntu-latest
+    environment: eval-live       # protected: holds the evaluation-only credential
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install the suite with the live extra
+        working-directory: evals/triage
+        run: python -m pip install -e ".[live]"
+      - name: Gate the candidate against the production baseline
+        working-directory: evals/triage/solution
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.EVAL_ANTHROPIC_API_KEY }}
+        run: |
+          python -m evalsuite.report --data ../data gate --live --max-usd 5 \
+            --baseline "$(cat ../baseline.txt)" --candidate "$(cat ../candidate.txt)" \
+            | tee "$GITHUB_STEP_SUMMARY"
+          exit "${PIPESTATUS[0]}"
