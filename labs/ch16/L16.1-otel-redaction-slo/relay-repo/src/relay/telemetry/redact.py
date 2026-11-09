@@ -42,8 +42,12 @@ EXTRA_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
     ("api-key-header", re.compile(r"(?i)\b(?:x-api-key|api-key|x-auth-token|proxy-authorization)\s*[:=]\s*\S+")),
     ("query-secret", re.compile(r"(?i)(?<=[?&;])(?:access_token|id_token|token|api_key|apikey|key|password|passwd"
                                 r"|pwd|secret|session|sig|signature|code|email)=[^&#\s]+")),
-    ("secret-field", re.compile(r"(?i)([\"']?)\b(password|passwd|pwd|secret|client_secret|token|refresh_token"
-                                r"|access_token|id_token|authorization|api[_-]?key|cookie|session(?:_?id)?)\1"
+    # Key names containing passport, password, pwd, secret, token or credential (user_password, x_auth_token,
+    # credentials), or exactly pass, auth, authorization, an API key, cookie or session; "author" and "passage"
+    # do not match, and keys ending in _count, _limit and the like are numbers (_COUNT_KEY).
+    ("secret-field", re.compile(r"(?i)([\"']?)\b((?:[\w-]*(?:passwd|password|passport|pwd|secret|token"
+                                r"|credential)[\w-]*)"
+                                r"|pass|auth|authorization|[\w-]*api[_-]?key|cookie|session(?:_?id)?)\1"
                                 r"(\s*[:=]\s*)(?![\"']?\[redacted|[\"']?(?:bearer|basic)\b)"
                                 r"(\"[^\"]*\"|'[^']*'|[^\s,;&}\"']+)")),
     ("ip", re.compile(_IPV4)),
@@ -52,8 +56,9 @@ EXTRA_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
     ("phone", re.compile(r"(?<![\w+])(?:\(0?\d{2,5}\)[ .-]?|0\d{1,4}[ ./-])\d{2,8}(?:[ .-]\d{2,4}){0,4}(?!\w)")),
     ("phone", re.compile(r"(?<![\w+])\(?[2-9]\d{2}\)?[ .-]\d{3}[ .-]\d{4}(?!\w)")),
 )
+_COUNT_KEY = re.compile(r"(?i)[_-](?:count|counts|length|limit|limits|total|usage|type)$")
 _SEGMENT = re.compile(r"[^\s\"'<>(),;\[\]{}|]{8,}")
-_SEPARATORS = re.compile(r"[=:/.]+")
+_SEPARATORS = re.compile(r"[=:/.#~_-]+")
 _B64 = re.compile(r"^[A-Za-z0-9+/_-]{8,}={0,2}$")
 _HEX = re.compile(r"^(?:[0-9a-f]{2}){8,}$|^(?:[0-9A-F]{2}){8,}$")
 _PCT = re.compile(r"%([0-9A-Fa-f]{2})")
@@ -97,6 +102,8 @@ def _plain(text: str, counts: Counter) -> str:
                 return m.group(0)
             if kind == "ip" and ":" in m.group(0) and not _is_ipv6(m.group(0)):
                 return m.group(0)
+            if kind == "secret-field" and _COUNT_KEY.search(m.group(2)):
+                return m.group(0)  # token_count=1234 is a number about tokens, not a token
             counts[kind] += 1
             if kind == "query-secret":
                 return m.group(0).split("=", 1)[0] + "=" + marker(kind)
@@ -163,7 +170,7 @@ def redact_text(text: str, counts: Counter | None = None) -> tuple[str, Counter]
         segment = m.group(0)
         if segment.startswith("[redacted:"):
             return segment
-        # The whole segment, and each part between `=`, `:`, `/` and `.`, so `user=<base64>` is decoded too.
+        # The whole segment, and each part between separators (`=:/.#~_-`), so `user=<base64>` is decoded too.
         parts = [segment] + [p for p in _SEPARATORS.split(segment) if len(p) >= 8 and p != segment]
         for part in parts:
             for variant in decode_variants(part):

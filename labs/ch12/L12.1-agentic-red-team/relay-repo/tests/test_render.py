@@ -37,6 +37,8 @@ def test_a_relay_address_with_a_query_string_or_a_user_part_is_not_clickable():
     assert not is_relay_link("https://relay.example/ws-support@attacker.example/x", BASE)
     assert not is_relay_link("https://relay.example.attacker.example/ws-support/x", BASE)
     assert is_relay_link(f"{BASE}/projects/10/tasks/7", BASE)
+    assert not is_relay_link(f"{BASE}/../../redirect", BASE)        # dot-segments leave the workspace
+    assert not is_relay_link(f"{BASE}/projects/%2e%2e/x", BASE)      # and so do encoded ones
 
 
 def test_bare_addresses_are_shown_but_not_linked_and_html_is_escaped():

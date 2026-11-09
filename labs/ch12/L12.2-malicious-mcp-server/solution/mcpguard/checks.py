@@ -1,19 +1,22 @@
 """The host's checks on MCP servers (TODOs 1 to 5 in starter/).
 
 None of these reads a description for meaning. They compare what a server presents with what a person reviewed:
-which server it is and how it was launched, the exact definition of every tool, the names it claims, and the
-scopes and audience it asks for. A finding is a (code, server, detail) tuple.
+which server it is and the code the host launched, the exact definition of every tool, the names it claims, and
+the scopes and token audience it asks for. A finding is a (code, server, detail) tuple.
 
-    MCP001  server not in the reviewed record                       (allowlist)
-    MCP002  launch command or arguments differ from the review       (allowlist)
-    MCP003  source hash at launch differs from the review            (allowlist)
-    MCP004  announced version differs from the review                (allowlist)
-    MCP010  a tool's definition hash differs from the review         (pin)
-    MCP011  a tool that was not reviewed                             (pin)
-    MCP020  a tool name offered by more than one server              (shadowing)
-    MCP030  a scope the review did not grant                         (scope)
-    MCP031  the server asks for the user's token to be passed through (scope)
-    MCP032  the token audience is not the server itself              (scope)
+    MCP001  server not in the reviewed record                          (allowlist)
+    MCP002  launch command or arguments differ from the review          (allowlist)
+    MCP003  source hash at launch differs from the review               (allowlist)
+    MCP004  announced version differs from the review                   (allowlist)
+    MCP010  a tool's definition hash differs from the review            (pin)
+    MCP011  a tool that was not reviewed                                (pin)
+    MCP020  a tool name offered by more than one server                 (name collision)
+    MCP030  a scope the review did not grant                            (scope)
+    MCP031  the server asks for the user's token to be passed through   (scope)
+    MCP032  the token audience is not the one the review recorded       (scope)
+
+What they cannot catch: a poisoned description that a reviewer approved. A pin freezes what was reviewed,
+including what the reviewer missed. Only reading the description at review catches that.
 """
 
 from __future__ import annotations
@@ -25,19 +28,19 @@ Finding = tuple[str, str, str]
 
 
 def definition_hash(tool: dict) -> str:
-    """TODO 1. SHA-256 (hex) of the tool's name, description and inputSchema as canonical JSON:
-    keys sorted, separators (",", ":"), ensure_ascii=False, UTF-8. Other keys are ignored."""
-    body = {"name": tool["name"], "description": tool.get("description", ""),
-            "inputSchema": tool.get("inputSchema", {})}
-    return hashlib.sha256(json.dumps(body, sort_keys=True, separators=(",", ":"),
+    """TODO 1. SHA-256 (hex) of the WHOLE tool object as canonical JSON: keys sorted at every level, separators
+    (",", ":"), ensure_ascii=False, UTF-8. Every field counts (name, title, description, inputSchema,
+    outputSchema, annotations), so a change to any of them is a change."""
+    return hashlib.sha256(json.dumps(tool, sort_keys=True, separators=(",", ":"),
                                      ensure_ascii=False).encode("utf-8")).hexdigest()
 
 
 def check_allowlist(launch: dict, info: dict, reviewed: dict) -> list[Finding]:
     """TODO 2. MCP001 to MCP004 for one launched server, in code order.
 
-    `launch` is {"command", "args", "source_sha256"} as the host launched it; `info` is the server's own
-    announcement; `reviewed` is the reviewed record's `servers` map. An unlisted server gets MCP001 only.
+    `launch` is {"command", "args", "source_sha256"} as the host launched it (the hash is computed by the host
+    from the files it is about to run); `info` is the server's own announcement; `reviewed` is the reviewed
+    record's `servers` map. An unlisted server gets MCP001 only.
     """
     name = info["name"]
     record = reviewed.get(name)
@@ -69,7 +72,7 @@ def check_pins(name: str, tools: list[dict], reviewed: dict) -> list[Finding]:
     return out
 
 
-def check_shadowing(offered: list[tuple[str, list[dict]]]) -> list[Finding]:
+def check_name_collisions(offered: list[tuple[str, list[dict]]]) -> list[Finding]:
     """TODO 4. MCP020 for every server, after the first, that offers a tool name an earlier server offered.
     `offered` is [(server name, tools)] in launch order."""
     seen: dict[str, str] = {}
@@ -85,8 +88,9 @@ def check_shadowing(offered: list[tuple[str, list[dict]]]) -> list[Finding]:
 
 
 def check_scopes(info: dict, reviewed: dict) -> list[Finding]:
-    """TODO 5. MCP030 (one per extra scope, sorted), MCP031, MCP032, in that order. Nothing for an unlisted
-    server."""
+    """TODO 5. MCP030 (one per extra scope, sorted), MCP031, MCP032, in that order. The audience is compared
+    with the REVIEWED record's audience, never with anything the server announces about itself. Nothing for an
+    unlisted server. (The host has no passthrough path at all; MCP031 reports a server that asks for one.)"""
     record = reviewed.get(info["name"])
     if record is None:
         return []
@@ -94,10 +98,10 @@ def check_scopes(info: dict, reviewed: dict) -> list[Finding]:
                           for s in sorted(set(info["scopes"]) - set(record["scopes"]))]
     if info["token_passthrough"]:
         out.append(("MCP031", info["name"], "asks for the user's token to be passed through"))
-    if info["audience"] != info["name"]:
-        out.append(("MCP032", info["name"], f"audience {info['audience']}"))
+    if info["audience"] != record["audience"]:
+        out.append(("MCP032", info["name"], f"audience {info['audience']}, reviewed {record['audience']}"))
     return out
 
 
 CHECKS = {"allowlist": ("MCP001", "MCP002", "MCP003", "MCP004"), "pin": ("MCP010", "MCP011"),
-          "shadowing": ("MCP020",), "scope": ("MCP030", "MCP031", "MCP032")}
+          "name-collision": ("MCP020",), "scope": ("MCP030", "MCP031", "MCP032")}

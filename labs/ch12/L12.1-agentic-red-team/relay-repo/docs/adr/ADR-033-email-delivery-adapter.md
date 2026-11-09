@@ -42,8 +42,9 @@ Option A.
   is refused, never sent somewhere else.
 - A subject or body holding any address outside `link_base` is refused as `foreign_link`. The engine writes
   only Relay links and no task content (ESC-N07), so such a row did not come from the engine.
-- It asks `relay.notify` as for a security notice: only a spam mark suppresses an escalation (ESC-R10). A
-  muted type never silences a page.
+- For escalations and rule notices it asks `relay.notify` as for a security notice: only a spam mark
+  suppresses them (ESC-R10), and a muted type never silences a page. The hourly summary of held escalations
+  is asked as a `digest`, so a user's mute of digests holds it.
 - Every outcome, refusals and suppressions included, goes to the `email_delivery` table. A provider error is
   retried on the next pass, three attempts in all.
 
@@ -51,9 +52,12 @@ Option A.
 
 - No new dependency: `smtplib` and `ssl` are standard library (ESC-N10).
 - ESC-AC16's warning on the task and the rule's page needs the service to read `email_delivery`; that route
-  change is carried to the service's owners, with the database grant for the new table.
+  change is carried, with the database grant for the new table (owner priya.n, by 2027-03-31).
 - The flood cap (D7) stays in the engine, which decides what is written; the adapter does not re-count.
 - Webhook delivery is not part of this ADR. It needs the webhook secret in the worker's configuration.
+- ADR-016 left the email adapter's delivery time to be measured against ESC-AC25 (a notice within 5
+  minutes). Nothing runs the adapter yet, so there is no delivery time to measure. The measurement is
+  carried to the deployment that runs it (owner sam.o).
 
 ## Rejected alternatives
 

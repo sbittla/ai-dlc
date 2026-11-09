@@ -35,15 +35,25 @@ def test_imitation_markers_and_hidden_characters_are_neutralized():
 @pytest.mark.parametrize("text, reason", [
     ("", "empty"),
     ("x" * 401, "too_long"),
-    ("Login loop​ after SSO", "hidden"),
-    ("Login loop ![s](https://a.example/p.png)", "markup"),
-    ("Login loop, see <img src=x>", "markup"),
-    ("Login loop, details at https://a.example/x", "address"),
-    ("Login loop, write to ann@customer.example", "address"),
+    ("Login loop​ after SSO", "characters"),             # hidden character
+    ("Login loop ![s](https://a.example/p.png)", "characters"),  # Markdown image
+    ("Login loop, see <img src=x>", "characters"),             # HTML
+    ("Login loop, details at https://a.example/x", "characters"),
+    ("Login loop, write to ann@customer.example", "characters"),
+    ("Login loop. [1]: //host.attacker.test/p", "characters"),  # reference definition, scheme-relative
+    ("Login loop HTTPS: a.example", "address"),                # upper-case scheme, no slashes
     ("Login loop, see collector.attacker.example", "address"),
+    ("Login loop, see www.attacker.museum", "address"),         # a top-level domain no list would hold
+    ("Login loop, see xn--80ak6aa92e.xn--p1ai", "address"),     # an IDN host in punycode
+    ("Login loop, see пример.рф", "address"),  # the same, in Cyrillic
+    ("Login loop &#104;ttps", "characters"),                   # an HTML entity
 ])
 def test_parse_summary_refuses_with_a_reason(text, reason):
     assert parse_summary(text) == (None, reason)
+
+
+def test_parse_summary_keeps_ordinary_dotted_text():
+    assert parse_summary("Since 4.26 the export fails, e.g. for CSV.")[1] is None
 
 
 def test_parse_summary_accepts_plain_text_up_to_400_characters():
@@ -72,7 +82,7 @@ def test_an_obeyed_summary_injection_is_dropped_and_the_suggestion_kept():
     q, w = make(text, obeying)
     assert w.run_once() == "done"
     result = q.get(1).result
-    assert "summary" not in result and result["summary_refused"] == "markup"
+    assert "summary" not in result and result["summary_refused"] == "characters"
     assert result["suggestion"]["category"] == "access" and result["applies_to_task"] is False
     assert w.outcomes["summary_refused"] == 1
 

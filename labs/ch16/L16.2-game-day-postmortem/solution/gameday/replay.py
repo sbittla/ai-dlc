@@ -135,13 +135,10 @@ def gameday() -> dict:
             verdicts[v.hypothesis] = v
             entries.append(Entry(at, "hypothesis", v.hypothesis, f"{v.status}: {v.reason}"))
 
-    def verdicts_at(t: datetime) -> dict:
-        """The citation check's verdicts on every hypothesis made by `t`, judged as of `t`."""
-        out = {}
-        for batch in (assistant, assistant["later"]):
-            if parse(batch["asked_at"]) <= t:
-                out.update({v.hypothesis: v.status for v in judge(batch, store, t)})
-        return out
+    # The gate judges each request's hypothesis itself, as of the request, from the same store.
+    gate.store = store
+    gate.hypotheses = {h["id"]: {**h, "made_at": parse(b["asked_at"])}
+                       for b in (assistant, assistant["later"]) for h in b["hypotheses"]}
 
     steps = [(parse(p["at"]), "propose", p) for p in assistant["proposals"]] +             [(parse(x["at"]), x["do"], x) for x in actions]
     for at, do, x in sorted(steps, key=lambda s: s[0]):
@@ -150,7 +147,7 @@ def gameday() -> dict:
                 who = "incident-assistant" if do == "propose" else x["by"]
                 proof = make_proof(people, who, parse(x.get("proof_at", x["at"])), purpose="request",
                                    action=x["action"], args_sha256=args_sha256(x["args"]))
-                gate.request(x["action"], x["args"], proof, at, because=x.get("because"), verdicts=verdicts_at(at))
+                gate.request(x["action"], x["args"], proof, at, because=x.get("because"))
                 entries.append(Entry(at, "request", x["action"], f"by {who}, because {x.get('because')}"))
             elif do == "ack":
                 rec = next(p.alert for p in pager.pages if p.alert.rule == x["rule"] and p.sent_at <= at)

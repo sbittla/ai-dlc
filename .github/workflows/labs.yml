@@ -35,10 +35,16 @@ jobs:
           - labs/ch10/L10.2-failure-injection-approval-gates
           - labs/ch11/L11.1-guardrailed-cloud-environment
           - labs/ch11/L11.2-azure-gcp-mapping
+          - labs/ch12/L12.1-agentic-red-team
+          - labs/ch12/L12.2-malicious-mcp-server
           - labs/ch13/L13.1-secure-agent-loop
           - labs/ch13/L13.2-poisoned-instructions-ci-injection
           - labs/ch14/L14.1-agent-identity-kill-switch
           - labs/ch14/L14.2-governance-pack
+          - labs/ch16/L16.1-otel-redaction-slo
+          - labs/ch16/L16.2-game-day-postmortem
+          - labs/ch17/L17.1-load-test-bottleneck
+          - labs/ch17/L17.2-cost-per-success-routing
     defaults:
       run:
         working-directory: ${{ matrix.lab }}
@@ -147,6 +153,55 @@ jobs:
         working-directory: labs/ch03/L3.1-accountable-workspace/solution
         run: python -m audit.report --policy ../data/policy.json --as-of 2026-12-18 --fail-on high ../../../ch09/L9.1-spec-to-reviewed-pr/solution/relay-repo
 
+      - name: Relay 4.27.0 passes its suite, lint and the supply-chain check (Lab 16.1 only)
+        if: matrix.lab == 'labs/ch16/L16.1-otel-redaction-slo'
+        working-directory: labs/ch16/L16.1-otel-redaction-slo/relay-repo
+        shell: bash
+        run: |
+          PYTHONPATH=src python -m pytest -q
+          python tools/lint.py
+          python tools/supplychain.py
+      - name: ADR-036 to ADR-039 pass Chapter 6's ADR checker (Lab 16.1 only)
+        if: matrix.lab == 'labs/ch16/L16.1-otel-redaction-slo'
+        working-directory: labs/ch06/L6.1-architecture-options-adr/solution
+        run: python -m archscore.report adr --drivers ../data/drivers.json ../../../ch16/L16.1-otel-redaction-slo/relay-repo/docs/adr/ADR-036-telemetry-on-the-standard-library-with-otlp.md ../../../ch16/L16.1-otel-redaction-slo/relay-repo/docs/adr/ADR-037-slos-burn-rate-alerts-and-runtime-fitness.md ../../../ch16/L16.1-otel-redaction-slo/relay-repo/docs/adr/ADR-038-detection-alert-delivery-and-paging.md ../../../ch16/L16.1-otel-redaction-slo/relay-repo/docs/adr/ADR-039-incident-assistant-with-cited-hypotheses.md --gate
+      - name: Relay 4.27.0 passes the workspace audit (Lab 16.1 only)
+        if: matrix.lab == 'labs/ch16/L16.1-otel-redaction-slo'
+        working-directory: labs/ch03/L3.1-accountable-workspace/solution
+        run: python -m audit.report --policy ../data/policy.json --as-of 2027-02-19 --fail-on high ../../../ch16/L16.1-otel-redaction-slo/relay-repo
+
+      - name: Relay 4.28.0 passes lint and the supply-chain check (Lab 17.1 only)
+        if: matrix.lab == 'labs/ch17/L17.1-load-test-bottleneck'
+        working-directory: labs/ch17/L17.1-load-test-bottleneck/relay-repo
+        shell: bash
+        run: |
+          python tools/lint.py
+          python tools/supplychain.py
+      - name: ADR-040 to ADR-043 pass Chapter 6's ADR checker (Lab 17.1 only)
+        if: matrix.lab == 'labs/ch17/L17.1-load-test-bottleneck'
+        working-directory: labs/ch06/L6.1-architecture-options-adr/solution
+        run: python -m archscore.report adr --drivers ../data/drivers.json ../../../ch17/L17.1-load-test-bottleneck/relay-repo/docs/adr/ADR-040-workload-model-load-test-and-performance-budgets.md ../../../ch17/L17.1-load-test-bottleneck/relay-repo/docs/adr/ADR-041-shared-limiter-leases-blocks-of-counts.md ../../../ch17/L17.1-load-test-bottleneck/relay-repo/docs/adr/ADR-042-triage-routing-token-limits-and-cost-per-success.md ../../../ch17/L17.1-load-test-bottleneck/relay-repo/docs/adr/ADR-043-spend-quotas-and-spend-monitoring.md --gate
+      - name: Relay 4.28.0 passes the workspace audit (Lab 17.1 only)
+        if: matrix.lab == 'labs/ch17/L17.1-load-test-bottleneck'
+        working-directory: labs/ch03/L3.1-accountable-workspace/solution
+        run: python -m audit.report --policy ../data/policy.json --as-of 2027-02-19 --fail-on high ../../../ch17/L17.1-load-test-bottleneck/relay-repo
+
+      - name: Relay 4.26.0 passes lint and the supply-chain check (Lab 12.1 only)
+        if: matrix.lab == 'labs/ch12/L12.1-agentic-red-team'
+        working-directory: labs/ch12/L12.1-agentic-red-team/relay-repo
+        shell: bash
+        run: |
+          python tools/lint.py
+          python tools/supplychain.py
+      - name: ADR-032 to ADR-035 pass Chapter 6's ADR checker (Lab 12.1 only)
+        if: matrix.lab == 'labs/ch12/L12.1-agentic-red-team'
+        working-directory: labs/ch06/L6.1-architecture-options-adr/solution
+        run: python -m archscore.report adr --drivers ../data/drivers.json ../../../ch12/L12.1-agentic-red-team/relay-repo/docs/adr/ADR-032-untrusted-ticket-text-and-rendering.md ../../../ch12/L12.1-agentic-red-team/relay-repo/docs/adr/ADR-033-email-delivery-adapter.md ../../../ch12/L12.1-agentic-red-team/relay-repo/docs/adr/ADR-034-taint-memory-and-compaction-defenses.md ../../../ch12/L12.1-agentic-red-team/relay-repo/docs/adr/ADR-035-allowlisted-content-egress-path.md --gate
+      - name: Relay 4.26.0 passes the workspace audit (Lab 12.1 only)
+        if: matrix.lab == 'labs/ch12/L12.1-agentic-red-team'
+        working-directory: labs/ch03/L3.1-accountable-workspace/solution
+        run: python -m audit.report --policy ../data/policy.json --as-of 2027-02-12 --fail-on high ../../../ch12/L12.1-agentic-red-team/relay-repo
+
   relay-baseline:
     name: canonical Relay ${{ matrix.version }} (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
@@ -154,7 +209,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
-        version: ["4.19.0", "4.21.0", "4.23.0", "4.25.0"]
+        version: ["4.19.0", "4.21.0", "4.23.0", "4.25.0", "4.28.0"]
         include:
           - version: "4.19.0"
             script: merge_4_19_0.py
@@ -167,6 +222,9 @@ jobs:
           - version: "4.25.0"
             script: merge_4_25_0.py
             audit_as_of: "2027-01-28"
+          - version: "4.28.0"
+            script: merge_4_28_0.py
+            audit_as_of: "2027-02-19"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

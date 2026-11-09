@@ -14,8 +14,10 @@ The checks, in order, for each item not yet finished:
 5. suppressed       relay.notify says not to send (ESC-R10): a spam mark suppresses email to that user
 6. sent / failed    the transport sends it; an error is retried on the next pass, up to `max_attempts`
 
-Escalation emails are pages, so a muted type never silences them: the adapter asks `relay.notify` as for
-a security notice, which only a spam mark suppresses (the characterized rule 1 in ADR-018). Every outcome,
+Escalation emails are pages and rule notices are security notices, so a muted type never silences them:
+for both the adapter asks `relay.notify` as for a security notice, which only a spam mark suppresses (the
+characterized rule 1 in ADR-018; ESC-R10). The hourly summary of held escalations is a digest, so a user's
+mute of `digest` (or of "all") suppresses it, as it would any digest. Every outcome,
 refusals included, is written to `email_delivery`, which is the adapter's audit record. Showing a
 suppressed escalation on the task and the rule's page (ESC-AC16) needs the service; this module records
 what the service will read.
@@ -36,8 +38,11 @@ from ..escalation import EscalationStore
 from ..notify import Prefs, decide
 
 ACCEPTED_KINDS = ("escalation", "summary", "rule_notice")
+NOTIFY_TYPE = {"escalation": "security", "rule_notice": "security", "summary": "digest"}  # for relay.notify
 FINAL = ("sent", "suppressed", "refused", "failed")
-_ADDRESS_IN_TEXT = re.compile(r"(?:https?|ftp)://[^\s<>\"')]+|\bwww\.[^\s<>\"')]+", re.I)
+# Any scheme (any case), a scheme-relative address, or a www. host. The engine writes only Relay links.
+_ADDRESS_IN_TEXT = re.compile(r"[a-z][a-z0-9+.-]*://[^\s<>\"')]+|(?<![\w:/])//[^\s<>\"')]+|\bwww\.[^\s<>\"')]+",
+                              re.I)
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS email_delivery (
@@ -134,7 +139,7 @@ class EmailAdapter:
         if doc["to_user"] not in self.addresses:
             return "no_address", doc
         text = doc["subject"] + "\n" + doc["body"]
-        if any(not url.startswith(self.link_base) for url in _ADDRESS_IN_TEXT.findall(text)):
+        if any(not url.startswith(self.link_base) for url in _ADDRESS_IN_TEXT.findall(text)):  # case-sensitive
             return "foreign_link", doc
         return None, doc
 
@@ -152,7 +157,7 @@ class EmailAdapter:
             if problem is not None:
                 out.append(self._record(item, item.recipient, "refused", problem, attempts, now))
                 continue
-            decision = decide(self.prefs(doc["to_user"]), "security", now)
+            decision = decide(self.prefs(doc["to_user"]), NOTIFY_TYPE[item.kind], now)
             if not decision.send:
                 out.append(self._record(item, item.recipient, "suppressed", decision.reason, attempts, now))
                 continue

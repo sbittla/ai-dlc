@@ -1,22 +1,23 @@
 """A minimal MCP host that launches fixture servers, runs the checks, and calls admitted tools (provided).
 
-For each session of a scenario the host launches every configured server, asks each for its announcement and
-its tools/list, and runs the four checks. A server with any finding is not admitted in that session: the host
-fails closed. `disabled` turns checks off, for the remove-one analysis.
+For each session of a scenario the host hashes each configured server's code, launches it, asks for its
+announcement and its tools/list, and runs the four checks. A server that sends `notifications/tools/list_changed`
+during the session is listed and checked again. A server with any finding is not admitted (or is dropped) in that
+session: the host fails closed. `disabled` turns checks off, for the remove-one analysis.
 
 Every tool result the host passes on is marked untrusted, whatever server it came from. A reviewed, pinned
-server can still return text an outsider wrote (Chapter 12), so pinning a server is not trusting its output.
+server can still return text an outsider wrote (Chapter 12), so pinning a server is not trusting its output. The
+host has no way to pass the user's token to a server; MCP031 reports a server that asks for one.
 """
 
 from __future__ import annotations
 
-import hashlib
 import json
 from dataclasses import dataclass, field
 
 from . import DATA, VENDOR
-from .checks import CHECKS, check_allowlist, check_pins, check_scopes, check_shadowing
-from .fixtures import servers, source_sha256
+from .checks import CHECKS, check_allowlist, check_name_collisions, check_pins, check_scopes
+from .fixtures import SOURCES, servers, source_sha256
 
 
 def load(name: str) -> dict:
@@ -24,17 +25,17 @@ def load(name: str) -> dict:
 
 
 def launch_hash(tag: str) -> str:
-    """The source hash the host computes at launch: the real code for a vendored server, a stand-in otherwise."""
+    """The source hash the host computes at launch, from the files it is about to run."""
     if tag == "vendor:relaymcp":
         return source_sha256(VENDOR / "relaymcp")
-    return hashlib.sha256(f"fixture-source:{tag}".encode()).hexdigest()
+    return source_sha256(SOURCES / tag)
 
 
 @dataclass
 class Session:
     number: int
     findings: list = field(default_factory=list)
-    admitted: list = field(default_factory=list)   # server names admitted in this session
+    admitted: list = field(default_factory=list)   # fixture keys admitted at the end of this session
 
 
 def run_scenario(scenario: dict, reviewed: dict | None = None, disabled: frozenset = frozenset()) -> list[Session]:
@@ -44,28 +45,30 @@ def run_scenario(scenario: dict, reviewed: dict | None = None, disabled: frozens
     out = []
     for number in scenario["sessions"]:
         session = Session(number)
-        offered, per_server = [], {}
+        listings = []  # (fixture key, server name, tools)
+        blocked: set[str] = set()
         for launch in scenario["launches"]:
             server = fixtures[launch["fixture"]]
             info = server.info()
-            tools = server.tools(number)
             record = {"command": launch["command"], "args": launch["args"],
                       "source_sha256": launch_hash(launch["source_tag"])}
-            found = check_allowlist(record, info, reviewed) + check_pins(info["name"], tools, reviewed) \
-                + check_scopes(info, reviewed)
-            per_server[launch["fixture"]] = (info["name"], found)
-            offered.append((info["name"], tools))
-        shadow = check_shadowing(offered)
-        for key, (name, found) in per_server.items():
-            mine = [f for f in found if f[0] not in off]
-            session.findings += mine
-            if not mine:
-                session.admitted.append(key)
-        for f in shadow:
+            found = check_allowlist(record, info, reviewed) + check_scopes(info, reviewed)
+            lists = [server.tools(number)] + ([server.tools(number, after_change=True)]
+                                              if number in server.changes_in else [])
+            for tools in lists:  # every tools/list is checked, including one after list_changed
+                found += check_pins(info["name"], tools, reviewed)
+            found = [f for f in found if f[0] not in off]
+            for f in found:
+                if f not in session.findings:
+                    session.findings.append(f)
+            if found:
+                blocked.add(launch["fixture"])
+            listings.append((launch["fixture"], info["name"], lists[-1]))
+        for f in check_name_collisions([(name, tools) for _, name, tools in listings]):
             if f[0] not in off:
                 session.findings.append(f)
-                keys = [k for k, (n, _) in per_server.items() if n == f[1]]
-                session.admitted = [k for k in session.admitted if k not in keys]
+                blocked |= {key for key, name, _ in listings if name == f[1]}
+        session.admitted = [key for key, _, _ in listings if key not in blocked]
         out.append(session)
     return out
 

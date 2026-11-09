@@ -8,13 +8,14 @@ whatever `kind` the model gave it; otherwise it is an attribution. Each citation
 - precedes    the cause began no later than the effect's onset. The cause's time is the event's or alert's time,
               or, for a metric, its onset. An onset is the first minute after the checker's baseline window where
               the series reaches ONSET_FACTOR x its baseline mean (`Store.onset`).
-- dominates   mean(ref over window) >= share: the cause's component takes most of the effect's resource. This is
-              the mechanism: timing alone never makes a cause.
+- dominates   mean(ref over window) >= max(share, MECHANISM_MIN): the cause's component takes most of the effect's
+              resource. This is the mechanism: timing alone never makes a cause.
 
 The checker, not the model, owns the baseline window (`Store.baseline`) and the map from each cause to the
 component that would carry its mechanism (`Store.mechanism`). A citation must be about the hypothesis's own cause
 and effect: `rises` and `precedes` cite the cause, `precedes` names the effect, and `dominates` cites the cause's
-mechanism. A citation about anything else is `unbound` and supports nothing.
+mechanism. The windows of `rises` and `dominates` must lie between the effect's onset and the moment of the check,
+so a model cannot pick a quiet or a future window. A citation that breaks any of this is `unbound`.
 
 A verdict is `supported`, `unsupported` or `contradicted` (ADR-039). Only a supported hypothesis may justify an
 action (`remediate.Gate.request` enforces it). An unsupported hypothesis may still be true.
@@ -29,6 +30,7 @@ from .store import Store, minute_after
 HOLDS, FAILS, UNRESOLVED, UNBOUND = "holds", "fails", "unresolved", "unbound"
 ONSET_FACTOR = 5
 MIN_RISE = 3
+MECHANISM_MIN = 0.5  # the cause's component must take at least half of the resource, whatever the citation says
 
 
 @dataclass(frozen=True)
@@ -58,20 +60,30 @@ def bound(c: dict, h: dict, store: Store) -> bool:
     """Is citation `c` about this hypothesis's own cause, effect and mechanism? (provided)"""
     if not is_cause(h) or c["assert"] == "exists":
         return True
-    if c["assert"] == "rises":
-        return c["ref"] == h["cause"]
     if c["assert"] == "precedes":
         return c["ref"] == h["cause"] and c.get("effect") == h["effect"]
-    if c["assert"] == "dominates":
-        return c["ref"] == store.mechanism(h["cause"])
-    return False
+    if c["assert"] == "rises":
+        ok = c["ref"] == h["cause"]
+    elif c["assert"] == "dominates":
+        ok = c["ref"] == store.mechanism(h["cause"])
+    else:
+        return False
+    return ok and _in_effect_window(c["window"], h, store)
+
+
+def _in_effect_window(window: list[str], h: dict, store: Store) -> bool:
+    """The window starts no earlier than the effect's onset and ends no later than the check's moment."""
+    onset = store.onset(h["effect"], store.baseline, ONSET_FACTOR) if h["effect"].startswith("metric:") else         store.time_of(h["effect"])
+    start, end = store.at(window[0]), store.at(window[1])
+    return onset is not None and start >= onset and (store.as_of is None or end <= store.as_of)
 
 
 def check_citation(c: dict, store: Store) -> str:
     """TODO 1a. Evaluate one citation against `store` (which already hides anything after its as_of).
 
     Return UNRESOLVED when the reference is unknown (see `_known`) or a window has no visible data. Otherwise
-    return HOLDS or FAILS. Use the checker's baseline, `store.baseline`, never one the citation names. `rises`
+    return HOLDS or FAILS. Use the checker's baseline, `store.baseline`, never one the citation names, and the
+    checker's floors: `dominates` holds when the window's mean share is at least max(c["share"], MECHANISM_MIN). `rises`
     holds when the window's mean is at least max(c["factor"], MIN_RISE) x the baseline mean. `precedes` holds
     when the cause's time (an event's or alert's time, or a metric's onset) is no later than the effect's onset,
     both onsets taken with `store.onset(ref, store.baseline, ONSET_FACTOR)`; an unknown time is UNRESOLVED.
@@ -90,7 +102,7 @@ def check_citation(c: dict, store: Store) -> str:
         share = store.mean(ref, *c["window"])
         if share is None:
             return UNRESOLVED
-        return HOLDS if share >= c["share"] else FAILS
+        return HOLDS if share >= max(c["share"], MECHANISM_MIN) else FAILS
     if kind == "precedes":
         effect = store.onset(c["effect"], store.baseline, ONSET_FACTOR)
         cause = store.time_of(ref) if ref.startswith(("event:", "alert:")) else \

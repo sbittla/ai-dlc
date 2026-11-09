@@ -45,6 +45,15 @@ CLOSED_BYPASSES = [  # each passes 4.23.0's relay.audit.redact unchanged, and 4.
     ("key=value password", "password=hunter2hunter2", "secret-field"),
     ("colon password", "password: hunter2", "secret-field"),
     ("refresh token", "refresh_token=abcdef123456", "secret-field"),
+    # Round 2 review: encodings after any separator; secret-ish key names by substring.
+    ("base64 email after #", "u#" + base64.b64encode(EMAIL.encode()).decode(), "encoded-email"),
+    ("base64 email after _", "u_" + base64.b64encode(EMAIL.encode()).decode(), "encoded-email"),
+    ("base64 email after ~", "u~" + base64.b64encode(EMAIL.encode()).decode(), "encoded-email"),
+    ("JSON user_password", '{"user_password":"hunter2x"}', "secret-field"),
+    ("JSON pass", '{"pass":"hunter2x"}', "secret-field"),
+    ("JSON credentials", '{"credentials":"abc123def"}', "secret-field"),
+    ("JSON auth", '{"auth":"abc123def"}', "secret-field"),
+    ("passport number", "passport=X1234567", "secret-field"),
 ]
 
 
@@ -62,6 +71,7 @@ def test_what_the_audit_redactor_caught_is_still_caught(text):
 
 
 KNOWN_MISSES = [
+    "pwd hunter2hunter2",                     # a secret key name with no separator before its value
     "jane dot doe at example dot com",       # spelled out
     "call 4155550134",                        # one run of digits, no prefix or separators
     base64.b64encode(b"alice:hunter2").decode(),  # a plain password: no format to match
@@ -99,3 +109,10 @@ def test_keys_are_allowlisted_and_content_keys_always_dropped():
 def test_decoding_stops_after_two_layers():
     assert decode_variants("%2540") == ["%40", "@"]
     assert leaks("nothing here") == {}
+
+
+def test_known_false_positives_are_pinned():
+    assert redact_text("version 1.2.3.4")[1] == {"ip": 1}            # four numbers look like an IPv4 address
+    assert redact_text("token rotation is scheduled")[1] == {"auth-header": 1}
+    assert redact_text('{"author": "Jane", "passage": "x"}')[1] == {}  # not secret names
+    assert redact_text("token_count=1234 input_token_limit=4096")[1] == {}  # numbers about tokens

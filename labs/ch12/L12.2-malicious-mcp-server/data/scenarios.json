@@ -206,7 +206,7 @@
       "sessions": [
         1
       ],
-      "title": "Tool shadowing: a second server offers a tool named query"
+      "title": "An unreviewed server offers a tool named query"
     },
     {
       "expected": [
@@ -312,7 +312,146 @@
       "sessions": [
         1
       ],
-      "title": "Two reviewed servers, reviewed separately, both offer a tool named query"
+      "title": "Two servers, each reviewed alone, both offer a tool named query"
+    },
+    {
+      "expected": [],
+      "id": "S12",
+      "launches": [
+        {
+          "args": [
+            "-m",
+            "relaymcp.server",
+            "--db",
+            "data/relay-test.sql",
+            "--audit",
+            "evidence/mcp-audit.jsonl"
+          ],
+          "command": "python",
+          "fixture": "relay-db-readonly",
+          "source_tag": "vendor:relaymcp"
+        },
+        {
+          "args": [
+            "-m",
+            "lint_helper.server"
+          ],
+          "command": "python",
+          "fixture": "lint-helper",
+          "source_tag": "lint-helper@1.2.0"
+        }
+      ],
+      "limit": "pinned as reviewed; only reading it at review catches it",
+      "malicious": true,
+      "sessions": [
+        1
+      ],
+      "title": "Description shadowing approved at review: a description that steers another server's tool"
+    },
+    {
+      "expected": [
+        "MCP011"
+      ],
+      "id": "S13",
+      "launches": [
+        {
+          "args": [
+            "-m",
+            "relaymcp.server",
+            "--db",
+            "data/relay-test.sql",
+            "--audit",
+            "evidence/mcp-audit.jsonl"
+          ],
+          "command": "python",
+          "fixture": "relay-db-readonly",
+          "source_tag": "vendor:relaymcp"
+        },
+        {
+          "args": [
+            "-m",
+            "notes_helper.server"
+          ],
+          "command": "python",
+          "fixture": "notes-helper@new-tool",
+          "source_tag": "notes-helper@1.0.0"
+        }
+      ],
+      "malicious": true,
+      "sessions": [
+        1
+      ],
+      "title": "The reviewed server adds a tool that was never reviewed"
+    },
+    {
+      "expected": [
+        "MCP010"
+      ],
+      "id": "S14",
+      "launches": [
+        {
+          "args": [
+            "-m",
+            "relaymcp.server",
+            "--db",
+            "data/relay-test.sql",
+            "--audit",
+            "evidence/mcp-audit.jsonl"
+          ],
+          "command": "python",
+          "fixture": "relay-db-readonly",
+          "source_tag": "vendor:relaymcp"
+        },
+        {
+          "args": [
+            "-m",
+            "notes_helper.server"
+          ],
+          "command": "python",
+          "fixture": "notes-helper@annotations",
+          "source_tag": "notes-helper@1.0.0"
+        }
+      ],
+      "malicious": true,
+      "sessions": [
+        1
+      ],
+      "title": "Only the annotations change: a write tool now claims to be read-only"
+    },
+    {
+      "expected": [
+        "MCP010"
+      ],
+      "id": "S15",
+      "launches": [
+        {
+          "args": [
+            "-m",
+            "relaymcp.server",
+            "--db",
+            "data/relay-test.sql",
+            "--audit",
+            "evidence/mcp-audit.jsonl"
+          ],
+          "command": "python",
+          "fixture": "relay-db-readonly",
+          "source_tag": "vendor:relaymcp"
+        },
+        {
+          "args": [
+            "-m",
+            "notes_helper.server"
+          ],
+          "command": "python",
+          "fixture": "notes-helper@list-changed",
+          "source_tag": "notes-helper@1.0.0"
+        }
+      ],
+      "malicious": true,
+      "sessions": [
+        1
+      ],
+      "title": "Mid-session change: the server sends list_changed with a new description"
     },
     {
       "call": {

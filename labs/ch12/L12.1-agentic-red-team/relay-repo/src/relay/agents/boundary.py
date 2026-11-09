@@ -19,7 +19,11 @@ audit record. This is the complete version Relay's agents run behind. For each c
   9. record             the step's outcome goes to the journal and the audit trail
 
 The taint is a property of the run, not of one call: it is read back from the run's journal when a
-boundary is built, so a resumed run is still tainted. An approval requested by a tainted run says so in
+boundary is built, so a resumed run is still tainted. The journal keeps its own taint record (tool `TAINT_STEP`),
+independent of contract names, so a run resumed with a different tool set stays tainted too. A call to an
+untrusted tool taints the run whatever its outcome, including an error, because an error message can carry
+the outsider's text. Taint does not cross runs or agents: a run that receives another run's output must mark
+that tool's result untrusted itself. An approval requested by a tainted run says so in
 its audit record, so the person deciding knows the request may have been steered.
 
 Every call that reaches the boundary leaves an audit record, refusals included, and that includes the
@@ -38,6 +42,9 @@ from .budget import BudgetExceeded, Meter
 from .contracts import ToolContract, args_sha256, idempotency_key, path_problem, validate_args
 from .session import AgentRevoked, AgentSession
 from .state import RunStore
+
+
+TAINT_STEP = "run.taint"  # the journal record that marks a run tainted (ADR-034)
 
 
 @dataclass(frozen=True)
@@ -92,8 +99,17 @@ class ToolBoundary:
 
     def __post_init__(self) -> None:
         untrusted = {name for name, c in self.contracts.items() if c.untrusted_result}
-        if any(s["tool"] in untrusted and s["outcome"] in ("ok", "replayed") for s in self.store.steps(self.run_id)):
+        steps = self.store.steps(self.run_id)
+        if any(s["tool"] == TAINT_STEP or (s["tool"] in untrusted and s["outcome"] in ("ok", "replayed", "error"))
+               for s in steps):
             self.tainted = True
+
+    def _taint(self, tool: str) -> None:
+        """Mark the run tainted, once, with a journal record that does not depend on contract names."""
+        if self.tainted:
+            return
+        self.tainted = True
+        self.store.note_step(self.run_id, self.agent_id, TAINT_STEP, "-", "ok", {"after": tool}, self.stamp())
 
     def _audit(self, tool: str, outcome: str, args_sha: str, code: str | None = None, extra: dict | None = None):
         claims = self.session.claims or {}
@@ -175,6 +191,8 @@ class ToolBoundary:
         try:
             out = self.handlers[tool](args)
         except Exception as exc:  # a failed tool is an outcome the agent sees, not a crash of the run
+            if contract.untrusted_result:
+                self._taint(tool)
             self.meter.charge_tool(self.agent_id, 0.0)
             self.store.finish_step(self.run_id, seq, "error", {"code": type(exc).__name__, "value": str(exc)[:200],
                                                                "failure": f"error:{tool}"})
@@ -190,8 +208,8 @@ class ToolBoundary:
         self.meter.charge_tool(self.agent_id, out.seconds)
         self.store.finish_step(self.run_id, seq, "ok", {"value": value, "failure": out.failure,
                                                         "progress": out.progress})
-        if contract.untrusted_result and not self.tainted:
-            self.tainted = True
+        if contract.untrusted_result:
+            self._taint(tool)
         self._audit(tool, "ok", sha, extra={"seq": seq, "truncated": truncated, "removed_paths": removed,
                                             **({"tainted": True} if self.tainted else {})})
         return ToolResult(True, value, truncated=truncated, failure=out.failure, progress=out.progress)

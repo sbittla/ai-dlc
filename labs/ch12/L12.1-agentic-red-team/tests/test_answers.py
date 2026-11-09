@@ -9,21 +9,22 @@ POLICY = mx.load("gate-policy.json")
 CLASSES = {c["id"]: c for c in mx.load("classes.json")["classes"]}
 
 
-def test_exercise_5_the_failed_cell_and_why_c11_passes():
+def test_exercise_5_the_failed_cells_in_4_25_0():
     m = mx.verify("4.25.0")
-    failed = [(c.cls, c.control) for c in m.cells if c.status == "failed"]
-    assert failed == [("C10", "egress_domain_only")]
-    assert not probe_egress_domain_only(CLASSES["C10"]).blocks   # api.github.com is on the allowlist
-    assert probe_egress_domain_only(CLASSES["C11"]).blocks       # sink.attacker.example is not
+    assert [(c.cls, c.control) for c in m.cells if c.status == "failed"] == [
+        ("C10", "egress_domain_only"), ("C11", "egress_domain_only")]
+    assert probe_egress_domain_only(CLASSES["C10"]).evidence.startswith("0 of 8 refused")
+    c11 = probe_egress_domain_only(CLASSES["C11"])
+    assert c11.evidence.startswith("1 of 8 refused")
+    assert "unlisted-host" not in c11.evidence and "attacker-repository" in c11.evidence  # names, not paths
 
 
-def test_exercise_6_memory_controls_share_a_module_and_a_separate_module_would_raise_coverage():
+def test_exercise_6_approval_and_tool_allowlist_share_the_boundary():
     m = mx.verify("4.26.0")
-    assert mx.coverage(m)["C12"] == 2  # three verified controls, two modules
-    assert mx.shortfalls(m, POLICY, frozenset({"memory_trust"})) == []
-    assert mx.shortfalls(m, POLICY, frozenset({"memory_review"})) == []
+    assert mx.coverage(m)["C05"] == 2                    # three verified controls, two independent
+    assert mx.coverage(m, frozenset({"relay.agents.boundary"}))["C05"] == 1
     controls = copy.deepcopy(mx.load("controls.json")["controls"])
-    controls["memory_review"]["module"] = "relay.agents.memory_review"
+    controls["approval"]["depends_on"] = ["relay.agents.approval"]  # if the gate did not run inside the boundary
     moved = mx.verify("4.26.0", controls=controls)
-    assert mx.coverage(moved)["C12"] == 3
-    assert mx.shortfalls(moved, POLICY, frozenset({"recall_taint"})) == []  # recall taint no longer load-bearing
+    assert mx.coverage(moved)["C05"] == 3
+    assert mx.coverage(moved, frozenset({"relay.agents.boundary"}))["C05"] == 2

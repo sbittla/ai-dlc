@@ -28,6 +28,7 @@ def render_scenarios() -> str:
     lines = ["| Scenario | Expected | Findings | Admitted in the last session | Result |",
              "| --- | --- | --- | --- | --- |"]
     caught = total = 0
+    missed = []
     for s in load("scenarios.json")["scenarios"]:
         sessions = run_scenario(s)
         codes = _codes(sessions)
@@ -35,17 +36,28 @@ def render_scenarios() -> str:
         if s["malicious"] and _admission(s):
             total += 1
             caught += bool(codes)
-        result = ("call: see calls" if not _admission(s) else
-                  ("caught" if codes else ("clean" if not s["malicious"] else "MISSED")))
+            if not codes and s.get("limit"):
+                missed.append(s["id"])
+        if not _admission(s):
+            result = "call: see calls"
+        elif codes:
+            result = "caught"
+        elif not s["malicious"]:
+            result = "clean"
+        else:
+            result = "missed by design" if s.get("limit") else "MISSED"
         lines.append(f"| {s['id']} | {', '.join(s['expected']) or 'none'} | {', '.join(codes) or 'none'} | "
                      f"{', '.join(sessions[-1].admitted) or 'none'} | {result}{'' if ok else ' (unexpected)'} |")
-    lines.append(f"\nMalicious scenarios caught at admission: {caught} of {total}. Benign S01: "
-                 f"{'admitted in all 3 sessions' if not _codes(run_scenario(load('scenarios.json')['scenarios'][0])) else 'BLOCKED'}.")
+    benign = "admitted in all 3 sessions" if not _codes(run_scenario(load("scenarios.json")["scenarios"][0])) \
+        else "BLOCKED"
+    lines.append(f"\nMalicious scenarios caught at admission: {caught} of {total}; missed by design: "
+                 f"{', '.join(missed) or 'none'}. Benign S01: {benign}.")
     return "\n".join(lines)
 
 
 def render_removeone() -> str:
-    scenarios = [s for s in load("scenarios.json")["scenarios"] if s["malicious"] and _admission(s)]
+    scenarios = [s for s in load("scenarios.json")["scenarios"]
+                 if s["malicious"] and _admission(s) and not s.get("limit")]
     lines = ["| Check turned off | Malicious scenarios that get through |", "| --- | --- |"]
     for check in CHECKS:
         through = [s["id"] for s in scenarios if not _codes(run_scenario(s, disabled=frozenset({check})))]

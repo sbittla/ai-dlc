@@ -7,7 +7,7 @@ Reviewed by: aisha.r (security), priya.n (engineering), tomas.b (support)
 Links: D3, ESC-N01, ESC-N07, CON-4
 Related: ADR-007, ADR-017, ADR-023, ADR-034, ADR-035
 Revisit when: the triage summary gains a tool, a second consumer renders model-written text, or the
-control matrix fails relay-coverage-gate-v1. Review by 2027-08-08 in any case.
+control matrix fails relay-coverage-gate-v2. Review by 2027-08-08 in any case.
 Supersedes: none.
 
 ## Context
@@ -43,12 +43,16 @@ Option A.
 - Text Relay did not write reaches the client only through `relay.render.render_text`: escaped, no image
   ever, and a clickable link only into Relay with no query string. `relay.api.suggestion_view` uses it and
   tells the reader what it removed.
-- Lab 12.1's control matrix runs on every change to these controls under relay-coverage-gate-v1, and Gate
-  G4 checks the same policy. Every attack class in the threat model's catalogue (relay-attack-classes
-  2027.02.1) needs at least one verified control, and every exfiltration, unauthorized-action and
-  persistence class needs two, in different modules. A control counts only if its probe shows it stops the
-  class and still lets the matching legitimate case through. Marking never counts: it lowers how often a
-  model obeys, which a probe cannot show.
+- Lab 12.1's control matrix runs on every change to these controls, contracts, rendering, delivery or
+  proxy configuration, under relay-coverage-gate-v2. Every attack class in the threat model's catalogue
+  (relay-attack-classes 2027.02.2) needs at least one verified blocking control, and every exfiltration,
+  unauthorized-action and persistence class needs two whose declared failure domains are disjoint. A
+  control counts only if its probe, run on the release's own artefacts, stops every variant in the class's
+  set and an end-to-end legitimate case still works. Mitigating controls never count: marking and pattern
+  filters lower how often an attack works, which a probe cannot show. Controls that would stop an effect
+  only in an agent Relay does not have ("latent") do not count either.
+- Gate G4's adversarial row needs the coverage gate to pass AND deployment evidence for every counted
+  control. The matrix cannot see prompt changes; Chapter 7's adversarial slice guards those.
 - The gate verifies controls; it does not measure attack success rate. That needs a red-team exercise
   against the deployed model, which Relay has not yet run (owner aisha.r, by 2027-05-31).
 
@@ -56,11 +60,14 @@ Option A.
 
 - Marking lowers how often a model obeys; it does not stop it. The constraint on output and the renderer
   hold whether or not the model obeyed, which is why they are separate controls.
-- A summary that quotes a customer's own address is dropped, which support staff will notice. tomas.b
-  accepted that cost on 2027-02-08.
+- A summary that quotes a customer's own address, or names a Relay task by its link, is dropped, which
+  support staff will notice. tomas.b accepted that cost on 2027-02-08.
+- On 2027-02-12 the gate fails for 4.26.0: three classes are below the policy (Lab 12.1's report names
+  them, with owners and dates), and none of the new controls is deployed yet. 4.26.0 does not meet G4's
+  adversarial row.
 - The client must show the view's HTML as it is. A Markdown renderer run over it again would undo the
   image rule, so the client's change ships with a Content-Security-Policy that allows images from Relay
-  only (carried to the service, Chapter 16).
+  only (owner priya.n, by 2027-03-31).
 - A steered suggestion is still possible. It is advice that a person confirms. How often a model is
   steered is unmeasured until the live red-team exercise.
 

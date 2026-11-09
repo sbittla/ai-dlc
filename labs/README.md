@@ -53,7 +53,13 @@ labs/chNN/LN.M-<slug>/
 | [L10.2](ch10/L10.2-failure-injection-approval-gates/) | Failure injection, approval gates and recovery | Stretch | 3 h |
 | [L11.1](ch11/L11.1-guardrailed-cloud-environment/) | Guardrailed, budget-capped cloud environment with IaC | Core | 5 h |
 | [L11.2](ch11/L11.2-azure-gcp-mapping/) | Azure and GCP mapping with cost comparison | Stretch | 2 h |
+| [L12.1](ch12/L12.1-agentic-red-team/) | Threat model and defence verification: a control matrix on Relay's own artefacts, coverage by failure domain, and the coverage gate for Gate G4 | Core | 5 h |
+| [L12.2](ch12/L12.2-malicious-mcp-server/) | A malicious MCP server: whole-definition pins, allowlisting with a launch-time source hash, name collisions and scope review, and the shadowing case no check catches | Stretch | 4 h |
 | [L13.1](ch13/L13.1-secure-agent-loop/) | Secure the agent loop: gates, a dependency gate, fix re-verification, catch rate and release evidence | Core | 4 h |
 | [L13.2](ch13/L13.2-poisoned-instructions-ci-injection/) | Poisoned instruction files and CI prompt injection via an issue comment | Stretch | 4 h |
 | [L14.1](ch14/L14.1-agent-identity-kill-switch/) | Agent identity, an anomaly detection rule and a kill-switch drill | Core | 4 h |
 | [L14.2](ch14/L14.2-governance-pack/) | Governance pack: permission matrix, DPIA, licence scan, EU AI Act classification | Stretch | 3 h |
+| [L16.1](ch16/L16.1-otel-redaction-slo/) | OpenTelemetry instrumentation with PII redaction, an SLO and a multi-window burn-rate alert | Core | 4 h |
+| [L16.2](ch16/L16.2-game-day-postmortem/) | Combined reliability and security game day: cited hypotheses, a remediation gate and a blameless postmortem | Stretch | 4 h |
+| [L17.1](ch17/L17.1-load-test-bottleneck/) | Load-test baseline, bottleneck, fix and re-measure: workload model, open schedule, percentiles with intervals, limiter fix, soak and worker capacity | Core | 4 h |
+| [L17.2](ch17/L17.2-cost-per-success-routing/) | Cost per successful task across routing and caching configurations, plus spend quotas under an abuse burst | Stretch | 3 h |

@@ -20,13 +20,13 @@ Numbers come from the reference solutions of Lab 16.1 (`python -m slolab.report 
 
 **6. A 60-minute static rule.** It pages 20 times, 16 of them for nothing, and pages for all four events, including E4, which spent 1.3% of the budget and is not significant. It is better than the 5-minute rule's 732 pages but still not a good alert: four in five pages are false, it pages for a slow burn that deserves a ticket, and it still says nothing about how much budget an event spends.
 
-**7. The rollback through the gate.** The assistant's request is refused as `unsupported_hypothesis`, and the refusal is audited under the assistant's identity. As of 15:22 the citation check marks H0 unsupported: it cites the deploy and its timing, but no mechanism. An agent may not act on a hypothesis that is not supported, whatever the deploy record says.
+**7. The rollback through the gate.** The assistant's request is refused as `unsupported_hypothesis`, and the refusal is audited under the assistant's identity. The gate runs the citation check itself: as of 15:22, H0 cites the deploy and its timing, but no mechanism, so it is unsupported. Citing v1's supported H2 or H3 instead is refused as `hypothesis_does_not_match_action`, because a rollback needs a cause that is the deploy being rolled back, and both are about sign-ins.
 
-When the on-call engineer (taken as priya.n for the exercise) requests the same rollback citing H0, the gate refuses it as `override_reason_required` until the engineer writes a reason. With the reason, the gate records an `override` and a `requested` entry. The rollback's precondition holds (the 15:00 deploy is within two hours). The engineer and sam.o each approve with a fresh proof bound to this request; their roles cover platform on-call and tech lead, so the status becomes `approved`. A proof sam.o got at 15:16 is more than 300 seconds old at 15:22, so that decision is refused as `stale_proof` and audited.
+When the on-call engineer (taken as priya.n for the exercise) requests the same rollback citing H0, the gate refuses it as `override_reason_required` until the engineer gives an incident or ticket ID and a reason of at least 20 characters ("the deploy came first" alone is refused). With them, the gate records an `override` and a `requested` entry. The rollback's precondition holds (the 15:00 deploy is within two hours). The engineer and sam.o each approve with a fresh proof bound to this request; their roles cover platform on-call and tech lead, so the status becomes `approved`. A proof sam.o got at 15:16 is more than 300 seconds old at 15:22, so that decision is refused as `stale_proof` and audited.
 
 The point is that the gate cannot stop two determined people, but it makes them write down that they are acting against an unsupported hypothesis. On 2 February that sentence would have said "the deploy came first", which is the evidence the citation check had already called timing alone.
 
-*Marking:* full marks need the assistant's refusal and its reason, the override and the two-person approval, and the stale-proof refusal.
+*Marking:* full marks need the assistant's refusal and its reason (including why H2 and H3 do not help), the structured override and the two-person approval, and the stale-proof refusal.
 
 ## Design
 

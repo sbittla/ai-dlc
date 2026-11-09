@@ -8,3 +8,6 @@ incident-assistant-v1 H1 as of 15:41: contradicted (metric:api_slow_share stayed
 incident-assistant-v1 H2 as of 15:41: supported; citations holds, holds, holds
 incident-assistant-v1 H3 as of 15:41: supported; citations holds, holds
 Gate at 15:22: the assistant's deploy.rollback because H0 (unsupported): refused (unsupported_hypothesis)
+Gate at 15:22: the same rollback because v1's H1 (unsupported): refused (unsupported_hypothesis)
+Gate at 15:22: the same rollback because v1's H2 (supported): refused (hypothesis_does_not_match_action)
+Gate at 15:22: the same rollback because v1's H3 (supported): refused (hypothesis_does_not_match_action)

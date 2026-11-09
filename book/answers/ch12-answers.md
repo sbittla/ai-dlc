@@ -18,17 +18,32 @@ Full marks need all five, and the point that the output boundary includes the re
 
 **2. Spotlighting as mitigating.** Marking changes what the model sees, not what the system can do. Whether it stops an attack depends on whether the model obeys, which only a measurement against the model can show. A probe can show the mechanism works (the envelope is applied, hidden characters removed, imitation markers neutralized), but not that the effect is impossible. The output constraint and renderer hold whether or not the model obeyed, so they can be verified as blocking. Full marks contrast "lowers obedience" with "makes the effect impossible".
 
-**3. Rug pull and shadowing.** A rug pull is one server changing after its review while keeping its approved name and launch command; the pin check catches it (MCP010), and in Lab 12.2 it is the only check that catches S04. Tool shadowing is a second server offering a tool name another server offers; the shadowing check catches it (MCP020), and it is the only check that catches S11, where both servers passed their own reviews. Full marks need both definitions and both checks.
+**3. Rug pull, shadowing and name collision.**
+
+- A rug pull is one server changing after its review while keeping its approved name and launch command. The pin check catches it (MCP010, or MCP011 for a new tool), and in Lab 12.2 it is the only check that catches S04, S13, S14 and S15.
+- Tool shadowing, in Invariant Labs' usage, is a description that steers how the agent uses another server's tool. No host check catches it once a reviewer has approved it: the pin freezes the approved description (S12). Only reading descriptions at review catches it.
+- A tool name collision is two servers offering one tool name. The name-collision check catches it (MCP020), and it is the only check that catches S11, where both servers passed their own reviews.
+
+Full marks need all three and the point that pins catch change, not a poisoned description approved at review.
 
 **4. Why egress did not help.** The data left through the support engineer's browser, which requested the image when the console rendered the summary. The egress proxy governs Relay's workloads and agent sandboxes, not a person's browser. The controls on that path are in the output: `parse_summary` drops the summary, and `render_text` never emits an image. A Content-Security-Policy in the client is a further layer.
 
 ## Apply
 
-**5. The 4.25.0 failure.** The failed cell is C10 with `egress_domain_only`. C10's target is an attacker's repository on `api.github.com`. The 4.25.0 proxy allows that host by name, and it cannot see paths, so the request is allowed and the probe fails. C11's target is a host not on the allowlist at all, so the domain-only check refuses it and the cell is verified. In 4.26.0, ADR-035 decrypts the content hosts and allows only Relay's repository, so C10 is verified. Full marks name C10, the host, and the names-not-paths reason.
+**5. The 4.25.0 failures.** The failed cells are C10 and C11, both tested with `egress_domain_only`, the 4.25.0 allowlist. That proxy checks only the CONNECT host's name and splices every tunnel, so it cannot see paths, server names in the handshake or Host headers.
 
-**6. Memory trust and memory review.** Coverage counts distinct modules among verified controls. Both controls are in `relay.agents.memory`, so for C12 and C13 they count as one module; recall taint, in `relay.agents.boundary`, is the second. Removing either memory control leaves the other in the same module, so coverage stays 2 and nothing falls short. Removing recall taint drops C12 and C13 to 1 of 2.
+- C10's variants all name `api.github.com`, or a mismatched server name on an allowed CONNECT, so all 8 get through.
+- C11's set has one variant whose host is not on the allowlist at all, and the name check refuses it, so 1 of 8 is stopped.
 
-If memory review moved into its own module, C12's coverage would be 3. Then recall taint would no longer be load-bearing for the gate: removing it would leave 2. Strong answers add that a module boundary is a proxy for independence. A path that bypasses the memory store's API could still defeat both, and a person accepting a plausible fact is a third failure mode that no module split addresses.
+In 4.26.0, ADR-035 decrypts the content hosts and allows only Relay's repository. Each splice or bump rule needs both the CONNECT host and the server name on its list, everything else is terminated, and decrypted requests have their Host header checked, so both cells are verified. Full marks name both cells and the names-not-paths reason.
+
+**6. C05's coverage.** Coverage is the largest set of verified controls whose failure domains are disjoint.
+
+- The tool allowlist depends on the boundary, the session and the identity module. The approval gate depends on the boundary and the approval module. They share the boundary, so together they count once.
+- The platform permissions depend on the GitHub App and branch protection, outside Relay's code, so they are the second.
+- A fault in the boundary drops C05 to 1: the domains report shows `relay.agents.boundary` taking seven classes below the policy.
+
+If the approval gate did not run inside the boundary, it would be independent of the allowlist. C05's coverage would be 3, and a boundary fault would leave it at 2, still meeting the policy. Strong answers add two points. Failure domains are declared by people, so an undeclared shared dependency stays invisible. And an approval that is not enforced inside the boundary needs another way to stop the call from running without it.
 
 **7. A webhook adapter.** Marking notes; no single right answer.
 
@@ -40,12 +55,12 @@ Full marks need at least two classes, two controls each in different modules for
 
 ## Design
 
-**8. Links to help articles.** Marking notes.
+**8. Links to help articles.** Marking notes. The aim is that C01 to C04 keep coverage 2.
 
 - **`render_text`:** add a second allowlist of exact help-centre URL prefixes on Relay's own documentation host, still https, with no query string. Never allow the whole host, if anyone outside Relay can publish under it.
-- **`parse_summary`:** today it refuses every address. Either allow only addresses that match the same reviewed prefixes, or keep refusing addresses and let the model return article IDs that Relay turns into links. The second is stronger, because the model then never writes an address.
+- **`parse_summary`:** today it is an allowlist with no slash, so it refuses every address. Keep it, and let the model return article IDs that Relay turns into links. Adding a slash to the allowlist would reopen every address shape the renderer alone would then have to stop, leaving the four classes with one control.
 - **Catalogue:** a class for a link to an attacker's page that looks like a help article (phishing through the summary), and one for data carried in a help-article URL's path.
-- **Probes:** legitimate cases of a real article link rendering as clickable, and attack cases of a lookalike host, a path carrying data, and a query string. The gate must still show two verified modules for each exfiltration class.
+- **Probes:** legitimate cases of a real article link rendering as clickable, end to end, and attack variants of a lookalike host, a path carrying data, and a query string. The two controls must still share no code.
 
 Strong answers choose IDs over addresses and explain why.
 
@@ -56,8 +71,8 @@ Strong answers choose IDs over addresses and explain why.
 - **Goals:** judged by effects observed in a sandbox with canary data and sinks under reserved domains, never by the model's text.
 - **Statistics:**
   - repeated runs per case, because models are nondeterministic;
-  - the attack success rate per configuration with a Wilson interval;
-  - paired tests (exact McNemar) between configurations;
+  - the attack success rate per configuration, computed per case first (the share of a case's runs that succeed, or whether any run succeeds), with an interval that resamples cases, such as a bootstrap over cases or families. Repeated runs of one case are correlated, so a Wilson interval over all runs would be too narrow;
+  - paired tests between configurations at the case level, such as exact McNemar on whether each case succeeded;
   - a sample size chosen in advance for the difference worth detecting.
 - **Results:** reported beside the coverage gate's matrix, owned by aisha.r, and re-run on every model change.
 

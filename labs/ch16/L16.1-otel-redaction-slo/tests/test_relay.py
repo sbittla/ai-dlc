@@ -55,13 +55,13 @@ def test_only_the_declared_files_differ_from_canonical_4_25_0():
     assert not [f for f in changed | added if f.startswith(UNTOUCHED)]
 
 
-def test_relay_suite_passes_with_747_tests():
+def test_relay_suite_passes_with_758_tests():
     env = {k: v for k, v in os.environ.items() if k != "LAB_TARGET"}
     env["PYTHONPATH"] = "src"
     out = subprocess.run([sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider"], cwd=RELAY,
                          capture_output=True, text=True, timeout=900, env=env)
     assert out.returncode == 0, out.stdout[-2000:]
-    assert re.search(r"\b747 passed\b", out.stdout), out.stdout[-500:]
+    assert re.search(r"\b758 passed\b", out.stdout), out.stdout[-500:]
 
 
 def test_relay_lint_passes():

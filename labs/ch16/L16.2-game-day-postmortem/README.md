@@ -94,7 +94,8 @@ available at 15:18? How many minutes earlier would the security on-call have bee
 ### 4. The remediation gate: TODO 3 (50 min)
 
 Implement `Gate.decide` in `remediate.py`. Every refusal must be audited before it is raised. Read `Gate.request`
-first: requests are authenticated, name a hypothesis, and are refused for an agent when it is not supported. Why may
+and `matches` first: requests are authenticated and name a hypothesis, which the gate checks itself; it must be
+supported and about the action, or an agent is refused and a person needs an incident ID and a reason. Why may
 the requester of a two-person action be one of the two, but never approve a one-person action? Why is each proof
 bound to one request and usable once? Why can no proof make the assistant an approver or a kill-switch tripper?
 
@@ -156,6 +157,7 @@ It must print `[]`.
 | A refusal is missing from the audit | Call `refuse`, which audits and raises; do not raise `Refused` directly. |
 | The failover is approved by priya.n alone | Two-person actions need two distinct people whose roles cover both listed roles. |
 | A good proof is refused as `proof_not_for_this` | Decision proofs carry the request ID and the request's args SHA-256; check both. |
+| A supported hypothesis is refused for a rollback | It must be a cause hypothesis whose cause is `event:<the deploy>`; H2 and H3 are about sign-ins. |
 | `check` reports PM006 for a timeline line | PM006 reads only the Contributing factors section. |
 | `test_vendored_relay_is_lab_16_1s_copy` fails | Lab 16.1's telemetry changed; run `python scripts/generate_data.py` here. |
 

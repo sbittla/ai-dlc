@@ -12,6 +12,7 @@ Proposed by: <person>. Reviewed by: <person on @relay/security's list, not the p
 | Scopes it asks for, and the ones granted | |
 | Token audience (must be the server itself; no passthrough) | |
 | Tool names that collide with another reviewed server | |
+| Does any description mention another server's tool (description shadowing)? | |
 | What its results contain, and who can write that content | |
 | Owner, and the date of the next review | |
 

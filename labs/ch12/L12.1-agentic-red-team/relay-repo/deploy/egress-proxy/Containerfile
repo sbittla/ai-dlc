@@ -19,6 +19,7 @@ COPY deploy/egress-proxy/squid.conf /etc/squid/squid.conf
 COPY deploy/egress-proxy/allowlist.txt /etc/squid/allowlist.txt
 COPY deploy/egress-proxy/content-hosts.txt /etc/squid/content-hosts.txt
 COPY deploy/egress-proxy/content-urls.txt /etc/squid/content-urls.txt
+COPY deploy/egress-proxy/splice-hosts.txt /etc/squid/splice-hosts.txt
 USER proxy
 EXPOSE 3128
 ENTRYPOINT ["squid", "-N", "-f", "/etc/squid/squid.conf"]

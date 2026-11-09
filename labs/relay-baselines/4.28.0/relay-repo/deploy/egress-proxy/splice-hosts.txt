@@ -1,0 +1,4 @@
+# Allowlisted hosts whose tunnels are passed through encrypted (ADR-035): hosts Relay runs itself, so no
+# outsider can publish content on them. Every name here is also in allowlist.txt and NOT in content-hosts.txt.
+# Any TLS server name on neither list is terminated. Reviewed by @relay/security.
+pypi-mirror.relay.example

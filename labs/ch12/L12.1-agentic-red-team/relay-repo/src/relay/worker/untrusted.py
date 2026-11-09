@@ -6,16 +6,20 @@ impossible; they make it rarer and its effects smaller.
 
 `mark` wraps ticket text before the model sees it ("spotlighting"). Hidden characters are removed, the
 text is put between an opening and a closing line that carry a per-ticket nonce (an HMAC under the
-worker's secret, so a ticket's author cannot predict it), and any line in the text
-that imitates either marker is neutralized, so a ticket cannot close its own envelope. The prompt tells the
-model that text between the markers is data. This lowers obedience; it does not remove it.
+worker's secret, so a ticket's author cannot predict it), and any line in the text that imitates either
+marker is neutralized, so a ticket cannot close its own envelope. The prompt tells the model that text
+between the markers is data. This lowers obedience; it does not remove it.
 
 `unmark` recovers the text from an envelope (for the simulated model and for tests).
 
-`parse_summary` is the constraint on what the model may write back for people to read. A summary is plain
-text of at most 400 characters, with no address of any kind, no Markdown link or image syntax, no HTML and
-no hidden characters. Anything else is refused and the reason recorded: Relay drops the summary rather than
-repairing it, as it does for the suggestion itself (Chapter 2).
+`parse_summary` is the constraint on what the model may write back for people to read. It is an
+ALLOWLIST, not a filter for known patterns: a summary may hold only letters, digits, spaces and a short
+list of punctuation, at most 400 characters, and no token shaped like a host name or an email address.
+There is no slash, bracket, angle bracket, at sign, backslash or hash, so no address, link reference,
+Markdown or HTML can be written at all, whatever its encoding. Anything else is refused and the reason
+recorded: Relay drops the summary rather than repairing it, as it does for the suggestion (Chapter 2).
+
+`parse_summary` deliberately shares no code with `relay.render`, so that one bug cannot defeat both.
 """
 
 from __future__ import annotations
@@ -32,10 +36,10 @@ _CLOSE = "<<end of ticket nonce={nonce}>>"
 _ENVELOPE = re.compile(r"\A<<untrusted ticket nonce=([0-9a-f]{12})>>\n(.*)\n<<end of ticket nonce=\1>>\Z", re.S)
 _MARKER_LIKE = re.compile(r"<<\s*(?:untrusted|end of ticket)[^>]*>>", re.I)
 
-_ADDRESS = re.compile(r"\b[\w.+-]+@[\w-]+\.[\w.-]+"
-                      r"|(?:https?://|www\.|ftp://|data:|javascript:)"
-                      r"|\b[a-z0-9-]+(?:\.[a-z0-9-]+)*\.(?:com|net|org|io|example|dev|app|co)\b", re.I)
-_MARKUP = re.compile(r"!\[|\]\(|<\s*/?\s*[a-z!]", re.I)
+# The only characters a summary may hold besides letters and digits (str.isalnum) and the plain space.
+SUMMARY_PUNCTUATION = frozenset(".,;:'!?()-%&+\"‘’“”")
+# A dotted token whose last label is two or more letters (any script) or an IDN label looks like a host name.
+_HOSTLIKE = re.compile(r"[^\W_](?:[\w-]*[^\W_])?(?:\.[^\W_](?:[\w-]*[^\W_])?)*\.(?:[^\W\d_]{2,}|xn--[\w-]+)(?![\w-])")
 
 
 def nonce_for(source_id: str, text: str, secret: bytes) -> str:
@@ -60,7 +64,8 @@ def unmark(text: str) -> tuple[str, bool]:
 def parse_summary(text: str) -> tuple[str | None, str | None]:
     """(summary, None) if `text` is an acceptable summary, else (None, reason).
 
-    Reasons, checked in this order: not_text, empty, too_long, hidden, markup, address.
+    Reasons, checked in this order: not_text, empty, too_long, characters (anything outside the allowlist,
+    hidden characters included), address (a host-like or email-like token).
     """
     if not isinstance(text, str):
         return None, "not_text"
@@ -69,10 +74,8 @@ def parse_summary(text: str) -> tuple[str | None, str | None]:
         return None, "empty"
     if len(stripped) > SUMMARY_MAX:
         return None, "too_long"
-    if strip_hidden(stripped)[1]:
-        return None, "hidden"
-    if _MARKUP.search(stripped):
-        return None, "markup"
-    if _ADDRESS.search(stripped):
+    if any(not (ch.isalnum() or ch == " " or ch in SUMMARY_PUNCTUATION) for ch in stripped):
+        return None, "characters"
+    if _HOSTLIKE.search(stripped):
         return None, "address"
     return stripped, None

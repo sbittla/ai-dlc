@@ -1,6 +1,7 @@
 """Hand-checkable fixtures for TODO 1 to TODO 4. Each expected value is worked out in the comment beside it."""
 
 from datetime import datetime, timedelta, timezone
+from types import SimpleNamespace
 
 import pytest
 
@@ -15,15 +16,19 @@ DAY = datetime(2027, 3, 1, tzinfo=UTC)
 
 
 def store(as_of=None):
-    # Ten minutes 10:00-10:09. Load is 10 until 10:05, then 100. Slow share 0.01, then 0.5 from 10:06.
+    # Ten minutes 10:00-10:09. Load and db_load are 10 until 10:05, then 100. Slow share 0.01, then 0.5 from 10:06.
     rows = []
     for m in range(10):
         rows.append({"minute": f"2027-03-01T10:{m:02d}Z", "load": 10.0 if m < 5 else 100.0,
-                     "api_requests": 100.0, "api_slow": 1.0 if m < 6 else 50.0, "share_db_of_request": 0.8})
+                     "db_load": 10.0 if m < 5 else 100.0, "api_requests": 100.0,
+                     "api_slow": 1.0 if m < 6 else 50.0, "share_db_of_request": 0.8})
     events = [{"id": "change", "at": "2027-03-01T10:02:00Z"},
-              {"id": "undo", "at": "2027-03-01T10:03:00Z", "done": "2027-03-01T10:03:00Z", "removes": "change"}]
-    return Store(DAY, rows, events, [], as_of=as_of, baseline=("10:00", "10:01"),
-                 mechanisms={"metric:load": "share:db_of_request", "event:change": "share:db_of_request"})
+              {"id": "undo", "at": "2027-03-01T10:03:00Z", "done": "2027-03-01T10:03:00Z", "removes": "change"},
+              {"id": "deploy-x", "at": "2027-03-01T10:05:00Z"}]
+    alerts = [SimpleNamespace(rule="SD-002", at=DAY.replace(hour=10, minute=7), group="198.51.100.0/24")]
+    return Store(DAY, rows, events, alerts, as_of=as_of, baseline=("10:00", "10:01"),
+                 mechanisms={"metric:load": "share:db_of_request", "event:change": "share:db_of_request",
+                             "metric:db_load": "share:db_of_request", "event:deploy-x": "share:db_of_request"})
 
 
 # ---------------------------------------------------------------- TODO 1a
@@ -62,9 +67,10 @@ def cause(cites, cause_ref="metric:load"):
     return {"id": "H", "kind": "cause", "cause": cause_ref, "effect": "metric:api_slow_share", "citations": cites}
 
 
-RISES = {"ref": "metric:load", "assert": "rises", "window": ["10:05", "10:09"], "baseline": ["10:00", "10:04"],
+# Windows start at 10:06, the effect's onset (slow share reaches 5 x 0.01).
+RISES = {"ref": "metric:load", "assert": "rises", "window": ["10:06", "10:09"], "baseline": ["10:00", "10:04"],
          "factor": 10}
-DOMINATES = {"ref": "share:db_of_request", "assert": "dominates", "window": ["10:05", "10:09"], "share": 0.5}
+DOMINATES = {"ref": "share:db_of_request", "assert": "dominates", "window": ["10:06", "10:09"], "share": 0.5}
 
 
 def test_todo1b_supported_needs_timing_and_a_mechanism():
@@ -93,9 +99,22 @@ def test_todo1b_no_citations_and_a_relabelled_kind_are_not_supported():
     assert (v.status, v.reason) == ("unsupported", "no mechanism cited")
 
 
-def test_todo1b_the_checker_owns_the_baseline():
-    # A model-chosen baseline inside the surge (10:05-10:09) would hide the rise; the checker ignores it.
+def test_todo1b_the_checker_owns_the_baseline_and_the_mechanism_floor():
+    # A model-chosen baseline inside the surge would hide the rise; the checker ignores it.
     assert check_citation({**RISES, "baseline": ["10:05", "10:09"]}, store()) == HOLDS
+    # Round 2's probe: a mechanism threshold of 0.001 does not lower the checker's floor of 0.5.
+    low = store()
+    for row in low.series["share:db_of_request"]:
+        low.series["share:db_of_request"][row] = 0.3
+    assert check_citation({**DOMINATES, "share": 0.001}, low) == FAILS
+
+
+def test_todo1b_windows_must_lie_between_the_effects_onset_and_the_check():
+    early = {**DOMINATES, "window": ["10:00", "10:09"]}            # starts before the effect began
+    late = {**RISES, "window": ["10:06", "10:09"]}
+    assert check_hypothesis(cause([RISES, early]), store()).results == (HOLDS, UNBOUND)
+    assert check_hypothesis(cause([late, DOMINATES]), store(as_of=DAY.replace(hour=10, minute=8))).results[0] == \
+        UNBOUND                                                     # ends after the moment of the check
 
 
 def test_todo1b_an_effect_that_outlives_the_undone_change_contradicts_it():
@@ -127,10 +146,26 @@ def test_todo2_fault_measures():
 # ---------------------------------------------------------------- TODO 3
 
 PEOPLE = {"issuer": "https://people.example", "audience": "relay-remediation", "key_hex": "11" * 32,
-          "people": {"ana": ["platform-oncall"], "ben": ["tech-lead"], "cy": ["support"]},
+          "people": {"ana": ["platform-oncall"], "ben": ["tech-lead"], "cy": ["support", "security-oncall"]},
           "agents": ["incident-assistant"]}
 AT = DAY.replace(hour=12)
-VERDICTS = {"H1": "supported", "H0": "unsupported"}
+TIMING = {"ref": "metric:db_load", "assert": "rises", "window": ["10:06", "10:09"], "baseline": ["10:00", "10:01"],
+          "factor": 5}
+MECH = {"ref": "share:db_of_request", "assert": "dominates", "window": ["10:06", "10:09"], "share": 0.5}
+HYPOTHESES = {
+    "H1": {"id": "H1", "cause": "metric:db_load", "effect": "metric:api_slow_share", "citations": [TIMING, MECH]},
+    "H0": {"id": "H0", "cause": "metric:db_load", "effect": "metric:api_slow_share", "citations": [TIMING]},
+    "HDEP": {"id": "HDEP", "cause": "event:deploy-x", "effect": "metric:api_slow_share", "citations": [
+        {"ref": "event:deploy-x", "assert": "precedes", "effect": "metric:api_slow_share"}, MECH]},
+    "HTXT": {"id": "HTXT", "claim": "the deploy is the root cause", "citations": [
+        {"ref": "event:deploy-x", "assert": "exists"}]},
+    "HSD2": {"id": "HSD2", "claim": "credential stuffing", "citations": [{"ref": "alert:SD-002", "assert": "exists"}]},
+}
+REASON = "INC-0202: failing over is the owner's call after the review"
+
+
+def gate_(deploys=()):
+    return Gate(PEOPLE, deploys=list(deploys), store=store(), hypotheses=HYPOTHESES)
 
 
 def req_proof(who, action, args, age_s=10, people=PEOPLE):
@@ -146,8 +181,7 @@ def dec_proof(who, req, age_s=10, args=None):
 
 def request(gate, who, action="db.failover", args=None, because="H1", age_s=10, **kw):
     args = {"cluster": "x"} if args is None else args
-    return gate.request(action, args, req_proof(who, action, args, age_s), AT, because=because, verdicts=VERDICTS,
-                        **kw)
+    return gate.request(action, args, req_proof(who, action, args, age_s), AT, because=because, **kw)
 
 
 def refused(fn, *a, **kw):
@@ -157,7 +191,7 @@ def refused(fn, *a, **kw):
 
 
 def test_todo3_two_people_cover_the_roles_and_the_requester_may_be_one():
-    gate = Gate(PEOPLE)
+    gate = gate_()
     req = request(gate, "ana")
     assert gate.decide(req.request_id, dec_proof("ana", req), True, AT).status == "pending"
     assert gate.decide(req.request_id, dec_proof("ben", req), True, AT).status == "approved"
@@ -171,14 +205,14 @@ def test_todo3_two_people_cover_the_roles_and_the_requester_may_be_one():
     ("incident-assistant", 10, None, "agents_may_not_approve"),
 ])
 def test_todo3_decision_refusals_are_audited(who, age, args, code):
-    gate = Gate(PEOPLE)
+    gate = gate_()
     req = request(gate, "ana")
     assert refused(gate.decide, req.request_id, dec_proof(who, req, age, args=args), True, AT) == code
     assert gate.audit[-1]["outcome"] == "refused" and gate.audit[-1]["code"] == code
 
 
 def test_todo3_a_proof_works_once_and_for_one_request():
-    gate = Gate(PEOPLE)
+    gate = gate_()
     one, two = request(gate, "ana"), request(gate, "ana", args={"cluster": "z"})
     p = dec_proof("ben", one)
     gate.decide(one.request_id, p, True, AT)
@@ -195,7 +229,7 @@ def test_todo3_a_proof_works_once_and_for_one_request():
 
 
 def test_todo3_requests_expire_after_15_minutes():
-    gate = Gate(PEOPLE)
+    gate = gate_()
     req = request(gate, "ana")
     late = AT + timedelta(minutes=16)
     p = make_proof(PEOPLE, "ben", late, purpose="decide", request_id=req.request_id, args_sha256=req.args_sha256)
@@ -203,34 +237,61 @@ def test_todo3_requests_expire_after_15_minutes():
 
 
 def test_todo3_the_requester_is_authenticated_and_one_person_actions_need_someone_else():
-    gate = Gate(PEOPLE)
+    gate = gate_()
     forged = req_proof("incident-assistant", "worker.restart", {"s": 1}, people={**PEOPLE, "key_hex": "22" * 32})
-    assert refused(gate.request, "worker.restart", {"s": 1}, forged, AT, because="H1",
-                   verdicts=VERDICTS) == "bad_proof"
-    req = request(gate, "ana", action="worker.restart", args={"s": 1})
-    assert req.requester == "ana"
-    assert refused(gate.decide, req.request_id, dec_proof("ana", req), True, AT) == "requester_may_not_approve"
-    assert refused(gate.decide, "nothing#9", dec_proof("ben", req), True, AT) == "no_such_request"
+    assert refused(gate.request, "worker.restart", {"s": 1}, forged, AT, because="H1") == "bad_proof"
+    # H1 is a database cause, not a worker one: a person may still request, with an audited override.
+    restart = request(gate, "ana", action="worker.restart", args={"s": 2}, because="H1", override=REASON)
+    assert gate.audit[-2]["outcome"] == "override" and "hypothesis_does_not_match_action" in gate.audit[-2]["code"]
+    assert refused(gate.decide, restart.request_id, dec_proof("ana", restart), True, AT) == \
+        "requester_may_not_approve"
+    assert refused(gate.decide, "nothing#9", dec_proof("ben", restart), True, AT) == "no_such_request"
 
 
-def test_todo3_hypotheses_and_kill_switches():
-    gate = Gate(PEOPLE)
-    # An agent may not act on an unsupported hypothesis; a person may, with a written reason that is audited.
+def test_todo3_the_gate_judges_hypotheses_itself_and_ties_them_to_the_action():
+    import inspect
+    assert "verdicts" not in inspect.signature(Gate.request).parameters  # no caller-supplied verdicts
+    gate = gate_(deploys=[DAY.replace(hour=9, minute=30)])  # the deploy record: more than two hours before 12:00
+    rollback = {"deploy": "deploy-x"}
+    # An agent: unsupported (H0), supported but about another cause (H1), text-only attribution (HTXT).
+    for n, (because, code) in enumerate((("H0", "unsupported_hypothesis"),
+                                         ("H1", "hypothesis_does_not_match_action"),
+                                         ("HTXT", "hypothesis_does_not_match_action"),
+                                         ("NOPE", "unsupported_hypothesis"))):
+        assert refused(request, gate, "incident-assistant", action="deploy.rollback", args=rollback,
+                       because=because, age_s=20 + n) == code  # a fresh proof each time
+    # A supported cause hypothesis about this deploy justifies the rollback, but the precondition still applies.
+    assert refused(request, gate, "incident-assistant", action="deploy.rollback", args=rollback,
+                   because="HDEP", age_s=12) == "precondition_failed:no_deploy_in_2h"
+    near = Gate(PEOPLE, deploys=[AT - timedelta(minutes=30)], store=store(), hypotheses=HYPOTHESES)
+    assert request(near, "incident-assistant", action="deploy.rollback", args=rollback, because="HDEP").status == \
+        "pending"
+    # A rate limit needs an attribution that cites SD-002.
+    assert request(near, "cy", action="signin.rate_limit", args={"networks": ["198.51.100.0/24"]},
+                   because="HSD2").status == "pending"
+    # Only networks SD-002 flagged, never a sweeping prefix, and always a list.
+    for n, nets in enumerate((["0.0.0.0/0"], ["198.51.0.0/16"], ["203.0.113.0/24"], [], "198.51.100.0/24")):
+        assert refused(request, near, "cy", action="signin.rate_limit", args={"networks": nets}, because="HSD2",
+                       age_s=30 + n) == "override_reason_required"
+    assert refused(request, near, "cy", action="signin.rate_limit", args={"n": 1}, because="H1") == \
+        "override_reason_required"
+
+
+def test_todo3_overrides_need_an_incident_id_and_a_real_reason():
+    gate = gate_()
     assert refused(request, gate, "incident-assistant", because="H0") == "unsupported_hypothesis"
-    assert refused(request, gate, "ana", because="H0") == "override_reason_required"
-    req = request(gate, "ana", because="H0", age_s=11, override="failing over is the owner's call")  # new proof
+    assert refused(request, gate, "ana", because="H0", age_s=11) == "override_reason_required"
+    assert refused(request, gate, "ana", because="H0", age_s=12, override="x") == "override_reason_required"
+    req = request(gate, "ana", because="H0", age_s=13, override=REASON)
     assert req.status == "pending" and gate.audit[-2]["outcome"] == "override"
-    # Kill switches: any person may trip one at once; the assistant may not; nobody restores here.
+
+
+def test_todo3_kill_switches():
+    gate = gate_()
     assert request(gate, "ana", action="killswitch.trip", args={"agent": "a"}, because=None).status == "approved"
     assert refused(request, gate, "incident-assistant", action="killswitch.trip", args={"agent": "a"},
                    because=None) == "agents_may_not_trip"
     assert refused(request, gate, "ana", action="killswitch.restore", args={"agent": "a"}) == "not_through_this_gate"
-
-
-def test_todo3_a_rollback_needs_a_recent_deploy():
-    gate = Gate(PEOPLE, deploys=[AT - timedelta(hours=3)])
-    code = refused(request, gate, "ana", action="deploy.rollback", args={"d": 1})
-    assert code == "precondition_failed:no_deploy_in_2h"
 
 
 # ---------------------------------------------------------------- TODO 4

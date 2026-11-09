@@ -71,11 +71,11 @@ If replies were sent without review, the agent would interact directly with cust
 
 **9. A red-team program.** Marking notes; look for a program, not an event.
 
-- **Cadence:** adversarial cases in CI on every change to prompts, tools or agent configuration; seeded detection cases with every rule change; a quarterly purple-team session; a bug bounty open all year.
-- **Starting cases:** Chapter 12's adversarial evaluation set, Lab 14.1's D01–D04, and a case for every incident (the leaked token, the posted log).
+- **Cadence:** Chapter 12's control matrix in CI on every change to tools, contracts, rendering, delivery or proxy configuration, and Chapter 7's adversarial slice on every prompt change; seeded detection cases with every rule change; a quarterly purple-team session; a bug bounty open all year.
+- **Starting cases:** Chapter 12's attack-class catalogue, Lab 14.1's D01–D04, and a case for every incident (the leaked token, the posted log).
 - **Bug bounty scope:** cross-tenant data access through agents or tools, tool or credential misuse outside a task, secrets in agent output or logs. Out of scope: wrong or rude text with no security effect, jailbreaks that change only text. A dedicated tenant with synthetic data.
 - **ATLAS mapping:** each case mapped to a tactic and technique, with the ATLAS version recorded, and a list of tactics with no case.
-- **Metrics with denominators:** attack success rate on the versioned set (n cases), time to detect per case and incident, time to revoke per drill and path, detection coverage as "k of n seeded malicious cases, misses named".
+- **Metrics with denominators:** attack success rate on a versioned live red-team set (n cases), once Chapter 12's open measurement exists; time to detect per case and incident, time to revoke per drill and path, detection coverage as "k of n seeded malicious cases, misses named".
 - **From finding to test:** every confirmed finding gets an owner and a target date, and becomes a seeded case or adversarial test that fails before the fix and passes after it.
 
 Strong answers say what a quarter's report would show and which decision it would change, for example the floor in Exercise 5 or the cache in Exercise 6.

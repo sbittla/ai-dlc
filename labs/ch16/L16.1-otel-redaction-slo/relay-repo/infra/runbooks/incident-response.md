@@ -31,8 +31,9 @@ The assistant (`incident-assistant`, ADR-039) reads telemetry and proposes hypot
 Until the gate ships in Relay (ADR-039; Lab 16.2 builds it), the incident commander applies its rules by hand
 and records each request and approval in the timeline:
 
-- Every request names the hypothesis it rests on. An assistant's request on an unsupported hypothesis is
-  refused; a person's needs a written override reason in the timeline.
+- Every request names the hypothesis it rests on, which must be supported and about the action (a rollback:
+  the deploy; a failover: the database; a restart: the worker; a sign-in limit: SD-002). An assistant's request
+  that fails is refused; a person's needs an incident or ticket ID and a written reason in the timeline.
 - One-person actions are approved by someone other than the requester; rollbacks and database failovers need
   the on-call engineer and a tech lead, and the requester may be one of them.
 - A request lapses after 15 minutes. A rollback needs a deploy in the last two hours. Automation may only

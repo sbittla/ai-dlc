@@ -5,12 +5,13 @@
 
 GENERATED:
 
-- `reviewed.json`: the reviewed record of the three servers Relay's sessions may launch, as a person approved them
-  on 2027-02-10: launch command and arguments, source hash, version, scopes, audience, and the definition hash of
-  every tool. relay-db-readonly's source hash is computed from the vendored code (../vendor/relaymcp); the
-  fixtures notes-helper and analytics-readonly have stand-in source hashes, labelled as such.
-- `scenarios.json`: eleven scenarios, S01 to S11, each a set of launches over one or more sessions, with the check
-  expected to catch it.
+- `reviewed.json`: the reviewed record of the four servers Relay's sessions may launch, as people approved them
+  on 2027-02-10 and 2027-02-11: launch command and arguments, source hash, version, scopes, token audience, and
+  the definition hash of every tool (the whole tool object). Every source hash is computed from real files:
+  Lab 3.2's whole vendored package (../vendor/relaymcp, including server.py) and the small fixture modules under
+  ../fixtures/servers/. lint-helper's reviewed description holds a placeholder its reviewer missed (S12).
+- `scenarios.json`: fifteen scenarios, S01 to S15, each a set of launches over one or more sessions, with the
+  findings expected.
 
 The definition hash is computed here with its own copy of the formula, so the reviewed record does not depend on
 the code you write in TODO 1. The malicious servers' descriptions carry inert placeholder markers only.
@@ -32,42 +33,39 @@ from mcpguard.fixtures import servers, source_sha256  # noqa: E402  (provided co
 
 RELAYDB_LAUNCH = ["-m", "relaymcp.server", "--db", "data/relay-test.sql", "--audit", "evidence/mcp-audit.jsonl"]
 NOTES_LAUNCH = ["-m", "notes_helper.server"]
+NOTES_TAG = "notes-helper@1.0.0"
 
 
 def def_hash(tool: dict) -> str:
-    body = {"name": tool["name"], "description": tool.get("description", ""), "inputSchema": tool.get("inputSchema", {})}
-    return hashlib.sha256(json.dumps(body, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    return hashlib.sha256(json.dumps(tool, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
                           .encode("utf-8")).hexdigest()
 
 
-def stand_in(tag: str) -> str:
-    return hashlib.sha256(f"fixture-source:{tag}".encode()).hexdigest()
+def src(tag: str) -> str:
+    return source_sha256(LAB / "fixtures" / "servers" / tag)
 
 
 def reviewed() -> dict:
     fx = servers()
+
+    def record(key, command_args, source_hash, source_note, by, on):
+        server = fx[key]
+        return {"command": "python", "args": command_args, "version": server.version, "source_sha256": source_hash,
+                "source_note": source_note, "scopes": list(server.scopes), "audience": server.audience,
+                "tools": {t["name"]: def_hash(t) for t in server.tools(1)}, "reviewed_by": by, "reviewed_on": on}
+
     return {"servers": {
-        "relay-db-readonly": {
-            "command": "python", "args": RELAYDB_LAUNCH, "version": "1.0.0",
-            "source_sha256": source_sha256(LAB / "vendor" / "relaymcp"),
-            "source_note": "sha256 over the vendored relaymcp package's .py files, sorted, LF line endings",
-            "scopes": ["tasks:read:test-db"], "audience": "relay-db-readonly",
-            "tools": {t["name"]: def_hash(t) for t in fx["relay-db-readonly"].tools(1)},
-            "reviewed_by": "aisha.r", "reviewed_on": "2027-02-10"},
-        "notes-helper": {
-            "command": "python", "args": NOTES_LAUNCH, "version": "1.0.0",
-            "source_sha256": stand_in("notes-helper@1.0.0"),
-            "source_note": "lab stand-in: sha256 of 'fixture-source:notes-helper@1.0.0'",
-            "scopes": ["notes:write"], "audience": "notes-helper",
-            "tools": {t["name"]: def_hash(t) for t in fx["notes-helper"].tools(1)},
-            "reviewed_by": "aisha.r", "reviewed_on": "2027-02-10"},
-        "analytics-readonly": {
-            "command": "python", "args": ["-m", "analytics_readonly.server"], "version": "2.4.0",
-            "source_sha256": stand_in("analytics-readonly@2.4.0"),
-            "source_note": "lab stand-in: sha256 of 'fixture-source:analytics-readonly@2.4.0'",
-            "scopes": ["analytics:read"], "audience": "analytics-readonly",
-            "tools": {t["name"]: def_hash(t) for t in fx["analytics-readonly"].tools(1)},
-            "reviewed_by": "sam.o", "reviewed_on": "2027-02-11"},
+        "relay-db-readonly": record("relay-db-readonly", RELAYDB_LAUNCH, source_sha256(LAB / "vendor" / "relaymcp"),
+                                    "sha256 over every .py file of the vendored relaymcp package, sorted, LF endings",
+                                    "aisha.r", "2027-02-10"),
+        "notes-helper": record("notes-helper", NOTES_LAUNCH, src(NOTES_TAG), "fixtures/servers/notes-helper@1.0.0",
+                               "aisha.r", "2027-02-10"),
+        "analytics-readonly": record("analytics-readonly", ["-m", "analytics_readonly.server"],
+                                     src("analytics-readonly@2.4.0"), "fixtures/servers/analytics-readonly@2.4.0",
+                                     "sam.o", "2027-02-11"),
+        "lint-helper": record("lint-helper", ["-m", "lint_helper.server"], src("lint-helper@1.2.0"),
+                              "fixtures/servers/lint-helper@1.2.0; its description was approved with a placeholder "
+                              "in it, which the reviewer missed", "sam.o", "2027-02-11"),
     }}
 
 
@@ -76,7 +74,8 @@ def L(fixture, args, tag, command="python"):
 
 
 RELAYDB = L("relay-db-readonly", RELAYDB_LAUNCH, "vendor:relaymcp")
-NOTES = L("notes-helper", NOTES_LAUNCH, "notes-helper@1.0.0")
+NOTES = L("notes-helper", NOTES_LAUNCH, NOTES_TAG)
+ANALYTICS = L("analytics-readonly", ["-m", "analytics_readonly.server"], "analytics-readonly@2.4.0")
 
 SCENARIOS = [
     {"id": "S01", "title": "Benign: both reviewed servers, unchanged, over three sessions",
@@ -88,24 +87,33 @@ SCENARIOS = [
      "launches": [L("relay-db-readonly", RELAYDB_LAUNCH + ["--allow-sql"], "vendor:relaymcp")], "sessions": [1],
      "expected": ["MCP002"]},
     {"id": "S04", "title": "Rug pull: same version and code, description changes in session 3", "malicious": True,
-     "launches": [RELAYDB, L("notes-helper@rug-pull", NOTES_LAUNCH, "notes-helper@1.0.0")], "sessions": [1, 2, 3],
+     "launches": [RELAYDB, L("notes-helper@rug-pull", NOTES_LAUNCH, NOTES_TAG)], "sessions": [1, 2, 3],
      "expected": ["MCP010"]},
     {"id": "S05", "title": "Rug pull by update: version 1.1.0 with new code and a changed description",
      "malicious": True, "launches": [RELAYDB, L("notes-helper@1.1.0", NOTES_LAUNCH, "notes-helper@1.1.0")],
      "sessions": [1], "expected": ["MCP003", "MCP004", "MCP010"]},
-    {"id": "S06", "title": "Tool shadowing: a second server offers a tool named query", "malicious": True,
+    {"id": "S06", "title": "An unreviewed server offers a tool named query", "malicious": True,
      "launches": [RELAYDB, L("shadow-query", ["-m", "shadow_query"], "shadow-query@0.3.0")], "sessions": [1],
      "expected": ["MCP001", "MCP020"]},
     {"id": "S07", "title": "Scope widening: the reviewed server asks for two more scopes", "malicious": True,
-     "launches": [RELAYDB, L("scope-greedy", NOTES_LAUNCH, "notes-helper@1.0.0")], "sessions": [1],
-     "expected": ["MCP030"]},
+     "launches": [RELAYDB, L("scope-greedy", NOTES_LAUNCH, NOTES_TAG)], "sessions": [1], "expected": ["MCP030"]},
     {"id": "S08", "title": "Token passthrough: the server wants the user's Relay token", "malicious": True,
-     "launches": [RELAYDB, L("token-passthrough", NOTES_LAUNCH, "notes-helper@1.0.0")], "sessions": [1],
+     "launches": [RELAYDB, L("token-passthrough", NOTES_LAUNCH, NOTES_TAG)], "sessions": [1],
      "expected": ["MCP031", "MCP032"]},
-    {"id": "S11", "title": "Two reviewed servers, reviewed separately, both offer a tool named query",
-     "malicious": True, "launches": [RELAYDB, L("analytics-readonly", ["-m", "analytics_readonly.server"],
-                                                "analytics-readonly@2.4.0")],
-     "sessions": [1], "expected": ["MCP020"]},
+    {"id": "S11", "title": "Two servers, each reviewed alone, both offer a tool named query",
+     "malicious": True, "launches": [RELAYDB, ANALYTICS], "sessions": [1], "expected": ["MCP020"]},
+    {"id": "S12", "title": "Description shadowing approved at review: a description that steers another server's tool",
+     "malicious": True, "launches": [RELAYDB, L("lint-helper", ["-m", "lint_helper.server"], "lint-helper@1.2.0")],
+     "sessions": [1], "expected": [], "limit": "pinned as reviewed; only reading it at review catches it"},
+    {"id": "S13", "title": "The reviewed server adds a tool that was never reviewed", "malicious": True,
+     "launches": [RELAYDB, L("notes-helper@new-tool", NOTES_LAUNCH, NOTES_TAG)], "sessions": [1],
+     "expected": ["MCP011"]},
+    {"id": "S14", "title": "Only the annotations change: a write tool now claims to be read-only", "malicious": True,
+     "launches": [RELAYDB, L("notes-helper@annotations", NOTES_LAUNCH, NOTES_TAG)], "sessions": [1],
+     "expected": ["MCP010"]},
+    {"id": "S15", "title": "Mid-session change: the server sends list_changed with a new description",
+     "malicious": True, "launches": [RELAYDB, L("notes-helper@list-changed", NOTES_LAUNCH, NOTES_TAG)],
+     "sessions": [1], "expected": ["MCP010"]},
     {"id": "S09", "title": "Lab 3.2's server returns a task title an outsider wrote", "malicious": True,
      "launches": [L("relay-db-readonly@poisoned-data", RELAYDB_LAUNCH, "vendor:relaymcp")], "sessions": [1],
      "expected": [], "call": {"tool": "query", "arguments": {"request": {

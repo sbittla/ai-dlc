@@ -9,7 +9,7 @@ Game day, Thursday 18 February 2027 (simulated; faults configured in data/gameda
   14:22:30 refusal    worker.restart     unsupported_hypothesis
   14:23:00 alert      SLO-API-LATENCY    SLO-API-LATENCY burning its error budget (policy rows [0])
   14:23:00 page       SLO-API-LATENCY    page:platform-oncall
-  14:23:00 refusal    deploy.rollback    precondition_failed:no_deploy_in_2h
+  14:23:00 refusal    deploy.rollback    hypothesis_does_not_match_action
   14:24:30 ack        SLO-API-LATENCY    priya.n
   14:27:00 request    db.failover        by priya.n, because G1
   14:28:30 refusal    db.failover        stale_proof
@@ -32,7 +32,7 @@ Measures per fault:
 Pages escalated: DR-002 to secondary-oncall at 14:40, DR-002 to engineering-manager at 14:50
 Gate audit: 9 records, 5 refusals:
   14:22:30 refused   worker.restart     by incident-assistant (unsupported_hypothesis)
-  14:23:00 refused   deploy.rollback    by incident-assistant (precondition_failed:no_deploy_in_2h)
+  14:23:00 refused   deploy.rollback    by incident-assistant (hypothesis_does_not_match_action)
   14:27:00 requested db.failover        by priya.n
   14:28:30 refused   db.failover        by unauthenticated:priya.n (stale_proof)
   14:28:50 approval  db.failover        by priya.n

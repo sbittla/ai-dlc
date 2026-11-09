@@ -117,3 +117,18 @@ def test_the_pager_client_groups_repeats_by_reusing_the_deduplication_key():
         at = T0 + timedelta(minutes=minutes)
         client.page(AlertRecord(f"SD-002:{i}", "SD-002", at, "page", "security", "x", ()), "security-oncall", at)
     assert keys == ["SD-002:0", "SD-002:0", "SD-002:2"]
+
+
+def test_grouping_survives_between_one_shot_runs(tmp_path):
+    keys = []
+
+    def opener(req, timeout):
+        keys.append(json.loads(req.data)["dedup_key"])
+        return Ok()
+    state = str(tmp_path / "pager-state.json")
+    for i, minutes in enumerate((0, 30)):  # two separate monitor runs, each with a new client
+        client = PagerClient("https://events.pager.example/v2/enqueue", {"security-oncall": "rk"}, group_minutes=60,
+                             opener=opener, state_path=state)
+        at = T0 + timedelta(minutes=minutes)
+        client.page(AlertRecord(f"SD-002:{i}", "SD-002", at, "page", "security", "x", ()), "security-oncall", at)
+    assert keys == ["SD-002:0", "SD-002:0"]

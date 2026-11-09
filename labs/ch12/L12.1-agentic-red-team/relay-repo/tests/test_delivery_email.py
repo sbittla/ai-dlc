@@ -71,11 +71,13 @@ def test_ESC_R10_a_spam_mark_suppresses_the_email_and_the_outcome_is_recorded():
     assert a.log()[0]["status"] == "suppressed"
 
 
-def test_a_muted_type_never_silences_a_page():
+def test_a_muted_type_never_silences_a_page_but_a_digest_mute_holds_the_hourly_summary():
     notify = NotifyStore()
     notify.set_muted(2, ["all"])
-    [d] = adapter(outbox_with(escalation()), prefs=notify.prefs).deliver(T0)
-    assert d.status == "sent"
+    summary = summary_email(2, [(7, task_link(BASE, 10, 7), "Rotterdam night P1", 1)], T0)
+    out = adapter(outbox_with(escalation(), summary), prefs=notify.prefs).deliver(T0)
+    assert [(d.kind, d.status, d.reason) for d in out] == [("escalation", "sent", None),
+                                                          ("summary", "suppressed", "muted_all")]
 
 
 def test_a_user_without_a_directory_address_is_refused_not_sent_elsewhere():
@@ -88,6 +90,15 @@ def test_a_link_outside_relay_is_refused_as_a_row_the_engine_did_not_write():
     t = RecordingTransport()
     forged = escalation(link="https://collector.attacker.example/?d=customer-list")
     [d] = adapter(outbox_with(forged), transport=t).deliver(T0)
+    assert (d.status, d.reason) == ("refused", "foreign_link") and t.sent == []
+
+
+@pytest.mark.parametrize("link", ["HTTPS://sink.attacker.example/c", "//sink.attacker.example/c",
+                                  "www.sink.attacker.example/c", "ftp://sink.attacker.example/c",
+                                  "HTTPS://RELAY.EXAMPLE/ws-demo/projects/10/tasks/7"])
+def test_every_address_shape_outside_relay_is_refused(link):
+    t = RecordingTransport()
+    [d] = adapter(outbox_with(escalation(link=link)), transport=t).deliver(T0)
     assert (d.status, d.reason) == ("refused", "foreign_link") and t.sent == []
 
 

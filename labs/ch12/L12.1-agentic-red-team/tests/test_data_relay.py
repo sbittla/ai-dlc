@@ -15,6 +15,7 @@ from conftest import DATA_DIR, LAB_ROOT, RELAY
 CANONICAL = LAB_ROOT.parent.parent / "relay-baselines" / "4.25.0" / "relay-repo"
 ADDED = {
     "deploy/egress-proxy/content-hosts.txt", "deploy/egress-proxy/content-urls.txt",
+    "deploy/egress-proxy/splice-hosts.txt",
     "docs/adr/ADR-032-untrusted-ticket-text-and-rendering.md", "docs/adr/ADR-033-email-delivery-adapter.md",
     "docs/adr/ADR-034-taint-memory-and-compaction-defenses.md",
     "docs/adr/ADR-035-allowlisted-content-egress-path.md",
@@ -26,11 +27,12 @@ MODIFIED = {
     ".github/CODEOWNERS", "AGENTS.md", "deploy/egress-proxy/Containerfile", "deploy/egress-proxy/squid.conf",
     "governance/agents.json", "pyproject.toml", "src/relay/__init__.py", "src/relay/agents/__init__.py",
     "src/relay/agents/boundary.py", "src/relay/agents/contracts.py", "src/relay/agents/memory.py",
+    "src/relay/agents/tools.py",
     "src/relay/api.py", "src/relay/worker/__init__.py", "src/relay/worker/runner.py", "src/relay/worker/triage.py",
     "tests/test_architecture.py", "tests/test_infra_egress.py", "tests/test_service_app.py",
     "tests/test_service_http.py", "tests/test_service_wsgi.py", "tests/test_worker_runner.py",
 }
-SUITE = 683
+SUITE = 699
 
 
 def same(a, b) -> bool:

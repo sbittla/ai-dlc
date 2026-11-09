@@ -1,7 +1,7 @@
 # ADR-034 — Agent runs that read untrusted text: taint, approval for external effects, and trust carried through memory and compaction
 
 Status: accepted
-Date: 2027-02-09 (amended 2027-02-11: RECALL_MEMORY)
+Date: 2027-02-09 (amended 2027-02-11 and 2027-02-12: recall, taint record, fail-closed trust)
 Decided by: sam.o (architect of record)
 Reviewed by: aisha.r (security), priya.n (engineering)
 Links: D3, ESC-N01, ESC-N03, CON-1
@@ -40,12 +40,17 @@ Option A. Option B is the direction for agents that need more than one external 
   the request says it came from a tainted run.
 - A message carries `trust`. A compaction summary that replaces any untrusted message is untrusted,
   whatever the summarizer returned, and an untrusted message may not be pinned.
-- Agents recall memory through `RECALL_MEMORY`, whose result is untrusted, so recall taints the run. This is
-  persistence's second control, in a different module from the memory store: Lab 12.1's first coverage run
-  found the pattern check and the review both in `relay.agents.memory`, so one bypass of the store defeated both.
-- A memory fact proposed from an untrusted source is refused, and audited, if it holds an address, a link
-  or an instruction to send, forward, copy or include something. Other untrusted facts may be proposed and
-  reviewed, and recall returns their trust.
+- Agents recall memory through `RECALL_MEMORY`, whose result is untrusted, so recall taints the run. The
+  contract lives in `relay.agents.tools`, not in the memory store's module. Recall taint stops only an
+  unapproved external effect, and Relay's one agent has no such tool today, so it is a latent control.
+- The run's taint is written to its journal as its own record (`run.taint`), so a run resumed with a
+  different tool set stays tainted. A call to an untrusted tool taints the run whatever its outcome,
+  including an error. Taint does not cross runs or agents.
+- The helper's `read_file` and `search_code` declare `untrusted_result`: repository files can hold
+  outsiders' text (Chapter 10's drill D12).
+- A proposed fact is untrusted unless the caller declares otherwise (fail closed). An untrusted fact that
+  matches a pattern for an address, a link or an instruction to act is refused and audited. The pattern is
+  a mitigation; the person's review is the control.
 
 ## Consequences
 
@@ -54,7 +59,7 @@ Option A. Option B is the direction for agents that need more than one external 
 - Taint is coarse: a run that read one harmless ticket is treated like one that read an attack. That is the
   intended bias.
 - The memory rule is a pattern check, so a fact written to look harmless still passes it and still needs its
-  reviewer. Lab 12.1's persistence cases measure that path.
+  reviewer. Lab 12.1 counts it as mitigating, never as blocking.
 - Option B is not built. It needs a planner with no access to untrusted text, which Relay's helper does not
   yet have.
 

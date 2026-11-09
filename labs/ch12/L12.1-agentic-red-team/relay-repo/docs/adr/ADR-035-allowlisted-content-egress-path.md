@@ -34,7 +34,13 @@ tell `relay-example/relay` from any other repository on the same host.
 Option A, now. Option B is the direction for when the helper's GitHub calls are few enough to broker.
 
 - `deploy/egress-proxy/content-hosts.txt` lists the three content hosts. Tunnels to them are bumped
-  (decrypted) at the proxy; every other allowlisted name is spliced and checked by name only.
+  (decrypted) at the proxy. The package mirror, which Relay runs, is spliced and checked by name. Each rule
+  needs both the CONNECT host and the handshake's server name on its list, because a spliced tunnel gets no
+  further check: Squid may not compare the two. Anything else is terminated, so a tunnel whose CONNECT names
+  one host while its handshake names another fails closed. `host_verify_strict` refuses a request whose Host header does not match where it
+  was sent, which is domain fronting through a content host. ADR-013's "does not decrypt TLS" no longer
+  holds for the content hosts, and its "Chapter 12 tests this path" is met by Lab 12.1's egress variants
+  against these files; a container test of the real Squid is carried (owner sam.o, by 2027-03-31).
 - Each decrypted request must match `content-urls.txt`: Relay's repository on each host and nothing else.
   Gists, search, GraphQL and every other owner's repository are refused, and the refusal is in the proxy's
   access log.
@@ -52,8 +58,9 @@ Option A, now. Option B is the direction for when the helper's GitHub calls are 
 - DNS lookups through the VPC resolver are still unfiltered (ADR-013's first gap). A steered agent with a
   network tool could still encode data in lookups; DNS Firewall is the planned control, and Relay's agents
   have no tool that resolves arbitrary names.
-- Generating the CA and installing its certificate in the sandbox image are deployment changes, carried to
-  the infrastructure's owners. Until they land, the configuration is reviewed but not deployed.
+- Generating the CA and installing its certificate in the sandbox image are deployment changes, owned by
+  sam.o, by 2027-03-31. Until they land, the configuration is reviewed and modelled, not deployed,
+  and Lab 12.1 marks the egress cells "not deployed".
 
 ## Rejected alternatives
 

@@ -17,19 +17,62 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+import ipaddress
 import json
+import re
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 
+from .citations import check_hypothesis, is_cause
+
 CATALOGUE = {
-    "killswitch.trip": {"approvers": 0, "roles": [], "hypothesis": False, "note": "any person; never an agent"},
+    "killswitch.trip": {"approvers": 0, "roles": [], "hypothesis": None, "note": "any person; never an agent"},
     "killswitch.restore": {"never": True, "note": "two people through the kill-switch runbook, never this gate"},
-    "deploy.rollback": {"approvers": 2, "roles": ["platform-oncall", "tech-lead"], "hypothesis": True,
+    "deploy.rollback": {"approvers": 2, "roles": ["platform-oncall", "tech-lead"], "hypothesis": "deploy",
                         "precondition": "deploy_in_window"},
-    "db.failover": {"approvers": 2, "roles": ["platform-oncall", "tech-lead"], "hypothesis": True},
-    "worker.restart": {"approvers": 1, "roles": ["platform-oncall", "tech-lead"], "hypothesis": True},
-    "signin.rate_limit": {"approvers": 1, "roles": ["security-oncall"], "hypothesis": True},
+    "db.failover": {"approvers": 2, "roles": ["platform-oncall", "tech-lead"], "hypothesis": "database"},
+    "worker.restart": {"approvers": 1, "roles": ["platform-oncall", "tech-lead"], "hypothesis": "worker"},
+    "signin.rate_limit": {"approvers": 1, "roles": ["security-oncall"], "hypothesis": "signin-attack"},
 }
+OVERRIDE = re.compile(r"^(?:INC|RLY)-\d+: .{20,}$")  # an incident or ticket ID, then a reason of 20+ characters
+
+
+def narrow_networks(requested, flagged: set[str]) -> bool:
+    """A sign-in limit may name only networks SD-002 flagged, each at least a /16 (IPv4) or /48 (IPv6)."""
+    if not isinstance(requested, list) or not requested:
+        return False
+    for text in requested:
+        try:
+            net = ipaddress.ip_network(text, strict=False)
+        except ValueError:
+            return False
+        if net.prefixlen < (16 if net.version == 4 else 48) or str(net) not in flagged:
+            return False
+    return True
+
+
+def matches(kind: str, h: dict, args: dict, flagged: set[str] = frozenset()) -> bool:
+    """Does hypothesis `h` justify this kind of action with these arguments? (provided)
+
+    - deploy: a cause hypothesis whose cause is the deploy being rolled back, `event:<args["deploy"]>`.
+    - database: a cause hypothesis whose cause is a database metric (`metric:db_...`).
+    - worker: a cause hypothesis whose cause is a worker metric (`metric:worker_...`).
+    - signin-attack: an attribution that cites detection alert SD-002 (many credentials from one network), for a
+      request whose `args["networks"]` are all among the networks SD-002 flagged (`flagged`) and none wider
+      than a /16 (IPv4) or /48 (IPv6) (`narrow_networks`).
+    A hypothesis without a structured cause and effect justifies nothing else, whatever its claim's text says.
+    """
+    cause = h.get("cause") if is_cause(h) else None
+    if kind == "deploy":
+        return cause == f"event:{args.get('deploy')}"
+    if kind == "database":
+        return bool(cause) and cause.startswith("metric:db_")
+    if kind == "worker":
+        return bool(cause) and cause.startswith("metric:worker_")
+    if kind == "signin-attack":
+        return (any(c["ref"] == "alert:SD-002" for c in h.get("citations") or [])
+                and narrow_networks(args.get("networks"), flagged))
+    return False
 PROOF_MAX_AGE_S = 300
 REQUEST_TTL = timedelta(minutes=15)
 
@@ -74,8 +117,10 @@ class Request:
 
 
 class Gate:
-    def __init__(self, people: dict, deploys: list[datetime] = ()) -> None:
+    def __init__(self, people: dict, deploys: list[datetime] = (), store=None, hypotheses: dict | None = None) -> None:
+        """`store` and `hypotheses` (ID -> hypothesis) let the gate judge each `because` itself, as of the request."""
         self.people, self.deploys = people, list(deploys)
+        self.store, self.hypotheses = store, dict(hypotheses or {})
         self.requests: dict[str, Request] = {}
         self.audit: list[dict] = []
         self.used: set[str] = set()
@@ -114,14 +159,28 @@ class Gate:
     def is_agent(self, sub: str) -> bool:
         return sub in self.people["agents"]
 
+    def verdict(self, because: str | None, at: datetime) -> tuple[dict | None, str]:
+        """The hypothesis and the citation check's verdict on it as of `at`, computed here, never taken from a caller."""
+        h = self.hypotheses.get(because) if because else None
+        if h is None or self.store is None or (h.get("made_at") and h["made_at"] > at):
+            return None, "unknown"
+        return h, check_hypothesis(h, self.store.view(at)).status
+
+    def flagged_networks(self, at: datetime) -> set[str]:
+        """The networks SD-002 had flagged by `at`, from the store's alerts."""
+        if self.store is None:
+            return set()
+        return {a.group for a in self.store.alerts if a.rule == "SD-002" and a.at <= at and getattr(a, "group", "")}
+
     def request(self, action: str, args: dict, proof: dict, at: datetime, because: str | None = None,
-                verdicts: dict | None = None, override: str = "") -> Request:
+                override: str = "") -> Request:
         """Record an authenticated request (provided). Refused, and audited:
 
-        unknown_action; not_through_this_gate (restore); the proof's codes; agents_may_not_trip; for actions that
-        need a hypothesis, unsupported_hypothesis when an agent cites one the check has not marked supported, or
-        override_reason_required when a person does so without a written reason (a person's override is audited
-        as outcome "override"); precondition_failed:no_deploy_in_2h.
+        unknown_action; not_through_this_gate (restore); the proof's codes; agents_may_not_trip. For an action that
+        needs a hypothesis, the gate judges `because` itself; it must be supported and must `match` the action.
+        Otherwise an agent is refused (unsupported_hypothesis, or hypothesis_does_not_match_action), and a person
+        is refused unless `override` names an incident or ticket and gives a reason (OVERRIDE); a person's override
+        is audited as outcome "override". Then precondition_failed:no_deploy_in_2h.
         """
         claimed = str(proof.get("sub"))
         spec = CATALOGUE.get(action)
@@ -137,13 +196,18 @@ class Gate:
         if action == "killswitch.trip" and self.is_agent(sub):
             self.refuse(at, action, sub, "agents_may_not_trip")
         if spec.get("hypothesis"):
-            status = (verdicts or {}).get(because)
+            h, status = self.verdict(because, at)
+            problem = None
             if status != "supported":
+                problem = "unsupported_hypothesis"
+            elif not matches(spec["hypothesis"], h, args, self.flagged_networks(at)):
+                problem = "hypothesis_does_not_match_action"
+            if problem:
                 if self.is_agent(sub):
-                    self.refuse(at, action, sub, "unsupported_hypothesis")
-                if not override.strip():
+                    self.refuse(at, action, sub, problem)
+                if not OVERRIDE.match(override.strip()):
                     self.refuse(at, action, sub, "override_reason_required")
-                self._record(at, action, sub, "override", f"{because}: {status or 'none'}")
+                self._record(at, action, sub, "override", f"{because}: {problem}; {override.strip()}")
         if spec.get("precondition") == "deploy_in_window" and not any(
                 timedelta(0) <= at - d <= timedelta(hours=2) for d in self.deploys):
             self.refuse(at, action, sub, "precondition_failed:no_deploy_in_2h")

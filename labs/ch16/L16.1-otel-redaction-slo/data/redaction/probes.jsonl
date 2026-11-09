@@ -46,3 +46,11 @@
 {"category": "secret-fields", "id": "P46", "sensitive": true, "text": "refresh_token: def456ghi789jkl0"}
 {"category": "benign", "id": "P47", "sensitive": false, "text": "network 2001:db8:1234::/48, ratio 3:4:5"}
 {"category": "benign", "id": "P48", "sensitive": false, "text": "mac aa:bb:cc:dd:ee:ff at 15:04:00"}
+{"category": "in-context", "id": "P49", "sensitive": true, "text": "u#amFuZS5kb2VAZXhhbXBsZS5jb20="}
+{"category": "in-context", "id": "P50", "sensitive": true, "text": "ref_amFuZS5kb2VAZXhhbXBsZS5jb20="}
+{"category": "secret-fields", "id": "P51", "sensitive": true, "text": "{\"user_password\": \"correct horse battery\"}"}
+{"category": "secret-fields", "id": "P52", "sensitive": true, "text": "{\"credentials\": \"AKIDEXAMPLE/abc123\"}"}
+{"category": "secret-fields", "id": "P53", "sensitive": true, "text": "pwd hunter2hunter2"}
+{"category": "benign", "id": "P54", "sensitive": false, "text": "agent version 1.2.3.4 rolled out"}
+{"category": "benign", "id": "P55", "sensitive": false, "text": "token_count=1234 for the triage call"}
+{"category": "secret-fields", "id": "P56", "sensitive": true, "text": "passport=X1234567 on file"}

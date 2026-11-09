@@ -14,9 +14,9 @@ to click anything.
 2. Everything is HTML-escaped. No markup in the input survives as markup.
 3. An image is never rendered. Markdown image syntax becomes the words "[image not shown: host]".
    Relay itself emits no <img> element for untrusted text, whatever the host.
-4. A link is clickable only if it points into Relay (`link_base`) and carries no query string or
-   fragment. Every other address is shown as inert text with its host visible, and is listed in
-   `external` so the caller can audit it.
+4. A link is clickable only if it points into Relay (`link_base`) and carries no query string,
+   fragment, percent-encoding or dot-segment. Every other address is shown as inert text with its host
+   visible, and is listed in `external` so the caller can audit it.
 
 The function reads no clock and no network, and the client must show its output as HTML as it is: running
 a Markdown renderer over it again would undo rule 3.
@@ -79,11 +79,20 @@ def host_of(url: str) -> str:
 
 
 def is_relay_link(url: str, link_base: str) -> bool:
-    """True for an address inside Relay: under an https `link_base`, with no query, fragment or user part."""
+    """True for an address inside Relay: under an https `link_base`, with no query, fragment, user part,
+    percent-encoding or dot-segment.
+
+    Dot-segments are refused because a path such as `/ws-support/../x` leaves the workspace's pages; the
+    link would still be on Relay's host, but any open redirect elsewhere in Relay could then take it outside.
+    """
     base = link_base.rstrip("/") + "/"
     if not base.startswith("https://") or not url.startswith(base):
         return False
-    return not any(ch in url for ch in "?#@\\") and host_of(url) == host_of(base)
+    if any(ch in url for ch in "?#@%\\"):
+        return False
+    if any(segment in (".", "..") for segment in url[len(base):].split("/")):
+        return False
+    return host_of(url) == host_of(base)
 
 
 def render_text(text: str, link_base: str) -> Rendered:

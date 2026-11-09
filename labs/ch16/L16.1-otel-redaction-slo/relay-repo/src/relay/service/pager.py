@@ -9,8 +9,9 @@ event with a routing key per receiver and a deduplication key, which most paging
 - The event carries the alert's ID (the deduplication key), rule, severity, summary and evidence references,
   never telemetry values themselves: the summary was built from rule IDs, counts and thresholds.
 - Grouping: within `group_minutes` of a page, a repeat alert for the same rule and receiver reuses its
-  deduplication key, so the provider folds it into the open page. Escalation after 10 and 20 minutes is
-  configured in the provider's escalation policy, not here.
+  deduplication key, so the provider folds it into the open page. The monitor is a one-shot command run every
+  minute, so the open keys are kept in `state_path` on the monitor's volume between runs. Escalation after 10
+  and 20 minutes is configured in the provider's escalation policy, not here.
 - A failed send is retried twice, then recorded in `failed` and written to the monitor's log. Nothing here
   notices a monitor that stops running; that needs a dead man's switch outside Relay (ADR-038, open item).
 """
@@ -21,6 +22,7 @@ import json
 import urllib.request
 from dataclasses import dataclass, field
 from datetime import datetime
+from pathlib import Path
 
 from ..telemetry.alerting import AlertRecord
 
@@ -36,11 +38,20 @@ class PagerClient:
     sent: list = field(default_factory=list)
     open_keys: dict = field(default_factory=dict)  # (rule, receiver) -> (dedup key, first sent)
     failed: list = field(default_factory=list)
+    state_path: str | None = None  # where the open keys survive between one-shot monitor runs
 
     def __post_init__(self) -> None:
         if not self.url.startswith("https://"):
             raise ValueError("the paging endpoint must be https://")
         self.opener = self.opener or urllib.request.urlopen
+        if self.state_path and Path(self.state_path).exists():
+            saved = json.loads(Path(self.state_path).read_text(encoding="utf-8"))
+            self.open_keys = {tuple(k.split("|", 1)): (v[0], datetime.fromisoformat(v[1])) for k, v in saved.items()}
+
+    def _save(self) -> None:
+        if self.state_path:
+            data = {f"{r}|{rc}": [key, at.isoformat()] for (r, rc), (key, at) in self.open_keys.items()}
+            Path(self.state_path).write_text(json.dumps(data, sort_keys=True), encoding="utf-8")
 
     def _dedup_key(self, alert: AlertRecord, receiver: str) -> str:
         key = (alert.rule, receiver)
@@ -48,6 +59,7 @@ class PagerClient:
         if self.group_minutes and open_ and (alert.at - open_[1]).total_seconds() <= self.group_minutes * 60:
             return open_[0]
         self.open_keys[key] = (alert.alert_id, alert.at)
+        self._save()
         return alert.alert_id
 
     def _event(self, alert: AlertRecord, receiver: str, action: str) -> dict:

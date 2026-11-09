@@ -33,12 +33,18 @@ Option A.
   an effect is a cause hypothesis, whatever label the model gives it. The citation check resolves every
   citation, as of the moment of the claim, against a baseline the checker owns, and accepts a citation only if
   it is about the hypothesis's own cause, effect or the cause's mechanism. A cause needs a mechanism citation
-  (the cause's component accounts for the effect), not only timing. A hypothesis with no citation is
-  unsupported. A hypothesis is supported, unsupported or contradicted.
+  (the cause's component accounts for the effect), not only timing. The checker owns every threshold: the
+  baseline, the minimum rise, a minimum mechanism share of one half, and evidence windows between the effect's
+  onset and the moment of the check. A hypothesis with no citation is unsupported. A hypothesis is supported,
+  unsupported or contradicted.
 - The assistant reads reliability and security telemetry together.
 - It proposes remediations; it never approves or runs them. Every request names the hypothesis it rests on.
-  The gate refuses an agent's request whose hypothesis is not supported, and a person's unless the person
-  writes an override reason, which is audited. It authenticates requester and approvers with proofs under five
+  The gate runs the citation check on it itself and never takes a verdict from the caller. The hypothesis must
+  be supported and must match the action: a rollback needs a cause that is the deploy being rolled back, a
+  failover a database cause, a restart a worker cause, a sign-in limit an attribution citing SD-002 for only
+  the networks SD-002 flagged, none wider than a /16 (IPv4) or /48 (IPv6). A claim
+  with no structured cause and effect justifies nothing else. The gate refuses an agent's request that fails
+  either test, and a person's unless the person gives an incident or ticket ID and a reason, which is audited. It authenticates requester and approvers with proofs under five
   minutes old, each bound to one request and used once; refuses agents as approvers and as kill-switch
   trippers; lets the requester of a two-person action be one of the two (on-call and tech lead), but never
   approve a one-person action; expires requests after 15 minutes; checks preconditions; and audits every

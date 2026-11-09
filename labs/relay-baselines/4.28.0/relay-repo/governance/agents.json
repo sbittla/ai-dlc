@@ -1,0 +1,113 @@
+{
+  "version": "agent-registry-v1",
+  "updated": "2027-02-12",
+  "note": "Every non-human identity that calls Relay (ADR-020). Owners are accountable people. Changes need @relay/security review.",
+  "people": ["aisha.r", "lena.k", "priya.n", "sam.o", "tomas.b"],
+  "person_issuer": "https://login.relay.example",
+  "github": {
+    "app": "relay-agents",
+    "installation_permissions": {"contents": "write", "pull_requests": "write", "metadata": "read"},
+    "code_owner": false,
+    "bypass_branch_protection": false,
+    "note": "Coding sessions push branches and open pull requests through this app's one-hour installation tokens. The app is in no team named in CODEOWNERS, so its review can never satisfy code-owner review; it is on no bypass list, and branch protection restricts pushes to main, merges included, to @relay/maintainers. Team membership is declared here and must be checked against GitHub's own settings."
+  },
+  "github_apps": {
+    "relay-spec-to-pr": {
+      "installation_permissions": {"contents": "write", "pull_requests": "write", "metadata": "read"},
+      "code_owner": false,
+      "bypass_branch_protection": false,
+      "note": "The spec-to-PR helper's own app (ADR-025), so that its kill switch suspends this installation and not the coding sessions' relay-agents. Same rules as relay-agents: in no CODEOWNERS team, on no bypass list, and unable to push to main."
+    }
+  },
+  "agents": [
+    {
+      "agent_id": "analytics-sync",
+      "kind": "ecs-task",
+      "owner": "lena.k",
+      "description": "Nightly export of the analytics workspace for product reporting.",
+      "issuer": "https://sts.amazonaws.com",
+      "subject": "arn:aws:sts::111122223333:assumed-role/relay-nonprod-agent-analytics-sync",
+      "cloud_role": "arn:aws:iam::111122223333:role/relay-nonprod-agent-analytics-sync",
+      "scopes": ["tasks:export:analytics"],
+      "max_ttl_seconds": 900,
+      "delegation": "owner"
+    },
+    {
+      "agent_id": "ci-failure-triage",
+      "kind": "ci-job",
+      "owner": "priya.n",
+      "description": "Explains failed CI runs and files a task in the internal platform project. Never posts outside Relay.",
+      "issuer": "https://token.actions.githubusercontent.com",
+      "subject": "repo:relay-example/relay:environment:agent-ci-triage",
+      "cloud_role": "arn:aws:iam::111122223333:role/relay-nonprod-agent-ci-triage",
+      "scopes": ["tasks:create:platform"],
+      "max_ttl_seconds": 900,
+      "delegation": "owner"
+    },
+    {
+      "agent_id": "coding-session",
+      "kind": "ecs-task",
+      "owner": "sam.o",
+      "description": "Background coding-agent sessions (Chapter 3), each started by a named engineer.",
+      "issuer": "https://sts.amazonaws.com",
+      "subject": "arn:aws:sts::111122223333:assumed-role/relay-nonprod-sandbox",
+      "cloud_role": "arn:aws:iam::111122223333:role/relay-nonprod-sandbox",
+      "scopes": ["tasks:read:platform", "testdb:query"],
+      "max_ttl_seconds": 900,
+      "delegation": "required",
+      "delegators": ["priya.n", "sam.o"],
+      "tool_limits": {"relay-db-readonly": {"workspaces": [1], "rows_per_hour": 200}},
+      "github_app": "relay-agents"
+    },
+    {
+      "agent_id": "dataset-refresh",
+      "kind": "ci-job",
+      "owner": "tomas.b",
+      "description": "Weekly refresh of the triage evaluation dataset's candidate pool (Chapter 7). Before 4.23.0 it borrowed the harvester's token.",
+      "issuer": "https://token.actions.githubusercontent.com",
+      "subject": "repo:relay-example/relay:environment:dataset-refresh",
+      "cloud_role": null,
+      "scopes": ["tickets:read:support"],
+      "max_ttl_seconds": 900,
+      "delegation": "owner"
+    },
+    {
+      "agent_id": "eval-harvester",
+      "kind": "ci-job",
+      "owner": "tomas.b",
+      "description": "Collects new support tickets for the triage evaluation's labelling queue (Chapter 7).",
+      "issuer": "https://token.actions.githubusercontent.com",
+      "subject": "repo:relay-example/relay:environment:eval-harvest",
+      "cloud_role": null,
+      "scopes": ["tickets:read:support"],
+      "max_ttl_seconds": 900,
+      "delegation": "owner"
+    },
+    {
+      "agent_id": "spec-to-pr-helper",
+      "kind": "ci-job",
+      "owner": "sam.o",
+      "description": "The spec-to-PR helper (ADR-027): a workflow with one bounded agent step that turns an approved task into a draft pull request, after its requester approves the diff. Never merges or approves.",
+      "issuer": "https://token.actions.githubusercontent.com",
+      "subject": "repo:relay-example/relay:environment:spec-to-pr",
+      "cloud_role": null,
+      "scopes": ["tasks:read:platform"],
+      "max_ttl_seconds": 900,
+      "delegation": "required",
+      "delegators": ["priya.n", "sam.o"],
+      "github_app": "relay-spec-to-pr"
+    },
+    {
+      "agent_id": "triage-worker",
+      "kind": "ecs-task",
+      "owner": "sam.o",
+      "description": "The triage worker (ADR-007): reads queued tickets inside a spotlighting envelope and records suggestions and plain-text summaries only (ADR-032). It has no tool that searches, fetches or sends, and its summaries are rendered without images or outside links.",
+      "issuer": "https://sts.amazonaws.com",
+      "subject": "arn:aws:sts::111122223333:assumed-role/relay-nonprod-worker",
+      "cloud_role": "arn:aws:iam::111122223333:role/relay-nonprod-worker",
+      "scopes": ["tickets:read:triage-queue", "triage:suggest"],
+      "max_ttl_seconds": 900,
+      "delegation": "owner"
+    }
+  ]
+}

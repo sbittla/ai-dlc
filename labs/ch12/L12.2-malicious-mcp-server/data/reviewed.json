@@ -13,12 +13,31 @@
       "scopes": [
         "analytics:read"
       ],
-      "source_note": "lab stand-in: sha256 of 'fixture-source:analytics-readonly@2.4.0'",
-      "source_sha256": "db054a9edbe4bee94d4bb291c3732388d4198588d9899766bf00968541917d11",
+      "source_note": "fixtures/servers/analytics-readonly@2.4.0",
+      "source_sha256": "c2549e5c250c8a25b55da792bd8ca9efc2d454ee7f751c427f48847bbc3a74cd",
       "tools": {
-        "query": "89fd662d391e5e53d5e330a00b12ecd4b0da96059b5082f27dfd101d900a29a3"
+        "query": "d6e6185cfb3126d1aa61a9604eb7f7275fe6d0df0d3ae95cd6d3e6fe3a8eb89d"
       },
       "version": "2.4.0"
+    },
+    "lint-helper": {
+      "args": [
+        "-m",
+        "lint_helper.server"
+      ],
+      "audience": "lint-helper",
+      "command": "python",
+      "reviewed_by": "sam.o",
+      "reviewed_on": "2027-02-11",
+      "scopes": [
+        "repo:read"
+      ],
+      "source_note": "fixtures/servers/lint-helper@1.2.0; its description was approved with a placeholder in it, which the reviewer missed",
+      "source_sha256": "b20417c563bc87dc80f9a66309e5d807b90f8213d26aa6e00a28dcc400c06c61",
+      "tools": {
+        "lint": "bdc02452497352b55864c7f1d054e1ca4a39463ac71d07c6609d8b24b4021c25"
+      },
+      "version": "1.2.0"
     },
     "notes-helper": {
       "args": [
@@ -32,10 +51,10 @@
       "scopes": [
         "notes:write"
       ],
-      "source_note": "lab stand-in: sha256 of 'fixture-source:notes-helper@1.0.0'",
-      "source_sha256": "9efa40f4083b885d0b20105c6c2f697cf979584929b6a0f104d73cba1946072f",
+      "source_note": "fixtures/servers/notes-helper@1.0.0",
+      "source_sha256": "a541103948b9c6b2f0f5583be6a8033b94f2e03c360da52aa9059b86a2813e91",
       "tools": {
-        "save_note": "83b54ee20a1a7aa0b902ce351c01dfeaed36bc922f234c72ffda6634d3ed0483"
+        "save_note": "aa06b38d9291e92b2c0ea6005adaccad1ea02a1d5bbfed90fe832a0a764d8ef0"
       },
       "version": "1.0.0"
     },
@@ -55,11 +74,11 @@
       "scopes": [
         "tasks:read:test-db"
       ],
-      "source_note": "sha256 over the vendored relaymcp package's .py files, sorted, LF line endings",
-      "source_sha256": "ec2d32bf5910621e3bae0159b28e44db4e487a5fd4d9a54d826dfb3da46ccbe1",
+      "source_note": "sha256 over every .py file of the vendored relaymcp package, sorted, LF endings",
+      "source_sha256": "b769e962be94057f9db20e704dac2ab80a177cdc4561f718e24c2c1c798196c4",
       "tools": {
-        "list_templates": "1fca7caaa6d8cd564662fddf869c37d15b0cdd6911a7316909c41bc5c9f293df",
-        "query": "27e369dfae949f2bac28cd52b8eafb50b11b894a112a716dcd2529f162bd2a39"
+        "list_templates": "5fc653d962247cc41cf15407b331528615e39970568ff5685579a21a3e684ecb",
+        "query": "325a4e6f3eee53f9edd6b53f0a41b01b726eb786c1b73a0db5215b7d8e710df6"
       },
       "version": "1.0.0"
     }

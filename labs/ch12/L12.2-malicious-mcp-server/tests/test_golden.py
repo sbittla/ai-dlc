@@ -12,10 +12,15 @@ LAB32 = LAB_ROOT.parent.parent / "ch03" / "L3.2-constrained-mcp-server"
 
 def test_scenarios():
     text = render_scenarios()
-    assert "Malicious scenarios caught at admission: 8 of 8. Benign S01: admitted in all 3 sessions." in text
+    assert ("Malicious scenarios caught at admission: 11 of 12; missed by design: S12. "
+            "Benign S01: admitted in all 3 sessions.") in text
     for row in ("| S04 | MCP010 | MCP010 | relay-db-readonly | caught |",
                 "| S05 | MCP003, MCP004, MCP010 | MCP003, MCP004, MCP010 | relay-db-readonly | caught |",
                 "| S11 | MCP020 | MCP020 | relay-db-readonly | caught |",
+                "| S12 | none | none | relay-db-readonly, lint-helper | missed by design |",
+                "| S13 | MCP011 | MCP011 | relay-db-readonly | caught |",
+                "| S14 | MCP010 | MCP010 | relay-db-readonly | caught |",
+                "| S15 | MCP010 | MCP010 | relay-db-readonly | caught |",
                 "| S01 | none | none | relay-db-readonly, notes-helper | clean |"):
         assert row in text
     assert "(unexpected)" not in text
@@ -23,7 +28,8 @@ def test_scenarios():
 
 def test_remove_one():
     text = render_removeone()
-    for row in ("| allowlist | S02, S03 |", "| pin | S04 |", "| shadowing | S11 |", "| scope | S07, S08 |"):
+    for row in ("| allowlist | S02, S03 |", "| pin | S04, S13, S14, S15 |", "| name-collision | S11 |",
+                "| scope | S07, S08 |"):
         assert row in text
 
 
@@ -48,7 +54,7 @@ def test_generator_reproduces_the_data(tmp_path):
 
 
 def test_the_vendored_server_is_lab_3_2s_solution_unchanged():
-    for name in ("__init__.py", "templates.py", "db.py", "policy.py"):
+    for name in ("__init__.py", "templates.py", "db.py", "policy.py", "server.py", "report.py"):
         ours = (VENDOR / "relaymcp" / name).read_bytes().replace(b"\r\n", b"\n")
         theirs = (LAB32 / "solution" / "relaymcp" / name).read_bytes().replace(b"\r\n", b"\n")
         assert ours == theirs, name
@@ -60,3 +66,15 @@ def test_reviewed_hash_of_the_vendored_server_is_its_real_source_hash():
     from mcpguard.fixtures import source_sha256
     reviewed = json.loads((DATA_DIR / "reviewed.json").read_text(encoding="utf-8"))["servers"]
     assert reviewed["relay-db-readonly"]["source_sha256"] == source_sha256(VENDOR / "relaymcp")
+
+
+def test_editing_the_launched_module_changes_the_source_hash(tmp_path):
+    import shutil
+
+    from mcpguard.fixtures import source_sha256
+    copy = tmp_path / "relaymcp"
+    shutil.copytree(VENDOR / "relaymcp", copy, ignore=shutil.ignore_patterns("__pycache__"))
+    before = source_sha256(copy)
+    changed = (copy / "server.py").read_text(encoding="utf-8").replace("Thin", "Modified", 1) + "# changed"
+    (copy / "server.py").write_text(changed, encoding="utf-8")
+    assert source_sha256(copy) != before

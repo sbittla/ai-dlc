@@ -20,8 +20,9 @@ through `PagerClient`, with `RELAY_PAGER_URL` and `RELAY_PAGER_KEYS` from the en
 Automation: `RELAY_AUTOMATION=off` stops every automated action. When it is on, DR-001 and DR-003 would trip a
 kill switch, but this command holds no agent registry (the registry's enabled flags and epochs are still in
 memory, ADR-020), so it cannot trip one: it pages the security on-call, recorded `automation-unavailable`, and
-the runbook trips the switch. Not here either: escalation and grouping of pages, which the paging provider does
-(`PagerClient` reuses a deduplication key for an hour); the weekly RF-001 check (`relay.telemetry.fitness`).
+the runbook trips the switch. Not here either: escalation and grouping of pages, which the paging provider
+does (`PagerClient` reuses a deduplication key for an hour, kept in `--state` between runs); and the weekly RF-001
+check (`relay.telemetry.fitness`).
 """
 
 from __future__ import annotations
@@ -74,7 +75,8 @@ def run(args, env) -> list[dict]:
     if args.dry_run:
         send = Pager(routing["receivers"], group)
     else:
-        send = PagerClient(env["RELAY_PAGER_URL"], json.loads(env["RELAY_PAGER_KEYS"]), group_minutes=group)
+        send = PagerClient(env["RELAY_PAGER_URL"], json.loads(env["RELAY_PAGER_KEYS"]), group_minutes=group,
+                           state_path=args.state)
     monitor = Monitor(load_slos(repo / "docs/slo/slos.json"), load_json(repo / "infra/monitoring/alerts.json"),
                       router, send)  # no trip function: see the module docstring
     since, now = _at(args.since), _at(args.now)
@@ -105,6 +107,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--db", help="the shared database, for the worker heartbeat and held P1 escalations")
     ap.add_argument("--since", required=True)
     ap.add_argument("--now", required=True)
+    ap.add_argument("--state", help="file that keeps the pager's open deduplication keys between runs")
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args(argv)
     for row in run(args, os.environ):

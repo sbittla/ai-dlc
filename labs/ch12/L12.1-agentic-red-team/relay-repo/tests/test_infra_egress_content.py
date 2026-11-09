@@ -70,9 +70,21 @@ def test_everything_else_on_the_content_hosts_is_refused(url):
     assert not allowed(url)
 
 
-def test_only_the_content_hosts_are_decrypted_and_everything_else_is_spliced():
-    assert conf_lines("ssl_bump") == ["ssl_bump peek step1", "ssl_bump bump content_sni", "ssl_bump splice all"]
+def test_content_hosts_are_decrypted_relays_own_hosts_spliced_and_every_other_name_terminated():
+    # Each rule needs BOTH the CONNECT host (dstdomain) and the server name (ssl::server_name) on its list.
+    assert conf_lines("ssl_bump") == ["ssl_bump peek step1", "ssl_bump bump content_sni content_hosts",
+                                      "ssl_bump splice splice_sni splice_dst", "ssl_bump terminate all"]
+    assert 'acl splice_dst dstdomain -n "/etc/squid/splice-hosts.txt"' in conf_lines("acl")
     assert 'acl content_sni ssl::server_name "/etc/squid/content-hosts.txt"' in conf_lines("acl")
+    assert 'acl splice_sni ssl::server_name "/etc/squid/splice-hosts.txt"' in conf_lines("acl")
+    assert conf_lines("host_verify_strict") == ["host_verify_strict on"]
+
+
+def test_spliced_names_are_allowlisted_and_never_content_hosts():
+    splice, content = set(entries("splice-hosts.txt")), set(entries("content-hosts.txt"))
+    assert splice == {"pypi-mirror.relay.example"}
+    assert splice <= set(entries("allowlist.txt")) and not splice & content
+    assert set(entries("allowlist.txt")) == splice | content  # every allowed name is either bumped or spliced
 
 
 def test_decrypted_requests_need_both_a_content_host_and_a_reviewed_url():
@@ -86,6 +98,6 @@ def test_decrypted_requests_need_both_a_content_host_and_a_reviewed_url():
 def test_the_image_has_sslbump_and_copies_both_lists_but_no_ca_key():
     text = (PROXY / "Containerfile").read_text(encoding="utf-8")
     assert "squid-openssl" in text
-    for name in ("content-hosts.txt", "content-urls.txt"):
+    for name in ("content-hosts.txt", "content-urls.txt", "splice-hosts.txt"):
         assert f"COPY deploy/egress-proxy/{name} /etc/squid/{name}" in text
     assert not any(p.suffix in (".key", ".pem") for p in PROXY.iterdir())

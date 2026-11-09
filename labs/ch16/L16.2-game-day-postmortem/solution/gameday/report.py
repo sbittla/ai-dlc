@@ -77,17 +77,31 @@ def hypotheses_report() -> dict:
     at = parse("2027-02-02T15:22:00Z")
     proposal = v0["proposals"][0]
     verdicts = {v.hypothesis: v.status for v in judge(v0, r["store"], at)}
-    gate = Gate(people, deploys=[parse("2027-02-02T15:00:00Z")])
+    gate = Gate(people, deploys=[parse("2027-02-02T15:00:00Z")], store=r["store"],
+                hypotheses={h["id"]: h for h in v0["hypotheses"]})
     proof = make_proof(people, "incident-assistant", at, purpose="request", action=proposal["action"],
                        args_sha256=args_sha256(proposal["args"]))
     try:
-        gate.request(proposal["action"], proposal["args"], proof, at, because=proposal["because"], verdicts=verdicts)
+        gate.request(proposal["action"], proposal["args"], proof, at, because=proposal["because"])
         outcome = "requested"
     except Refused as exc:
         outcome = f"refused ({exc.code})"
     out(f"Gate at 15:22: the assistant's {proposal['action']} because {proposal['because']} "
         f"({verdicts[proposal['because']]}): {outcome}")
     res["gate_1522"] = outcome
+    v1 = load_json(d / "assistant-v1.json")
+    gate1 = Gate(people, deploys=[parse("2027-02-02T15:00:00Z")], store=r["store"],
+                 hypotheses={h["id"]: h for h in v1["hypotheses"]})
+    for hid in ("H1", "H2", "H3"):  # the same rollback, citing each of v1's hypotheses in turn
+        proof = make_proof(people, "incident-assistant", at, purpose="request", action=proposal["action"],
+                           args_sha256=args_sha256(proposal["args"]), because=hid)
+        try:
+            gate1.request(proposal["action"], proposal["args"], proof, at, because=hid)
+            outcome = "requested"
+        except Refused as exc:
+            outcome = f"refused ({exc.code})"
+        out(f"Gate at 15:22: the same rollback because v1's {hid} ({gate1.verdict(hid, at)[1]}): {outcome}")
+        res[f"gate_1522_{hid}"] = outcome
     return res
 
 

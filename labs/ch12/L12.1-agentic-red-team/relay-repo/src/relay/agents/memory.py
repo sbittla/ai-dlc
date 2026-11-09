@@ -17,10 +17,13 @@ From 4.26.0 (ADR-034) both carry trust, because Chapter 12's attacks use them to
 - A message records whether it holds untrusted text (`trust`). A summary that replaces any untrusted
   message is untrusted, whatever the summarizer wrote, so compaction cannot turn a ticket's instruction
   into what looks like the agent's own note. An untrusted message may not be pinned.
-- Recall goes through `RECALL_MEMORY`, whose result is untrusted, so a run that recalls memory is tainted.
-- A fact proposed from an untrusted source (`source_trust="untrusted"`) is refused if it holds an
-  address, a link or an instruction to act, and the refusal is audited. Other untrusted facts may be
-  proposed, reviewed and recalled, and recall returns their trust so the run can mark them as data.
+- Recall goes through `relay.agents.tools.RECALL_MEMORY`, whose result is untrusted, so a run that recalls
+  memory is tainted. The contract lives in tools.py so that this module and the taint do not share code.
+- A proposed fact is untrusted unless the caller says it came from a trusted source (`source_trust`
+  defaults to "untrusted": fail closed). An untrusted fact that matches a pattern for an address, a link
+  or an instruction to act is refused, and the refusal is audited. The pattern is a mitigation, not a
+  guarantee: a fact written to look harmless passes it, and only the person's review stops it. Other
+  untrusted facts may be proposed, reviewed and recalled, and recall returns their trust.
 """
 
 from __future__ import annotations
@@ -29,8 +32,6 @@ import re
 import sqlite3
 from dataclasses import dataclass, replace
 from typing import Callable
-
-from .contracts import Param, ToolContract
 
 TRUST = ("trusted", "untrusted")
 # What an untrusted fact may not contain: an address, a link, or an instruction to send, forward or copy.
@@ -108,15 +109,6 @@ CREATE TABLE IF NOT EXISTS agent_memory (
 """
 
 
-# The contract any agent uses to recall memory (ADR-034). Its result may hold facts first read in untrusted text,
-# so a recall taints the run, and the tool-call boundary then refuses any external effect no person approved.
-# This is the second, independent control on persistence: if a planted fact passes the pattern check and a
-# reviewer, what it asks for is still stopped at the boundary, which is a different module from this one.
-RECALL_MEMORY = ToolContract(
-    "recall_memory", "Recall accepted facts on one topic, each with its source and trust.",
-    (Param("topic", "str", max_len=80),), "read", untrusted_result=True)
-
-
 class MemoryRefused(Exception):
     pass
 
@@ -134,7 +126,7 @@ class MemoryStore:
             conn.execute("ALTER TABLE agent_memory ADD COLUMN trust TEXT NOT NULL DEFAULT 'trusted'")
 
     def propose(self, topic: str, fact: str, source: str, run_id: str, agent_id: str, ttl_days: int = 90,
-                source_trust: str = "trusted") -> int:
+                source_trust: str = "untrusted") -> int:
         """An agent proposes a fact it read in `source`. It is stored, not yet retrievable.
 
         A fact from an untrusted source that holds an address, a link or an instruction to act is refused,

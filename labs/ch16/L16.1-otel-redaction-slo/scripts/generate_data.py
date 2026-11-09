@@ -136,6 +136,15 @@ def probes():
         ("P46", "secret-fields", "refresh_token: def456ghi789jkl0", True),
         ("P47", "benign", "network 2001:db8:1234::/48, ratio 3:4:5", False),
         ("P48", "benign", "mac aa:bb:cc:dd:ee:ff at 15:04:00", False),
+        # Added after the second review: other separators, secret-ish key names, a pinned false positive.
+        ("P49", "in-context", "u#" + base64.b64encode(email.encode()).decode(), True),
+        ("P50", "in-context", "ref_" + base64.b64encode(email.encode()).decode(), True),
+        ("P51", "secret-fields", '{"user_password": "correct horse battery"}', True),
+        ("P52", "secret-fields", '{"credentials": "AKIDEXAMPLE/abc123"}', True),
+        ("P53", "secret-fields", "pwd hunter2hunter2", True),
+        ("P54", "benign", "agent version 1.2.3.4 rolled out", False),
+        ("P55", "benign", "token_count=1234 for the triage call", False),
+        ("P56", "secret-fields", "passport=X1234567 on file", True),
     ]
     return [{"id": i, "category": c, "text": t, "sensitive": s} for i, c, t, s in cases]
 
