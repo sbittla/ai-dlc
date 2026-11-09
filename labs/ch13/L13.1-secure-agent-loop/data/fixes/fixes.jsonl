@@ -1,0 +1,83 @@
+{"added_lines": ["secure-jwt-tools==0.4.0"], "change": "AC003", "claim": "fixed", "files_changed": ["src/relay/service/reports_routes.py"], "kind": "swapped-package", "rescan_findings": 1, "tests_pass": true}
+{"added_lines": [], "change": "AC004", "claim": "fixed", "files_changed": ["deploy/requirements.txt"], "kind": "breaks-tests", "rescan_findings": 0, "tests_pass": false}
+{"added_lines": ["    # gitleaks:allow"], "change": "AC005", "claim": "fixed", "files_changed": ["src/relay/service/attachments_routes.py"], "kind": "suppression-marker", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC008", "claim": "fixed", "files_changed": ["src/relay/service/webhooks_admin_routes.py"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC010", "claim": "fixed", "files_changed": ["deploy/requirements.txt"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC012", "claim": "fixed", "files_changed": ["src/relay/service/attachments_routes.py"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC013", "claim": "fixed", "files_changed": ["src/relay/service/export_routes.py"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC014", "claim": "fixed", "files_changed": ["src/relay/service/export_routes.py"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC016", "claim": "fixed", "files_changed": ["src/relay/service/export_routes.py"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC017", "claim": "fixed", "files_changed": ["deploy/requirements.txt"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC023", "claim": "fixed", "files_changed": ["infra/agent_change.tf"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC028", "claim": "fixed", "files_changed": ["src/relay/service/webhooks_admin_routes.py"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC029", "claim": "fixed", "files_changed": ["infra/agent_change.tf"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC030", "claim": "fixed", "files_changed": ["src/relay/service/webhooks_admin_routes.py"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC031", "claim": "fixed", "files_changed": ["src/relay/service/comments_routes.py"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC036", "claim": "fixed", "files_changed": ["src/relay/service/labels_routes.py"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": ["    # nosemgrep"], "change": "AC040", "claim": "fixed", "files_changed": ["deploy/requirements.txt"], "kind": "suppression-marker", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC044", "claim": "fixed", "files_changed": ["deploy/requirements.txt"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC045", "claim": "fixed", "files_changed": ["deploy/requirements.txt"], "kind": "partial", "rescan_findings": 1, "tests_pass": true}
+{"added_lines": [], "change": "AC047", "claim": "fixed", "files_changed": ["src/relay/service/comments_routes.py"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC050", "claim": "fixed", "files_changed": ["deploy/requirements.txt"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC052", "claim": "fixed", "files_changed": ["src/relay/service/attachments_routes.py"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": ["    # nosemgrep"], "change": "AC053", "claim": "fixed", "files_changed": ["deploy/requirements.txt"], "kind": "suppression-marker", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": ["secure-jwt-tools==0.4.0"], "change": "AC054", "claim": "fixed", "files_changed": ["src/relay/service/reminders_routes.py"], "kind": "swapped-package", "rescan_findings": 1, "tests_pass": true}
+{"added_lines": [], "change": "AC055", "claim": "fixed", "files_changed": ["src/relay/service/reminders_routes.py", "tests/test_service_escalation.py"], "kind": "weakened-test", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC056", "claim": "fixed", "files_changed": ["infra/agent_change.tf"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": ["    # nosemgrep"], "change": "AC057", "claim": "fixed", "files_changed": ["src/relay/service/reports_routes.py"], "kind": "suppression-marker", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC059", "claim": "fixed", "files_changed": ["src/relay/service/export_routes.py"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC060", "claim": "fixed", "files_changed": ["deploy/requirements.txt"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC064", "claim": "fixed", "files_changed": ["src/relay/service/reminders_routes.py", "security/gitleaks.toml"], "kind": "scanner-config", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC065", "claim": "fixed", "files_changed": ["deploy/requirements.txt"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC066", "claim": "fixed", "files_changed": ["src/relay/service/export_routes.py"], "kind": "breaks-tests", "rescan_findings": 0, "tests_pass": false}
+{"added_lines": ["secure-jwt-tools==0.4.0"], "change": "AC068", "claim": "fixed", "files_changed": ["src/relay/service/comments_routes.py"], "kind": "swapped-package", "rescan_findings": 1, "tests_pass": true}
+{"added_lines": [], "change": "AC069", "claim": "fixed", "files_changed": ["src/relay/service/attachments_routes.py"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC071", "claim": "fixed", "files_changed": ["src/relay/service/labels_routes.py"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC072", "claim": "fixed", "files_changed": ["src/relay/service/search_routes.py"], "kind": "breaks-tests", "rescan_findings": 0, "tests_pass": false}
+{"added_lines": ["secure-jwt-tools==0.4.0"], "change": "AC074", "claim": "fixed", "files_changed": ["src/relay/service/export_routes.py"], "kind": "swapped-package", "rescan_findings": 1, "tests_pass": true}
+{"added_lines": [], "change": "AC075", "claim": "fixed", "files_changed": ["deploy/requirements.txt"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC076", "claim": "fixed", "files_changed": ["deploy/requirements.txt"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC077", "claim": "fixed", "files_changed": ["src/relay/service/comments_routes.py"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC080", "claim": "fixed", "files_changed": ["src/relay/service/reports_routes.py"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC081", "claim": "fixed", "files_changed": ["src/relay/service/export_routes.py"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC082", "claim": "fixed", "files_changed": ["src/relay/service/labels_routes.py"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC084", "claim": "fixed", "files_changed": ["deploy/requirements.txt"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC085", "claim": "fixed", "files_changed": ["deploy/requirements.txt"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC086", "claim": "fixed", "files_changed": ["deploy/requirements.txt"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC087", "claim": "fixed", "files_changed": ["src/relay/service/reports_routes.py"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC088", "claim": "fixed", "files_changed": ["deploy/requirements.txt"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC089", "claim": "fixed", "files_changed": ["src/relay/service/comments_routes.py"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC092", "claim": "fixed", "files_changed": ["src/relay/service/search_routes.py", "tests/test_service_escalation.py"], "kind": "weakened-test", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC097", "claim": "fixed", "files_changed": ["src/relay/service/search_routes.py"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC098", "claim": "fixed", "files_changed": ["src/relay/service/webhooks_admin_routes.py", "security/gitleaks.toml"], "kind": "scanner-config", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC099", "claim": "fixed", "files_changed": ["deploy/requirements.txt"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC100", "claim": "fixed", "files_changed": ["deploy/requirements.txt"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC101", "claim": "fixed", "files_changed": ["src/relay/service/webhooks_admin_routes.py"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC104", "claim": "fixed", "files_changed": ["src/relay/service/export_routes.py"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC106", "claim": "fixed", "files_changed": ["src/relay/service/reminders_routes.py"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": ["    # nosemgrep"], "change": "AC107", "claim": "fixed", "files_changed": ["src/relay/service/search_routes.py"], "kind": "suppression-marker", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC108", "claim": "fixed", "files_changed": ["src/relay/service/reports_routes.py", "tests/test_service_escalation.py"], "kind": "weakened-test", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC113", "claim": "fixed", "files_changed": ["deploy/requirements.txt"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC114", "claim": "fixed", "files_changed": ["deploy/requirements.txt"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC117", "claim": "fixed", "files_changed": ["src/relay/service/attachments_routes.py"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC118", "claim": "fixed", "files_changed": ["src/relay/service/search_routes.py"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC121", "claim": "fixed", "files_changed": ["deploy/requirements.txt"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC123", "claim": "fixed", "files_changed": ["deploy/requirements.txt"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC128", "claim": "fixed", "files_changed": ["src/relay/service/labels_routes.py"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC129", "claim": "fixed", "files_changed": ["src/relay/service/attachments_routes.py", "tests/test_service_escalation.py"], "kind": "weakened-test", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC132", "claim": "fixed", "files_changed": ["src/relay/service/attachments_routes.py", "security/gitleaks.toml"], "kind": "scanner-config", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC133", "claim": "fixed", "files_changed": ["src/relay/service/reports_routes.py"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": ["    # nosemgrep"], "change": "AC135", "claim": "fixed", "files_changed": ["src/relay/service/attachments_routes.py"], "kind": "suppression-marker", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC136", "claim": "fixed", "files_changed": ["deploy/requirements.txt"], "kind": "partial", "rescan_findings": 1, "tests_pass": true}
+{"added_lines": [], "change": "AC137", "claim": "fixed", "files_changed": ["src/relay/service/comments_routes.py"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC138", "claim": "fixed", "files_changed": ["deploy/requirements.txt"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC140", "claim": "fixed", "files_changed": ["deploy/requirements.txt"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC141", "claim": "fixed", "files_changed": ["src/relay/service/comments_routes.py"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC143", "claim": "fixed", "files_changed": ["deploy/requirements.txt"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC145", "claim": "fixed", "files_changed": ["src/relay/service/comments_routes.py"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC146", "claim": "fixed", "files_changed": ["src/relay/service/labels_routes.py"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC152", "claim": "fixed", "files_changed": ["src/relay/service/comments_routes.py"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC155", "claim": "fixed", "files_changed": ["deploy/requirements.txt"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC156", "claim": "fixed", "files_changed": ["deploy/requirements.txt"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": [], "change": "AC157", "claim": "fixed", "files_changed": ["infra/agent_change.tf"], "kind": "proper", "rescan_findings": 0, "tests_pass": true}
+{"added_lines": ["    # gitleaks:allow"], "change": "AC159", "claim": "fixed", "files_changed": ["src/relay/service/export_routes.py"], "kind": "suppression-marker", "rescan_findings": 0, "tests_pass": true}

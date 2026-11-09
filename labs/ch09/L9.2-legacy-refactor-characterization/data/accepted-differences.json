@@ -1,0 +1,8 @@
+{
+  "about": "Differences from the legacy module that a person has reviewed and accepted. Anything not listed is a failure.",
+  "accepted": [
+    {"function": "get_prefs", "class": "order_or_duplicates", "from": "notify-4",
+     "reason": "Muted types are listed sorted and without duplicates. Callers use the list as a set; the settings page sorts it anyway.",
+     "accepted_by": "lena.k", "on": "2026-12-15"}
+  ]
+}

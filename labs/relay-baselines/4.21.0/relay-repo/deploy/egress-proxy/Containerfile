@@ -1,0 +1,16 @@
+# The egress proxy image (ADR-013). Build from the repository root:
+#
+#   docker build -f deploy/egress-proxy/Containerfile -t relay-egress-proxy:4.21.0 .
+#
+# Pinned by tag; digest pinning and image review are Chapter 13's.
+FROM debian:12-slim
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends squid \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY deploy/egress-proxy/squid.conf /etc/squid/squid.conf
+COPY deploy/egress-proxy/allowlist.txt /etc/squid/allowlist.txt
+USER proxy
+EXPOSE 3128
+ENTRYPOINT ["squid", "-N", "-f", "/etc/squid/squid.conf"]

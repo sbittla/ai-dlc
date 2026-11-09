@@ -1,0 +1,4 @@
+# Installed in the container image only (ADR-015). Nothing under src/ imports it,
+# so Relay's own dependencies stay empty (pyproject.toml; ADR-007's AR5).
+# Pinned by version; hash pinning arrives with the supply-chain review (Chapter 13).
+gunicorn==23.0.0

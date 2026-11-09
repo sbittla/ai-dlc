@@ -1,0 +1,6 @@
+Requests sent: 26 (200: 7, 202: 2, 401: 13, 403: 1, 404: 3)
+Exported: 26 spans, 14 security events; routes: /healthz, /v1/projects/{pid}/escalation-rules, /v1/projects/{pid}/tasks/{tid}, /v1/triage-jobs, /v1/triage-jobs/{id}
+Dropped or replaced at export: nothing
+RF-003 on the export: PASS (3 export line(s); 0 redactable value(s); keys outside the allowlist: none)
+RF-004: PASS (no instrument overflowed)
+Naive access log of the same requests: 57 findings {'auth-header': 23, 'email': 2, 'ip': 26, 'phone': 1, 'query-secret': 2, 'relay-token': 2, 'secret-field': 1}

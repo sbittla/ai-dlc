@@ -1,0 +1,23 @@
+{
+  "about": "SIMULATED. The impact-analysis claims a coding agent made on 10 December 2026, before T21 to T25, when asked what deleting an escalation rule would touch in Relay 4.21.0. The wording is the book's; no model produced it. Each claim names a kind of check prkit.claims can run against the source in data/relay-4.21.0.",
+  "agent": "sim-coder (simulated; configured, not a model)",
+  "asked": "What in Relay 4.21.0 does deleting an escalation rule touch? List each claim so it can be checked.",
+  "claims": [
+    {"id": "C1", "text": "Only src/relay/escalation/store.py reads or writes the esc_rules table.",
+     "kind": "table_users", "table": "esc_rules", "expect": ["src/relay/escalation/store.py"]},
+    {"id": "C2", "text": "Only the service's GET route looks a rule up by ID with rule_document, so a deleted rule only needs a 404 there.",
+     "kind": "callers", "function": "rule_document", "scope": "src", "expect": ["src/relay/service/escalation_routes.py"]},
+    {"id": "C3", "text": "No test asserts that the outbox is empty, so new outbox messages cannot break the suite.",
+     "kind": "tests_matching", "pattern": "outbox\\(\\) == \\[\\]", "expect": 0},
+    {"id": "C4", "text": "esc_audit's outcome column accepts any text, so recording a deletion needs no schema change.",
+     "kind": "check_constraint", "table": "esc_audit", "column": "outcome", "value": "deleted", "expect": true},
+    {"id": "C5", "text": "In src, save_rule is called only by the service's PUT route.",
+     "kind": "callers", "function": "save_rule", "scope": "src", "expect": ["src/relay/service/escalation_routes.py"]},
+    {"id": "C6", "text": "The worker already calls run_pass on every loop, so a deleted rule stops firing within a second.",
+     "kind": "imports", "package": "src/relay/worker", "module": "relay.escalation", "expect": true},
+    {"id": "C7", "text": "The OpenAPI description lists six operations.",
+     "kind": "openapi_operations", "expect": 6},
+    {"id": "C8", "text": "The refusal matrix expects 405 for DELETE on a rule today.",
+     "kind": "matrix_row", "method": "DELETE", "status": 405, "expect": true}
+  ]
+}

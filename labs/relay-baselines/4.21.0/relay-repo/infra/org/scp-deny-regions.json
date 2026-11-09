@@ -1,0 +1,30 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "DenyOutsideApprovedRegions",
+      "Effect": "Deny",
+      "NotAction": [
+        "account:*",
+        "budgets:*",
+        "ce:*",
+        "cloudfront:*",
+        "health:*",
+        "iam:*",
+        "organizations:*",
+        "route53:*",
+        "sts:*",
+        "support:*"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringNotEquals": {
+          "aws:RequestedRegion": ["us-east-1", "us-west-2"]
+        },
+        "ArnNotLike": {
+          "aws:PrincipalArn": "arn:aws:iam::*:role/platform-break-glass"
+        }
+      }
+    }
+  ]
+}

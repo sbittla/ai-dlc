@@ -1,0 +1,26 @@
+{"method": "GET", "path": "/healthz"}
+{"method": "GET", "path": "/v1/projects/10/tasks/100", "token": "demo-owner"}
+{"method": "GET", "path": "/v1/projects/10/tasks/101", "query": "email=jane.doe%40example.com&token=abc123def456", "token": "demo-member"}
+{"body": {"text": "Locked out. Call me on 030 1234567 or mail jane.doe@example.com"}, "idempotency_key": "lab16-0001", "method": "POST", "path": "/v1/triage-jobs", "token": "demo-member"}
+{"body": {"text": "Export failed; my token is rly_live_f0e1d2c3b4a59687f0e1d2c3b4a59687"}, "idempotency_key": "lab16-0002", "method": "POST", "path": "/v1/triage-jobs", "token": "demo-member"}
+{"method": "GET", "path": "/v1/triage-jobs/1", "token": "demo-member"}
+{"method": "GET", "path": "/v1/triage-jobs/1", "token": "rly_live_f0e1d2c3b4a59687f0e1d2c3b4a59687"}
+{"method": "GET", "path": "/v1/projects/11/tasks/102", "token": "demo-guest"}
+{"method": "GET", "path": "/v1/projects/10/tasks/999", "token": "demo-owner"}
+{"method": "GET", "path": "/v1/projects/10/escalation-rules", "token": "demo-admin"}
+{"method": "BREW", "path": "/v1/coffee", "token": "demo-owner"}
+{"headers": {"Cookie": "session=7b2a9c1f"}, "method": "GET", "path": "/wp-login.php"}
+{"headers": {"X-Api-Key": "9f8e7d6c5b4a3921", "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"}, "method": "GET", "path": "/v1/projects/10/tasks/100", "token": "demo-owner"}
+{"headers": {"traceparent": "00-ZZZ-not-a-trace-context"}, "method": "GET", "path": "/v1/projects/10/tasks/100", "token": "demo-owner"}
+{"method": "GET", "path": "/v1/projects/10/tasks/100", "remote_addr": "198.51.100.20", "token": "guess-0000-xxxxxxxxxxxx"}
+{"method": "GET", "path": "/v1/projects/10/tasks/100", "remote_addr": "198.51.100.21", "token": "guess-0001-xxxxxxxxxxxx"}
+{"method": "GET", "path": "/v1/projects/10/tasks/100", "remote_addr": "198.51.100.22", "token": "guess-0002-xxxxxxxxxxxx"}
+{"method": "GET", "path": "/v1/projects/10/tasks/100", "remote_addr": "198.51.100.23", "token": "guess-0003-xxxxxxxxxxxx"}
+{"method": "GET", "path": "/v1/projects/10/tasks/100", "remote_addr": "198.51.100.24", "token": "guess-0004-xxxxxxxxxxxx"}
+{"method": "GET", "path": "/v1/projects/10/tasks/100", "remote_addr": "198.51.100.25", "token": "guess-0005-xxxxxxxxxxxx"}
+{"method": "GET", "path": "/v1/projects/10/tasks/100", "remote_addr": "198.51.100.26", "token": "guess-0006-xxxxxxxxxxxx"}
+{"method": "GET", "path": "/v1/projects/10/tasks/100", "remote_addr": "198.51.100.27", "token": "guess-0007-xxxxxxxxxxxx"}
+{"method": "GET", "path": "/v1/projects/10/tasks/100", "remote_addr": "198.51.100.28", "token": "guess-0008-xxxxxxxxxxxx"}
+{"method": "GET", "path": "/v1/projects/10/tasks/100", "remote_addr": "198.51.100.29", "token": "guess-0009-xxxxxxxxxxxx"}
+{"method": "GET", "path": "/v1/projects/10/tasks/100", "remote_addr": "198.51.100.30", "token": "guess-0010-xxxxxxxxxxxx"}
+{"method": "GET", "path": "/v1/projects/10/tasks/100", "remote_addr": "198.51.100.31", "token": "guess-0011-xxxxxxxxxxxx"}

@@ -1,0 +1,92 @@
+{
+  "bomFormat": "CycloneDX",
+  "components": [
+    {
+      "bom-ref": "pkg:generic/relay@4.25.0",
+      "name": "relay",
+      "properties": [
+        {
+          "name": "relay:runtime-dependencies",
+          "value": "none (standard library only)"
+        }
+      ],
+      "purl": "pkg:generic/relay@4.25.0",
+      "type": "application",
+      "version": "4.25.0"
+    },
+    {
+      "bom-ref": "base-image",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b156cf605ac3bb6d29b5f44387eb789f9b293ed037ba8fdc516df4f04565dd9b"
+        }
+      ],
+      "name": "python",
+      "purl": "pkg:oci/python@sha256%3Ab156cf605ac3bb6d29b5f44387eb789f9b293ed037ba8fdc516df4f04565dd9b?repository_url=docker.io/library/python&tag=3.12-slim",
+      "type": "container",
+      "version": "3.12-slim"
+    },
+    {
+      "bom-ref": "pkg:pypi/gunicorn@23.0.0",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "853e47c194f2dac0fe6d7832e8c60e8b7a00ca9c15fc88fc98ddc36088e13aaf"
+        }
+      ],
+      "name": "gunicorn",
+      "properties": [
+        {
+          "name": "relay:source",
+          "value": "https://pypi-mirror.relay.example/simple/"
+        },
+        {
+          "name": "relay:adr",
+          "value": "ADR-015"
+        }
+      ],
+      "purl": "pkg:pypi/gunicorn@23.0.0",
+      "type": "library",
+      "version": "23.0.0"
+    }
+  ],
+  "dependencies": [
+    {
+      "dependsOn": [
+        "pkg:generic/relay@4.25.0",
+        "base-image",
+        "pkg:pypi/gunicorn@23.0.0",
+        "pkg:pypi/packaging@25.0"
+      ],
+      "ref": "relay-image"
+    }
+  ],
+  "metadata": {
+    "component": {
+      "bom-ref": "relay-image",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8d0eeba9d26884f38d5e97f75f1314f80ab8e7b6b7999544d4b484ecbe300b0c"
+        }
+      ],
+      "name": "relay",
+      "type": "container",
+      "version": "4.25.0"
+    },
+    "timestamp": "2027-01-28T00:00:00Z",
+    "tools": {
+      "components": [
+        {
+          "name": "relay-tools-sbom",
+          "type": "application",
+          "version": "4.25.0"
+        }
+      ]
+    }
+  },
+  "serialNumber": "urn:uuid:54ba241a-8287-587d-8efd-7f1c8c76722d",
+  "specVersion": "1.6",
+  "version": 1
+}

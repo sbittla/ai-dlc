@@ -1,0 +1,20 @@
+# Proposed agent workflow, version 1 (as first written). Lab fixture; not used by Relay.
+name: relay-agent
+on:
+  issue_comment:
+    types: [created]
+permissions: write-all
+jobs:
+  agent:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Ask the agent
+        uses: example-org/coding-agent-action@v1
+        with:
+          prompt: "Help with this request: ${{ github.event.comment.body }}"
+          allowed_tools: "Bash,Edit,GitPush,Comment,WebFetch"
+        env:
+          MODEL_API_KEY: ${{ secrets.MODEL_API_KEY }}
+      - name: Log the request
+        run: echo "Request was ${{ github.event.comment.body }} on ${{ github.event.issue.title }}"

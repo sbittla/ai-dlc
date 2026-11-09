@@ -1,0 +1,10 @@
+Share of database time, 15:08-15:16: sign-in writes 83.1%, the deploy's component (notifications) 0.3%
+incident-assistant-v0 H0 as of 15:18: unsupported (no mechanism cited); citations holds, holds
+incident-assistant-v0 H0 as of 15:41: contradicted (metric:api_slow_share stayed 206x its baseline after event:deploy-2027-02-02 was undone at 15:31); citations holds, holds
+incident-assistant-v1 H1 as of 15:18: unsupported (citation 2 fails); citations holds, fails
+incident-assistant-v1 H2 as of 15:18: supported; citations holds, holds, holds
+incident-assistant-v1 H3 as of 15:18: supported; citations holds, holds
+incident-assistant-v1 H1 as of 15:41: contradicted (metric:api_slow_share stayed 206x its baseline after event:deploy-2027-02-02 was undone at 15:31); citations holds, fails
+incident-assistant-v1 H2 as of 15:41: supported; citations holds, holds, holds
+incident-assistant-v1 H3 as of 15:41: supported; citations holds, holds
+Gate at 15:22: the assistant's deploy.rollback because H0 (unsupported): refused (unsupported_hypothesis)

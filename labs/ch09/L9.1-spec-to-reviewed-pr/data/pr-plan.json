@@ -1,0 +1,307 @@
+{
+  "release": "4.22.0",
+  "base": "4.21.0",
+  "about": "The pull requests that took Relay from canonical 4.21.0 to 4.22.0 (Chapter 9). Each changed file is assigned to exactly one pull request, the one that changed it, and is counted there whole. PR-0's governance changes merge first, so that every later pull request is held to the rule it is checked against. Code owners are computed from CODEOWNERS as it was at each pull request's base. Sizes are measured by prkit from data/relay-4.21.0 and solution/relay-repo, not written here. Review minutes and dates are part of the book's fictional Relay.",
+  "groups": [
+    {
+      "id": "notify-1..5",
+      "title": "Notification module, modernized behind characterization tests (five pull requests; measured in Lab 9.2)",
+      "files": [
+        "docs/adr/ADR-018-legacy-notification-module.md",
+        "src/relay/notify/__init__.py",
+        "src/relay/notify/decide.py",
+        "src/relay/notify/migrate.py",
+        "src/relay/notify/store.py",
+        "tests/notify/corpus.py",
+        "tests/notify/legacy_reference.py",
+        "tests/notify/test_notify_characterization.py",
+        "tests/notify/test_notify_compat.py",
+        "tests/notify/test_notify_decide.py",
+        "tests/notify/test_notify_migration.py"
+      ]
+    }
+  ],
+  "prs": [
+    {
+      "id": "PR-0",
+      "title": "Review policy: size limit, stop signals and code owners for tests",
+      "task": null,
+      "merged": "2026-12-11",
+      "opened_by": "priya.n",
+      "review": {
+        "reviewers": [
+          "sam.o",
+          "aisha.r"
+        ],
+        "minutes": 15
+      },
+      "description": "Governance first, so that every later pull request is checked against the rule it will be held to. AGENTS.md conventions and boundaries; CODEOWNERS lines for test files and migrations. Docs: AGENTS.md.",
+      "commits": [
+        {
+          "author": "priya.n",
+          "message": "AGENTS.md: 200/400 size limit, tests first, claims with evidence, stop signals, security-owned files",
+          "files": [
+            "AGENTS.md"
+          ]
+        },
+        {
+          "author": "priya.n",
+          "message": "CODEOWNERS: @relay/security owns the escalation and notification tests and migrations.py",
+          "files": [
+            ".github/CODEOWNERS"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PR-1",
+      "title": "Spec ESC-SPEC-1 1.2.0: rule deletion and rule notices",
+      "task": null,
+      "merged": "2026-12-11",
+      "opened_by": "sam.o",
+      "review": {
+        "reviewers": [
+          "lena.k",
+          "aisha.r"
+        ],
+        "minutes": 40
+      },
+      "description": "Spec change only, in its own pull request (AGENTS.md). MINOR by caller compatibility. Docs: this pull request.",
+      "commits": [
+        {
+          "author": "sam.o",
+          "message": "Spec 1.2.0: B8, SEC-08, SEC-09, ESC-AC25, tasks T21 to T25, test-strategy rule 7",
+          "files": [
+            "specs/001-escalation-rules/spec.md",
+            "specs/001-escalation-rules/tasks.md",
+            "specs/001-escalation-rules/test-strategy.md"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PR-2",
+      "title": "ADR-016, ADR-017 and ADR-019",
+      "task": null,
+      "merged": "2026-12-11",
+      "opened_by": "sam.o",
+      "review": {
+        "reviewers": [
+          "aisha.r",
+          "priya.n"
+        ],
+        "minutes": 30
+      },
+      "description": "Decision records for rule deletion, escalation passes in the worker, and schema migrations. Docs: this pull request.",
+      "commits": [
+        {
+          "author": "sam.o",
+          "message": "Decision records for 4.22.0",
+          "files": [
+            "docs/adr/ADR-016-rule-deletion-and-rule-notices.md",
+            "docs/adr/ADR-017-worker-runs-escalation-passes.md",
+            "docs/adr/ADR-019-schema-versions-and-migrations.md"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PR-3",
+      "title": "T21: schema version 2, and migrations that prove their copies",
+      "task": "T21",
+      "merged": "2026-12-14",
+      "opened_by": "priya.n",
+      "review": {
+        "reviewers": [
+          "sam.o",
+          "aisha.r"
+        ],
+        "minutes": 55
+      },
+      "description": "Docs: spec 1.2.0 SEC-09 (PR-1), ADR-019 (PR-2). The proof compares every column of the new table.",
+      "commits": [
+        {
+          "author": "aisha.r",
+          "message": "T21 tests (approved): migration, downgrade, SEC-05 refinement, DOMAIN and AR7",
+          "files": [
+            "tests/escalation/test_escalation_migrations.py",
+            "tests/escalation/test_escalation_policy.py",
+            "tests/test_architecture.py"
+          ]
+        },
+        {
+          "author": "agent (priya.n)",
+          "message": "T21: migrations.py; the store opens at version 2",
+          "files": [
+            "src/relay/escalation/migrations.py",
+            "src/relay/escalation/store.py"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PR-4",
+      "title": "T22: the rule notice",
+      "task": "T22",
+      "merged": "2026-12-14",
+      "opened_by": "priya.n",
+      "review": {
+        "reviewers": [
+          "sam.o",
+          "aisha.r"
+        ],
+        "minutes": 25
+      },
+      "description": "Docs: spec 1.2.0 B8 and Terms (PR-1).",
+      "commits": [
+        {
+          "author": "aisha.r",
+          "message": "T22 tests (approved): notice content, SEC-04",
+          "files": [
+            "tests/escalation/test_escalation_notices.py"
+          ]
+        },
+        {
+          "author": "agent (priya.n)",
+          "message": "T22: rule_notice_email and the rule_notice kind",
+          "files": [
+            "src/relay/escalation/delivery.py",
+            "src/relay/escalation/model.py",
+            "specs/001-escalation-rules/contracts/escalation-rules.schema.json"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PR-5",
+      "title": "T23: deleting a rule, and notices for P1 changes",
+      "task": "T23",
+      "merged": "2026-12-15",
+      "opened_by": "priya.n",
+      "review": {
+        "reviewers": [
+          "aisha.r"
+        ],
+        "minutes": 45
+      },
+      "description": "Docs: spec 1.2.0 B8 (PR-1), ADR-016 (PR-2). Includes the summary-link fix found by impact analysis.",
+      "commits": [
+        {
+          "author": "sam.o",
+          "message": "T23 tests (approved): ESC-AC25, SEC-08, deleted IDs, held emails",
+          "files": [
+            "tests/escalation/test_escalation_deletion.py"
+          ]
+        },
+        {
+          "author": "agent (priya.n)",
+          "message": "T23: delete_rule and notices in one transaction",
+          "files": [
+            "src/relay/escalation/engine.py",
+            "src/relay/escalation/__init__.py"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PR-6",
+      "title": "T24: the delete route and its OpenAPI operation",
+      "task": "T24",
+      "merged": "2026-12-16",
+      "opened_by": "priya.n",
+      "review": {
+        "reviewers": [
+          "sam.o",
+          "aisha.r"
+        ],
+        "minutes": 40
+      },
+      "description": "Docs: spec 1.2.0 B7 and B8 (PR-1), ADR-016 (PR-2). The refusal matrix's 405 row for DELETE is replaced by five rows.",
+      "commits": [
+        {
+          "author": "aisha.r",
+          "message": "T24 tests (approved): refusal matrix rows, route tests, the RuleDeleted contract reference",
+          "files": [
+            "tests/service_helpers.py",
+            "tests/test_service_openapi.py",
+            "tests/test_service_rule_deletion.py"
+          ]
+        },
+        {
+          "author": "agent (priya.n)",
+          "message": "T24: DELETE route and OpenAPI operation",
+          "files": [
+            "src/relay/service/escalation_routes.py",
+            "specs/001-escalation-rules/contracts/escalation-api.openapi.json"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PR-7",
+      "title": "T25: the worker runs the evaluation pass",
+      "task": "T25",
+      "merged": "2026-12-16",
+      "opened_by": "priya.n",
+      "review": {
+        "reviewers": [
+          "aisha.r"
+        ],
+        "minutes": 40
+      },
+      "description": "Docs: ADR-017 (PR-2). A failed pass writes no heartbeat.",
+      "commits": [
+        {
+          "author": "sam.o",
+          "message": "T25 tests (approved): ESC-AC08 and ESC-AC11 through the worker, failed pass",
+          "files": [
+            "tests/test_worker_escalation.py"
+          ]
+        },
+        {
+          "author": "agent (priya.n)",
+          "message": "T25: EscalationPasses in the worker loop",
+          "files": [
+            "src/relay/worker/escalation.py",
+            "src/relay/worker/runner.py",
+            "src/relay/worker/__init__.py",
+            "src/relay/worker/__main__.py"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PR-8",
+      "title": "Relay 4.22.0: version and its three assertions",
+      "task": null,
+      "merged": "2026-12-18",
+      "opened_by": "priya.n",
+      "review": {
+        "reviewers": [
+          "sam.o"
+        ],
+        "minutes": 10
+      },
+      "description": "Release. No behaviour change apart from the version. Docs: AGENTS.md (PR-0).",
+      "commits": [
+        {
+          "author": "priya.n",
+          "message": "The three version assertions say 4.22.0",
+          "files": [
+            "tests/test_service_app.py",
+            "tests/test_service_http.py",
+            "tests/test_service_wsgi.py"
+          ]
+        },
+        {
+          "author": "priya.n",
+          "message": "Version 4.22.0",
+          "files": [
+            "pyproject.toml",
+            "src/relay/__init__.py"
+          ]
+        }
+      ]
+    }
+  ]
+}

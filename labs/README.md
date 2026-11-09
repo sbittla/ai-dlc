@@ -47,5 +47,13 @@ labs/chNN/LN.M-<slug>/
 | [L7.2](ch07/L7.2-judge-calibration/) | Calibrate an LLM judge against human labels | Stretch | 3 h |
 | [L8.1](ch08/L8.1-test-first-agent/) | Test-first feature with an agent | Core | 4 h |
 | [L8.2](ch08/L8.2-mutation-property-repair/) | Mutation and property-based test repair | Stretch | 4 h |
+| [L9.1](ch09/L9.1-spec-to-reviewed-pr/) | Feature from approved spec to reviewed pull request, with migration, API and docs | Core | 5 h |
+| [L9.2](ch09/L9.2-legacy-refactor-characterization/) | Legacy refactor with characterization tests and parallel agents | Stretch | 4 h |
+| [L10.1](ch10/L10.1-workflow-agent-multiagent/) | Same task as workflow, single agent and multi-agent, compared on success, cost and latency | Core | 5 h |
+| [L10.2](ch10/L10.2-failure-injection-approval-gates/) | Failure injection, approval gates and recovery | Stretch | 3 h |
 | [L11.1](ch11/L11.1-guardrailed-cloud-environment/) | Guardrailed, budget-capped cloud environment with IaC | Core | 5 h |
 | [L11.2](ch11/L11.2-azure-gcp-mapping/) | Azure and GCP mapping with cost comparison | Stretch | 2 h |
+| [L13.1](ch13/L13.1-secure-agent-loop/) | Secure the agent loop: gates, a dependency gate, fix re-verification, catch rate and release evidence | Core | 4 h |
+| [L13.2](ch13/L13.2-poisoned-instructions-ci-injection/) | Poisoned instruction files and CI prompt injection via an issue comment | Stretch | 4 h |
+| [L14.1](ch14/L14.1-agent-identity-kill-switch/) | Agent identity, an anomaly detection rule and a kill-switch drill | Core | 4 h |
+| [L14.2](ch14/L14.2-governance-pack/) | Governance pack: permission matrix, DPIA, licence scan, EU AI Act classification | Stretch | 3 h |

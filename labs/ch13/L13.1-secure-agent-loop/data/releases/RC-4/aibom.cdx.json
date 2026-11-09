@@ -1,0 +1,315 @@
+{
+  "bomFormat": "CycloneDX",
+  "components": [
+    {
+      "bom-ref": "model:triage-model",
+      "modelCard": {
+        "considerations": {
+          "useCases": [
+            "relay.worker (triage); agent sandboxes"
+          ]
+        }
+      },
+      "name": "triage-model",
+      "properties": [
+        {
+          "name": "relay:kind",
+          "value": "model"
+        },
+        {
+          "name": "relay:reference",
+          "value": "var.triage_model_arn"
+        },
+        {
+          "name": "relay:file-format",
+          "value": "hosted"
+        },
+        {
+          "name": "relay:owner",
+          "value": "sam.o"
+        }
+      ],
+      "supplier": {
+        "name": "Amazon Bedrock (hosted)"
+      },
+      "type": "machine-learning-model",
+      "version": "set per environment from the evaluation that approved it (Chapter 7)"
+    },
+    {
+      "bom-ref": "model:sim-large",
+      "modelCard": {
+        "considerations": {
+          "useCases": [
+            "relay.worker in tests and local runs"
+          ]
+        }
+      },
+      "name": "sim-large",
+      "properties": [
+        {
+          "name": "relay:kind",
+          "value": "model"
+        },
+        {
+          "name": "relay:reference",
+          "value": "relay.worker.triage"
+        },
+        {
+          "name": "relay:file-format",
+          "value": "hosted"
+        },
+        {
+          "name": "relay:owner",
+          "value": "sam.o"
+        }
+      ],
+      "supplier": {
+        "name": "Relay (simulated, tests and labs only)"
+      },
+      "type": "machine-learning-model",
+      "version": "4.25.0"
+    },
+    {
+      "bom-ref": "dataset:relay-triage-eval@2026.11.1",
+      "data": [
+        {
+          "classification": "Internal",
+          "description": "300 records; evaluation (100 dev, 200 held-out)",
+          "name": "relay-triage-eval",
+          "type": "dataset"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b997166b41e0c4e1cd95073d66677a8e6ea74dfad15f9d5397d993b08fb00dc4"
+        }
+      ],
+      "name": "relay-triage-eval",
+      "properties": [
+        {
+          "name": "relay:kind",
+          "value": "dataset"
+        },
+        {
+          "name": "relay:owner",
+          "value": "tomas.b"
+        }
+      ],
+      "type": "data",
+      "version": "2026.11.1"
+    },
+    {
+      "bom-ref": "evaluation:triage-gate-v1",
+      "data": [
+        {
+          "name": "triage-gate-v1",
+          "type": "definition"
+        }
+      ],
+      "name": "triage-gate-v1",
+      "properties": [
+        {
+          "name": "relay:kind",
+          "value": "evaluation-gate"
+        },
+        {
+          "name": "relay:status-check",
+          "value": "triage-eval"
+        },
+        {
+          "name": "relay:owner",
+          "value": "sam.o"
+        }
+      ],
+      "type": "data"
+    },
+    {
+      "bom-ref": "model:embed-ft",
+      "name": "embed-ft",
+      "properties": [
+        {
+          "name": "relay:kind",
+          "value": "model"
+        },
+        {
+          "name": "relay:file-format",
+          "value": "pickle"
+        }
+      ],
+      "type": "machine-learning-model",
+      "version": "0.1"
+    }
+  ],
+  "metadata": {
+    "component": {
+      "bom-ref": "relay-image",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8d0eeba9d26884f38d5e97f75f1314f80ab8e7b6b7999544d4b484ecbe300b0c"
+        }
+      ],
+      "name": "relay",
+      "type": "container",
+      "version": "4.25.0"
+    },
+    "timestamp": "2027-01-28T00:00:00Z",
+    "tools": {
+      "components": [
+        {
+          "name": "relay-tools-sbom",
+          "type": "application",
+          "version": "4.25.0"
+        }
+      ]
+    }
+  },
+  "serialNumber": "urn:uuid:166c252d-9932-5381-aaa4-e856462bf917",
+  "services": [
+    {
+      "bom-ref": "tool:relay-db-readonly",
+      "description": "Lab 3.2's relaymcp 1.0.0, vendored and reviewed",
+      "name": "relay-db-readonly",
+      "properties": [
+        {
+          "name": "relay:kind",
+          "value": "tool-server"
+        },
+        {
+          "name": "relay:protocol",
+          "value": "MCP (stdio)"
+        },
+        {
+          "name": "relay:launch",
+          "value": "python -m relaymcp.server --db data/relay-test.sql --audit evidence/mcp-audit.jsonl"
+        },
+        {
+          "name": "relay:sha256",
+          "value": "8d0542d4933a0b4e3a1a58cf88f242eed4723318fa50d051d2a648071131a654"
+        },
+        {
+          "name": "relay:reviewed-by",
+          "value": "aisha.r"
+        }
+      ],
+      "version": "1.0.0"
+    },
+    {
+      "authenticated": true,
+      "bom-ref": "agent:analytics-sync",
+      "name": "analytics-sync",
+      "properties": [
+        {
+          "name": "relay:kind",
+          "value": "agent"
+        },
+        {
+          "name": "relay:owner",
+          "value": "lena.k"
+        },
+        {
+          "name": "relay:scopes",
+          "value": "tasks:export:analytics"
+        }
+      ]
+    },
+    {
+      "authenticated": true,
+      "bom-ref": "agent:ci-failure-triage",
+      "name": "ci-failure-triage",
+      "properties": [
+        {
+          "name": "relay:kind",
+          "value": "agent"
+        },
+        {
+          "name": "relay:owner",
+          "value": "priya.n"
+        },
+        {
+          "name": "relay:scopes",
+          "value": "tasks:create:platform"
+        }
+      ]
+    },
+    {
+      "authenticated": true,
+      "bom-ref": "agent:coding-session",
+      "name": "coding-session",
+      "properties": [
+        {
+          "name": "relay:kind",
+          "value": "agent"
+        },
+        {
+          "name": "relay:owner",
+          "value": "sam.o"
+        },
+        {
+          "name": "relay:scopes",
+          "value": "tasks:read:platform,testdb:query"
+        }
+      ]
+    },
+    {
+      "authenticated": true,
+      "bom-ref": "agent:dataset-refresh",
+      "name": "dataset-refresh",
+      "properties": [
+        {
+          "name": "relay:kind",
+          "value": "agent"
+        },
+        {
+          "name": "relay:owner",
+          "value": "tomas.b"
+        },
+        {
+          "name": "relay:scopes",
+          "value": "tickets:read:support"
+        }
+      ]
+    },
+    {
+      "authenticated": true,
+      "bom-ref": "agent:eval-harvester",
+      "name": "eval-harvester",
+      "properties": [
+        {
+          "name": "relay:kind",
+          "value": "agent"
+        },
+        {
+          "name": "relay:owner",
+          "value": "tomas.b"
+        },
+        {
+          "name": "relay:scopes",
+          "value": "tickets:read:support"
+        }
+      ]
+    },
+    {
+      "authenticated": true,
+      "bom-ref": "agent:triage-worker",
+      "name": "triage-worker",
+      "properties": [
+        {
+          "name": "relay:kind",
+          "value": "agent"
+        },
+        {
+          "name": "relay:owner",
+          "value": "sam.o"
+        },
+        {
+          "name": "relay:scopes",
+          "value": "tickets:read:triage-queue,triage:suggest"
+        }
+      ]
+    }
+  ],
+  "specVersion": "1.6",
+  "version": 1
+}

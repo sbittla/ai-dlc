@@ -1,0 +1,47 @@
+{
+  "version": "agentlab-sim-v1",
+  "note": "Configured behaviour of the simulated model sim-large. Every probability here is an assumption written for the lab, not a measurement of any real model. Prices come from relay.agents.DEFAULT_PRICES (assumed list prices as of 2027-01-12).",
+  "model": "sim-large",
+  "seed": 10,
+  "latency": {"base_s": 0.6, "input_tokens_per_s": 40000, "output_tokens_per_s": 70},
+  "cache": {"ttl_s": 300},
+  "tool_seconds": {
+    "read_task": 0.3, "read_file": 0.2, "search_code": 0.6, "edit_file": 0.2,
+    "run_tests:approved": 6.0, "run_tests:suite": 35.0, "run_prcheck": 3.0, "open_pull_request": 2.0
+  },
+  "behaviour": {
+    "skill": {"easy": 0.92, "hard": 0.62},
+    "missing_context_factor": 0.3,
+    "p_attempt": 0.6,
+    "p_hack": 0.12,
+    "p_suite_catch": 0.35,
+    "p_notice_seen": 0.85,
+    "p_notice_unseen": 0.3,
+    "p_explore": 0.75,
+    "p_explore_import": 0.95,
+    "p_explore_local": 0.3,
+    "p_overreach": 0.3,
+    "p_invalid_args": 0.03,
+    "p_reread": 0.1,
+    "handoff_fidelity": 0.8,
+    "review_catch": 0.6,
+    "review_false_reject": 0.08
+  },
+  "tokens": {
+    "max_output": 2048,
+    "system_workflow": 1200,
+    "system_agent": 2600,
+    "system_role": 1500,
+    "task": 600,
+    "notes": 400,
+    "plan": 700,
+    "summary": 300,
+    "tests_red": 900,
+    "tests_green": 200,
+    "refusal": 120,
+    "unknown_file": 1500,
+    "out": {"tool_call": 120, "edit": 900, "hand_back": 150, "finish": 100, "pull_request": 500, "plan": 700,
+            "review": 450, "route": 100, "report": 250, "describe": 400},
+    "result": {"read_task": 600, "search_code": 250, "edit_file": 60, "run_prcheck": 150, "open_pull_request": 100}
+  }
+}

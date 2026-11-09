@@ -1,0 +1,25 @@
+{
+  "version": "incident-2027-01-14",
+  "note": "The opening incident's five-agent pipeline, reconstructed (composite). Token sizes and tool times are the simulator's assumptions; the loop itself is configured: the reviewer repeats finding R1 every round, because the approved test it disputes belongs to @relay/security and the coder may not change it. What the replay measures is what that loop costs with and without Relay 4.24.0's controls.",
+  "model": "sim-large",
+  "started_at": "2027-01-14T17:52:00Z",
+  "job_limit_s": 21600,
+  "window_tokens": 1000000,
+  "caching": false,
+  "system_tokens": 2000,
+  "task_tokens": 600,
+  "planner": {"read_tokens": 9800, "output": 900, "tool_s": 2.4},
+  "round": [
+    {"agent": "supervisor", "output": 120},
+    {"agent": "coder", "output": 1200, "tool": "edit_file", "tool_s": 0.4, "result": 7000},
+    {"agent": "tester", "output": 150, "tool": "run_tests", "tool_s": 38.0, "result": 3400},
+    {"agent": "reviewer", "output": 450, "finding": "review:R1"}
+  ],
+  "finding": "R1: a project the caller cannot view should answer 403, as GET /v1/tasks/{id} does",
+  "controls": {
+    "budget": {"max_steps": 87, "max_usd": 0.65, "max_seconds": 420},
+    "repeat_limit": 3,
+    "summary_tokens": 300,
+    "max_output": 2048
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "policy": "relay-supply-chain-v1",
+  "adr": "ADR-028",
+  "digest_source": "lab stand-in: sha256 of 'lab-stand-in:image:' + reference. Re-pin from the registry's manifest digest when an image is reviewed.",
+  "note": "Every image is pinned by digest. Relay's own images are signed by the release workflow and verified before deployment (ADR-030). A third-party base image is verified by the publisher's signature or attestation where the publisher offers one; otherwise the digest pin, the image scan and this review are the controls.",
+  "images": [
+    {"use": "dev container", "file": ".devcontainer/devcontainer.json",
+     "reference": "mcr.microsoft.com/devcontainers/python:3.12",
+     "digest": "sha256:7c9f64bdf92452c565d13ac6466991092873b312da9783b4b9b9812a87682d1d",
+     "publisher_verification": "none offered that Relay checks; digest pin and scan", "reviewed_by": "sam.o",
+     "reviewed_on": "2027-01-20"},
+    {"use": "service, worker and migration base", "file": "deploy/Containerfile",
+     "reference": "python:3.12-slim",
+     "digest": "sha256:b156cf605ac3bb6d29b5f44387eb789f9b293ed037ba8fdc516df4f04565dd9b",
+     "publisher_verification": "publisher attestations checked when offered; digest pin and scan", "reviewed_by": "sam.o",
+     "reviewed_on": "2027-01-20"},
+    {"use": "egress proxy base", "file": "deploy/egress-proxy/Containerfile",
+     "reference": "debian:12-slim",
+     "digest": "sha256:42a5fd79ff1d0df3d14d036218cf6eb1227a60316003c22ee640ccbe10fe2b33",
+     "publisher_verification": "publisher attestations checked when offered; digest pin and scan", "reviewed_by": "sam.o",
+     "reviewed_on": "2027-01-20"}
+  ],
+  "relay_images": [
+    {"name": "relay", "version": "4.25.0",
+     "digest": "sha256:8d0eeba9d26884f38d5e97f75f1314f80ab8e7b6b7999544d4b484ecbe300b0c",
+     "signed_by": "https://github.com/relay-example/relay/.github/workflows/release.yml@refs/tags/v4.25.0",
+     "issuer": "https://token.actions.githubusercontent.com"},
+    {"name": "relay-egress-proxy", "version": "4.25.0",
+     "digest": "sha256:65a344b52988571e5cf8315e478627f543c19520fd1ea0624e61437000b55d94",
+     "signed_by": "https://github.com/relay-example/relay/.github/workflows/release.yml@refs/tags/v4.25.0",
+     "issuer": "https://token.actions.githubusercontent.com"}
+  ]
+}

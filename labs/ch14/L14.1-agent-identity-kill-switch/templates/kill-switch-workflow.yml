@@ -1,0 +1,45 @@
+# ILLUSTRATIVE: the shape of Relay's kill-switch workflow. Not run by this lab; check action names, versions and
+# CLI flags against current documentation before using it. It runs in the protected "kill-switch" environment,
+# which has no required reviewers (removing access must not wait) but is restricted to the main branch.
+# Inputs reach scripts only through env:, never through ${{ }} inside run:.
+name: kill-switch
+on:
+  workflow_dispatch:
+    inputs:
+      agent:
+        description: "Agent id from governance/agents.json"
+        required: true
+      reason:
+        required: true
+permissions:
+  id-token: write     # for OIDC federation to AWS
+  contents: read
+  actions: write      # to cancel the agent's running workflow runs
+jobs:
+  quarantine:
+    runs-on: ubuntu-latest
+    environment: kill-switch
+    steps:
+      - uses: actions/checkout@v4
+      - name: Look up the agent's role (fails if the agent is unknown)
+        id: agent
+        env:
+          AGENT: ${{ inputs.agent }}   # passed as data, never interpolated into the script (no script injection)
+        run: |
+          role=$(python -c "import json,os; a={x['agent_id']:x for x in json.load(open('governance/agents.json'))['agents']}[os.environ['AGENT']]; print(a['cloud_role'] or '')")
+          echo "role=$role" >> "$GITHUB_OUTPUT"
+      - uses: aws-actions/configure-aws-credentials@v4
+        if: steps.agent.outputs.role != ''
+        with:
+          role-to-assume: arn:aws:iam::111122223333:role/relay-nonprod-ci-killswitch
+          role-duration-seconds: 900
+          aws-region: us-east-1
+      - name: Attach the quarantine policy
+        if: steps.agent.outputs.role != ''
+        run: >
+          aws iam attach-role-policy --role-name "${ROLE##*/}"
+          --policy-arn arn:aws:iam::111122223333:policy/relay-nonprod-agent-quarantine
+        env:
+          ROLE: ${{ steps.agent.outputs.role }}
+      # Scaling the agent's ECS services to 0 and stopping its tasks, cancelling runs in its environment, and
+      # revoking its GitHub App installation tokens follow the same pattern; record each step's time.

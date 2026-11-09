@@ -1,0 +1,9 @@
+SLO-API-LATENCY (99% within 250 ms), 30 days from 2027-01-04; events (configured in the generator):
+  E5 02-02 15:06-02-02 17:19 spent 49.3% of the budget (significant): opening incident: credential stuffing saturates the database (latency)
+strategy                   pages false  detected  missed  detection (min)        reset (min)
+static 5 min > budget        847   846  E5        -       E5 0                   E5 4
+burn 1 h >= 14.4               1     0  E5        -       E5 10                  E5 51
+multi-window (workbook)        1     0  E5        -       E5 10                  E5 28
+                           tickets 1: detected E5; first after E5 16 min
+Opening incident (E5): degradation from 02-02 15:06, first page 02-02 15:16 (10 min later); rollback at 02-02 15:31 changed nothing; page open until 02-02 17:47
+Lab evaluator agrees with relay.telemetry.slo.evaluate: True

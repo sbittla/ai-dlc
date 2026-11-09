@@ -1,0 +1,21 @@
+# Pre-commit hooks (ADR-029). The agent loop runs the same three checks before every commit it
+# makes, and CI runs them again with Trivy added (.github/workflows/ci.yml). Each hook is a tool
+# installed at a pinned version in the dev container; nothing here downloads hook code.
+repos:
+  - repo: local
+    hooks:
+      - id: supply-chain
+        name: supply-chain check (ADR-028)
+        entry: python tools/supplychain.py
+        language: system
+        pass_filenames: false
+      - id: gitleaks
+        name: secrets in the staged change (gitleaks)
+        entry: gitleaks git --pre-commit --staged --redact --config security/gitleaks.toml
+        language: system
+        pass_filenames: false
+      - id: semgrep
+        name: Relay's SAST rules (Semgrep)
+        entry: semgrep scan --config security/semgrep.yml --error --metrics=off
+        language: system
+        types: [python]

@@ -1,0 +1,8 @@
+# Domains a background agent session may reach over HTTPS (ADR-013).
+# One per line; a leading dot also allows subdomains. Reviewed by @relay/security.
+# The approved model is reached through the VPC endpoint, not through this proxy.
+github.com
+api.github.com
+codeload.github.com
+pypi.org
+files.pythonhosted.org

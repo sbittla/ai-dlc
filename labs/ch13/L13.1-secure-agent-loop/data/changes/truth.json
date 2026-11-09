@@ -1,0 +1,965 @@
+{
+  "changes": {
+    "AC001": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "Archive with a list"
+    },
+    "AC002": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "Check can_view first"
+    },
+    "AC003": {
+      "category": "weak-crypto",
+      "cwe": "CWE-327",
+      "seeded": true,
+      "variant": "random"
+    },
+    "AC004": {
+      "category": "dependency-confusion",
+      "cwe": "CWE-427",
+      "seeded": true,
+      "variant": "extra-index"
+    },
+    "AC005": {
+      "category": "hardcoded-secret",
+      "cwe": "CWE-798",
+      "seeded": true,
+      "variant": "semgrep-only"
+    },
+    "AC006": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "Parameterized search"
+    },
+    "AC007": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "JSON import"
+    },
+    "AC008": {
+      "category": "sql-injection",
+      "cwe": "CWE-89",
+      "seeded": true,
+      "variant": "detected"
+    },
+    "AC009": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "Check can_view first"
+    },
+    "AC010": {
+      "category": "dependency-confusion",
+      "cwe": "CWE-427",
+      "seeded": true,
+      "variant": "pinned-public"
+    },
+    "AC011": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "Resolve under the base"
+    },
+    "AC012": {
+      "category": "sql-injection",
+      "cwe": "CWE-89",
+      "seeded": true,
+      "variant": "detected"
+    },
+    "AC013": {
+      "category": "command-injection",
+      "cwe": "CWE-78",
+      "seeded": true,
+      "variant": "subprocess"
+    },
+    "AC014": {
+      "category": "path-traversal",
+      "cwe": "CWE-22",
+      "seeded": true,
+      "variant": "detected"
+    },
+    "AC015": {
+      "category": "path-traversal",
+      "cwe": "CWE-22",
+      "seeded": true,
+      "variant": "pathlib"
+    },
+    "AC016": {
+      "category": "broken-authorization",
+      "cwe": "CWE-862",
+      "seeded": true,
+      "variant": "detected"
+    },
+    "AC017": {
+      "category": "hallucinated-package",
+      "cwe": "CWE-829",
+      "seeded": true,
+      "variant": "secure-token-utils"
+    },
+    "AC018": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "Retry jitter"
+    },
+    "AC019": {
+      "category": "broken-authorization",
+      "cwe": "CWE-862",
+      "seeded": true,
+      "variant": "wrong-project"
+    },
+    "AC020": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "Token from the environment"
+    },
+    "AC021": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "Archive with a list"
+    },
+    "AC022": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "Shuffle a demo list"
+    },
+    "AC023": {
+      "category": "iac-misconfiguration",
+      "cwe": "CWE-16",
+      "seeded": true,
+      "variant": "mutable-tags"
+    },
+    "AC024": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "Table name from a constant"
+    },
+    "AC025": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "Parameterized search"
+    },
+    "AC026": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "Parameterized search"
+    },
+    "AC027": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "Archive with a list"
+    },
+    "AC028": {
+      "category": "command-injection",
+      "cwe": "CWE-78",
+      "seeded": true,
+      "variant": "os-system"
+    },
+    "AC029": {
+      "category": "iac-misconfiguration",
+      "cwe": "CWE-16",
+      "seeded": true,
+      "variant": "public-ip"
+    },
+    "AC030": {
+      "category": "weak-crypto",
+      "cwe": "CWE-327",
+      "seeded": true,
+      "variant": "sha1"
+    },
+    "AC031": {
+      "category": "path-traversal",
+      "cwe": "CWE-22",
+      "seeded": true,
+      "variant": "detected"
+    },
+    "AC032": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "Constant-time token check"
+    },
+    "AC033": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "Token from the environment"
+    },
+    "AC034": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "Token from the environment"
+    },
+    "AC035": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "Archive with a list"
+    },
+    "AC036": {
+      "category": "weak-crypto",
+      "cwe": "CWE-327",
+      "seeded": true,
+      "variant": "random"
+    },
+    "AC037": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "Archive with a list"
+    },
+    "AC038": {
+      "category": "broken-authorization",
+      "cwe": "CWE-862",
+      "seeded": true,
+      "variant": "wrong-project"
+    },
+    "AC039": {
+      "category": "broken-authorization",
+      "cwe": "CWE-862",
+      "seeded": true,
+      "variant": "wrong-project"
+    },
+    "AC040": {
+      "category": "typosquat",
+      "cwe": "CWE-829",
+      "seeded": true,
+      "variant": "packagng"
+    },
+    "AC041": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "Resolve under the base"
+    },
+    "AC042": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "Docstring only"
+    },
+    "AC043": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "Resolve under the base"
+    },
+    "AC044": {
+      "category": "typosquat",
+      "cwe": "CWE-829",
+      "seeded": true,
+      "variant": "pyjvvt"
+    },
+    "AC045": {
+      "category": "typosquat",
+      "cwe": "CWE-829",
+      "seeded": true,
+      "variant": "plluggy"
+    },
+    "AC046": {
+      "category": "broken-authorization",
+      "cwe": "CWE-862",
+      "seeded": true,
+      "variant": "wrong-project"
+    },
+    "AC047": {
+      "category": "weak-crypto",
+      "cwe": "CWE-327",
+      "seeded": true,
+      "variant": "md5"
+    },
+    "AC048": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "Constant-time token check"
+    },
+    "AC049": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "Parameterized search"
+    },
+    "AC050": {
+      "category": "vulnerable-dependency",
+      "cwe": "CWE-1395",
+      "seeded": true,
+      "variant": "cryptography==41.0.7"
+    },
+    "AC051": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "Docs example token"
+    },
+    "AC052": {
+      "category": "unsafe-deserialization",
+      "cwe": "CWE-502",
+      "seeded": true,
+      "variant": "pickle"
+    },
+    "AC053": {
+      "category": "hallucinated-package",
+      "cwe": "CWE-829",
+      "seeded": true,
+      "variant": "gunicorn-healthcheck"
+    },
+    "AC054": {
+      "category": "hardcoded-secret",
+      "cwe": "CWE-798",
+      "seeded": true,
+      "variant": "gitleaks"
+    },
+    "AC055": {
+      "category": "command-injection",
+      "cwe": "CWE-78",
+      "seeded": true,
+      "variant": "os-system"
+    },
+    "AC056": {
+      "category": "iac-misconfiguration",
+      "cwe": "CWE-16",
+      "seeded": true,
+      "variant": "no-kms"
+    },
+    "AC057": {
+      "category": "path-traversal",
+      "cwe": "CWE-22",
+      "seeded": true,
+      "variant": "detected"
+    },
+    "AC058": {
+      "category": "weak-crypto",
+      "cwe": "CWE-327",
+      "seeded": true,
+      "variant": "xor"
+    },
+    "AC059": {
+      "category": "sql-injection",
+      "cwe": "CWE-89",
+      "seeded": true,
+      "variant": "detected"
+    },
+    "AC060": {
+      "category": "vulnerable-dependency",
+      "cwe": "CWE-1395",
+      "seeded": true,
+      "variant": "pyjwt==2.3.0"
+    },
+    "AC061": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "Test vector"
+    },
+    "AC062": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "Parameterized search"
+    },
+    "AC063": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "Constant-time token check"
+    },
+    "AC064": {
+      "category": "sql-injection",
+      "cwe": "CWE-89",
+      "seeded": true,
+      "variant": "detected"
+    },
+    "AC065": {
+      "category": "hallucinated-package",
+      "cwe": "CWE-829",
+      "seeded": true,
+      "variant": "jwt-oidc-verify"
+    },
+    "AC066": {
+      "category": "hardcoded-secret",
+      "cwe": "CWE-798",
+      "seeded": true,
+      "variant": "gitleaks"
+    },
+    "AC067": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "Resolve under the base"
+    },
+    "AC068": {
+      "category": "command-injection",
+      "cwe": "CWE-78",
+      "seeded": true,
+      "variant": "subprocess"
+    },
+    "AC069": {
+      "category": "sql-injection",
+      "cwe": "CWE-89",
+      "seeded": true,
+      "variant": "detected"
+    },
+    "AC070": {
+      "category": "broken-authorization",
+      "cwe": "CWE-862",
+      "seeded": true,
+      "variant": "wrong-project"
+    },
+    "AC071": {
+      "category": "sql-injection",
+      "cwe": "CWE-89",
+      "seeded": true,
+      "variant": "detected"
+    },
+    "AC072": {
+      "category": "sql-injection",
+      "cwe": "CWE-89",
+      "seeded": true,
+      "variant": "detected"
+    },
+    "AC073": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "Archive with a list"
+    },
+    "AC074": {
+      "category": "sql-injection",
+      "cwe": "CWE-89",
+      "seeded": true,
+      "variant": "detected"
+    },
+    "AC075": {
+      "category": "vulnerable-dependency",
+      "cwe": "CWE-1395",
+      "seeded": true,
+      "variant": "cryptography==41.0.7"
+    },
+    "AC076": {
+      "category": "vulnerable-dependency",
+      "cwe": "CWE-1395",
+      "seeded": true,
+      "variant": "cryptography==42.0.3"
+    },
+    "AC077": {
+      "category": "hardcoded-secret",
+      "cwe": "CWE-798",
+      "seeded": true,
+      "variant": "both"
+    },
+    "AC078": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "Docstring only"
+    },
+    "AC079": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "JSON import"
+    },
+    "AC080": {
+      "category": "command-injection",
+      "cwe": "CWE-78",
+      "seeded": true,
+      "variant": "subprocess"
+    },
+    "AC081": {
+      "category": "unsafe-deserialization",
+      "cwe": "CWE-502",
+      "seeded": true,
+      "variant": "pickle"
+    },
+    "AC082": {
+      "category": "unsafe-deserialization",
+      "cwe": "CWE-502",
+      "seeded": true,
+      "variant": "shelve"
+    },
+    "AC083": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "JSON import"
+    },
+    "AC084": {
+      "category": "vulnerable-dependency",
+      "cwe": "CWE-1395",
+      "seeded": true,
+      "variant": "gunicorn==22.0.0"
+    },
+    "AC085": {
+      "category": "vulnerable-dependency",
+      "cwe": "CWE-1395",
+      "seeded": true,
+      "variant": "pyjwt==2.3.0"
+    },
+    "AC086": {
+      "category": "typosquat",
+      "cwe": "CWE-829",
+      "seeded": true,
+      "variant": "pytset"
+    },
+    "AC087": {
+      "category": "hardcoded-secret",
+      "cwe": "CWE-798",
+      "seeded": true,
+      "variant": "gitleaks"
+    },
+    "AC088": {
+      "category": "dependency-confusion",
+      "cwe": "CWE-427",
+      "seeded": true,
+      "variant": "extra-index"
+    },
+    "AC089": {
+      "category": "hardcoded-secret",
+      "cwe": "CWE-798",
+      "seeded": true,
+      "variant": "gitleaks"
+    },
+    "AC090": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "Archive with a list"
+    },
+    "AC091": {
+      "category": "sql-injection",
+      "cwe": "CWE-89",
+      "seeded": true,
+      "variant": "helper"
+    },
+    "AC092": {
+      "category": "unsafe-deserialization",
+      "cwe": "CWE-502",
+      "seeded": true,
+      "variant": "eval"
+    },
+    "AC093": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "JSON import"
+    },
+    "AC094": {
+      "category": "path-traversal",
+      "cwe": "CWE-22",
+      "seeded": true,
+      "variant": "pathlib"
+    },
+    "AC095": {
+      "category": "broken-authorization",
+      "cwe": "CWE-862",
+      "seeded": true,
+      "variant": "wrong-project"
+    },
+    "AC096": {
+      "category": "broken-authorization",
+      "cwe": "CWE-862",
+      "seeded": true,
+      "variant": "wrong-project"
+    },
+    "AC097": {
+      "category": "weak-crypto",
+      "cwe": "CWE-327",
+      "seeded": true,
+      "variant": "sha1"
+    },
+    "AC098": {
+      "category": "unsafe-deserialization",
+      "cwe": "CWE-502",
+      "seeded": true,
+      "variant": "shelve"
+    },
+    "AC099": {
+      "category": "dependency-confusion",
+      "cwe": "CWE-427",
+      "seeded": true,
+      "variant": "extra-index"
+    },
+    "AC100": {
+      "category": "hallucinated-package",
+      "cwe": "CWE-829",
+      "seeded": true,
+      "variant": "pytest-relay-fixtures"
+    },
+    "AC101": {
+      "category": "hardcoded-secret",
+      "cwe": "CWE-798",
+      "seeded": true,
+      "variant": "gitleaks"
+    },
+    "AC102": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "Constant-time token check"
+    },
+    "AC103": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "Token from the environment"
+    },
+    "AC104": {
+      "category": "weak-crypto",
+      "cwe": "CWE-327",
+      "seeded": true,
+      "variant": "md5"
+    },
+    "AC105": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "Parameterized search"
+    },
+    "AC106": {
+      "category": "unsafe-deserialization",
+      "cwe": "CWE-502",
+      "seeded": true,
+      "variant": "eval"
+    },
+    "AC107": {
+      "category": "command-injection",
+      "cwe": "CWE-78",
+      "seeded": true,
+      "variant": "os-system"
+    },
+    "AC108": {
+      "category": "unsafe-deserialization",
+      "cwe": "CWE-502",
+      "seeded": true,
+      "variant": "marshal"
+    },
+    "AC109": {
+      "category": "hardcoded-secret",
+      "cwe": "CWE-798",
+      "seeded": true,
+      "variant": "split"
+    },
+    "AC110": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "Resolve under the base"
+    },
+    "AC111": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "JSON import"
+    },
+    "AC112": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "Docstring only"
+    },
+    "AC113": {
+      "category": "dependency-confusion",
+      "cwe": "CWE-427",
+      "seeded": true,
+      "variant": "pinned-public"
+    },
+    "AC114": {
+      "category": "hallucinated-package",
+      "cwe": "CWE-829",
+      "seeded": true,
+      "variant": "pyoidc-jwks"
+    },
+    "AC115": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "Check can_view first"
+    },
+    "AC116": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "Check can_view first"
+    },
+    "AC117": {
+      "category": "hardcoded-secret",
+      "cwe": "CWE-798",
+      "seeded": true,
+      "variant": "gitleaks"
+    },
+    "AC118": {
+      "category": "hardcoded-secret",
+      "cwe": "CWE-798",
+      "seeded": true,
+      "variant": "gitleaks"
+    },
+    "AC119": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "Token from the environment"
+    },
+    "AC120": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "Check can_view first"
+    },
+    "AC121": {
+      "category": "typosquat",
+      "cwe": "CWE-829",
+      "seeded": true,
+      "variant": "crpytography"
+    },
+    "AC122": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "Resolve under the base"
+    },
+    "AC123": {
+      "category": "hallucinated-package",
+      "cwe": "CWE-829",
+      "seeded": true,
+      "variant": "relay-sdk-tools"
+    },
+    "AC124": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "Token from the environment"
+    },
+    "AC125": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "Constant-time token check"
+    },
+    "AC126": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "Constant-time token check"
+    },
+    "AC127": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "Check can_view first"
+    },
+    "AC128": {
+      "category": "hardcoded-secret",
+      "cwe": "CWE-798",
+      "seeded": true,
+      "variant": "gitleaks"
+    },
+    "AC129": {
+      "category": "weak-crypto",
+      "cwe": "CWE-327",
+      "seeded": true,
+      "variant": "md5"
+    },
+    "AC130": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "Parameterized search"
+    },
+    "AC131": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "Constant-time token check"
+    },
+    "AC132": {
+      "category": "path-traversal",
+      "cwe": "CWE-22",
+      "seeded": true,
+      "variant": "detected"
+    },
+    "AC133": {
+      "category": "sql-injection",
+      "cwe": "CWE-89",
+      "seeded": true,
+      "variant": "detected"
+    },
+    "AC134": {
+      "category": "broken-authorization",
+      "cwe": "CWE-862",
+      "seeded": true,
+      "variant": "wrong-project"
+    },
+    "AC135": {
+      "category": "command-injection",
+      "cwe": "CWE-78",
+      "seeded": true,
+      "variant": "subprocess"
+    },
+    "AC136": {
+      "category": "vulnerable-dependency",
+      "cwe": "CWE-1395",
+      "seeded": true,
+      "variant": "cryptography==42.0.3"
+    },
+    "AC137": {
+      "category": "unsafe-deserialization",
+      "cwe": "CWE-502",
+      "seeded": true,
+      "variant": "pickle"
+    },
+    "AC138": {
+      "category": "hallucinated-package",
+      "cwe": "CWE-829",
+      "seeded": true,
+      "variant": "fastjsonschema-validate"
+    },
+    "AC139": {
+      "category": "broken-authorization",
+      "cwe": "CWE-862",
+      "seeded": true,
+      "variant": "wrong-project"
+    },
+    "AC140": {
+      "category": "vulnerable-dependency",
+      "cwe": "CWE-1395",
+      "seeded": true,
+      "variant": "gunicorn==22.0.0"
+    },
+    "AC141": {
+      "category": "sql-injection",
+      "cwe": "CWE-89",
+      "seeded": true,
+      "variant": "detected"
+    },
+    "AC142": {
+      "category": "path-traversal",
+      "cwe": "CWE-22",
+      "seeded": true,
+      "variant": "pathlib"
+    },
+    "AC143": {
+      "category": "typosquat",
+      "cwe": "CWE-829",
+      "seeded": true,
+      "variant": "gunicorm"
+    },
+    "AC144": {
+      "category": "broken-authorization",
+      "cwe": "CWE-862",
+      "seeded": true,
+      "variant": "wrong-project"
+    },
+    "AC145": {
+      "category": "sql-injection",
+      "cwe": "CWE-89",
+      "seeded": true,
+      "variant": "detected"
+    },
+    "AC146": {
+      "category": "command-injection",
+      "cwe": "CWE-78",
+      "seeded": true,
+      "variant": "subprocess"
+    },
+    "AC147": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "Column list from a constant"
+    },
+    "AC148": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "Docstring only"
+    },
+    "AC149": {
+      "category": "path-traversal",
+      "cwe": "CWE-22",
+      "seeded": true,
+      "variant": "pathlib"
+    },
+    "AC150": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "Token from the environment"
+    },
+    "AC151": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "ETag for an export"
+    },
+    "AC152": {
+      "category": "broken-authorization",
+      "cwe": "CWE-862",
+      "seeded": true,
+      "variant": "detected"
+    },
+    "AC153": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "JSON import"
+    },
+    "AC154": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "Check can_view first"
+    },
+    "AC155": {
+      "category": "hallucinated-package",
+      "cwe": "CWE-829",
+      "seeded": true,
+      "variant": "sqlite-migrate-safe"
+    },
+    "AC156": {
+      "category": "dependency-confusion",
+      "cwe": "CWE-427",
+      "seeded": true,
+      "variant": "pinned-public"
+    },
+    "AC157": {
+      "category": "iac-misconfiguration",
+      "cwe": "CWE-16",
+      "seeded": true,
+      "variant": "open-ingress"
+    },
+    "AC158": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "Docstring only"
+    },
+    "AC159": {
+      "category": "hardcoded-secret",
+      "cwe": "CWE-798",
+      "seeded": true,
+      "variant": "both"
+    },
+    "AC160": {
+      "category": "clean",
+      "cwe": null,
+      "seeded": false,
+      "variant": "Docstring only"
+    }
+  },
+  "generated": "GENERATED by labs/ch13/L13.1-secure-agent-loop/scripts/generate_data.py; simulated data"
+}

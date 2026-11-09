@@ -1,0 +1,35 @@
+# Proposed agent workflow, version 2 (hardened). Lab fixture; not used by Relay.
+# Stand-in SHAs in the right form; pin the reviewed commits.
+name: relay-agent
+on:
+  issue_comment:
+    types: [created]
+permissions:
+  contents: read
+  issues: write
+jobs:
+  agent:
+    if: >-
+      startsWith(github.event.comment.body, '/relay-agent') &&
+      contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association)
+    runs-on: ubuntu-latest
+    environment: agent
+    permissions:
+      contents: read
+      issues: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@1111111111111111111111111111111111111111  # v4, stand-in SHA
+        with: {persist-credentials: false}
+      - name: Save the thread as data, never as code
+        env:
+          COMMENT: ${{ github.event.comment.body }}
+        run: printf '%s' "$COMMENT" > "$RUNNER_TEMP/request.txt"
+      - name: Ask the agent
+        uses: example-org/coding-agent-action@8888888888888888888888888888888888888888  # v1, stand-in SHA
+        with:
+          prompt_file: ${{ runner.temp }}/request.txt
+          untrusted_input: strip-hidden-characters
+          allowed_tools: "Comment"
+          comment_links: relay.example
+          model_auth: oidc

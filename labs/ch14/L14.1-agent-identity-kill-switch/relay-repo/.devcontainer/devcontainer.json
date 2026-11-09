@@ -1,0 +1,9 @@
+{
+  "name": "relay-dev",
+  "image": "mcr.microsoft.com/devcontainers/python:3.12",
+  "remoteUser": "vscode",
+  "runArgs": ["--security-opt=no-new-privileges", "--cap-drop=ALL"],
+  "mounts": [],
+  "containerEnv": {"RELAY_ENV": "dev"},
+  "postCreateCommand": "python -m pip install --user pytest==9.1.1"
+}

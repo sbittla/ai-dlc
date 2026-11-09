@@ -1,0 +1,13 @@
+# gitleaks configuration (ADR-029): the default rules plus Relay's own token format.
+# Changing this file needs @relay/security (CODEOWNERS); an allowlist entry here is a
+# suppression, so it carries the same review as security/suppressions.json.
+title = "relay"
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "relay-token"
+description = "Relay personal or service token"
+regex = '''\brly_(live|test)_[0-9a-f]{32}\b'''
+keywords = ["rly_live_", "rly_test_"]

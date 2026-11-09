@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "relay-db-readonly": {
+      "command": "python",
+      "args": ["-m", "relaymcp.server", "--db", "data/relay-test.sql", "--audit", "evidence/mcp-audit.jsonl"]
+    }
+  }
+}

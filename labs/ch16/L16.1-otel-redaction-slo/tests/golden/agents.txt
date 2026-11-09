@@ -1,0 +1,6 @@
+Agent runs traced from the journal: 40 runs, 300 spans; by status {'budget': 3, 'finished': 32, 'handed_back': 4, 'revoked': 1}
+Dropped at export (not on the allowlist): {'unknown-key': 40}
+  02-11 08:00 AL-004 (ticket) for spec-to-pr-helper
+  02-11 15:00 AL-004 (ticket) for spec-to-pr-helper
+  02-11 22:00 AL-004 (ticket) for spec-to-pr-helper
+  02-12 05:00 AL-005 (ticket) for spec-to-pr-helper

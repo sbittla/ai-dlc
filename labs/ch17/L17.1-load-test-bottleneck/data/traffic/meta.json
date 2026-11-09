@@ -1,0 +1,32 @@
+{
+  "GENERATED": "by scripts/generate_data.py; synthetic, configured traffic, not measured",
+  "days": [
+    "2027-02-01",
+    "2027-02-02",
+    "2027-02-03",
+    "2027-02-04",
+    "2027-02-05",
+    "2027-02-06",
+    "2027-02-07"
+  ],
+  "journeys": {
+    "get_escalation": "GET /v1/projects/{pid}/tasks/{tid}/escalation",
+    "get_task": "GET /v1/projects/{pid}/tasks/{tid}",
+    "get_triage_job": "GET /v1/triage-jobs/{id}",
+    "healthz": "GET /healthz (load-balancer probes)",
+    "post_triage_job": "POST /v1/triage-jobs (a support ticket queued for triage)"
+  },
+  "minute": "minutes since start_utc",
+  "outage": {
+    "day": "2027-02-03",
+    "hour": 14,
+    "minutes": 10,
+    "poll_minutes": 20,
+    "polls_per_ticket": 3,
+    "tickets": 300
+  },
+  "outage_note": "SYNTHETIC: a scenario, not a recorded event. A 20-minute task-board outage on Wednesday 3 February 2027 at 14:00 UTC that floods support with tickets; scenario owner tomas.b (support lead). Chapter 16's 2 February credential-stuffing attack hit the web sign-in, which these routes do not include, so it is not in this week.",
+  "seed": 1702,
+  "start_utc": "2027-02-01T00:00:00Z",
+  "tokens_at_peak": 40
+}

@@ -1,0 +1,387 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://relay.example/specs/001-escalation-rules/contracts/escalation-rules.schema.json",
+  "title": "Escalation rules: rule, evaluation, rejection and delivery documents",
+  "x-spec": "ESC-SPEC-1",
+  "x-spec-version": "1.2.0",
+  "$defs": {
+    "Rule": {
+      "type": "object",
+      "required": [
+        "rule_id",
+        "project_id",
+        "priority",
+        "steps"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "rule_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{1,64}$"
+        },
+        "project_id": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "priority": {
+          "type": "string",
+          "enum": [
+            "P1",
+            "P2",
+            "P3",
+            "P4"
+          ],
+          "x-relay-constant": "RULE_PRIORITIES"
+        },
+        "steps": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/Step"
+          }
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^[^\r\n]{1,80}$"
+        },
+        "business_hours": {
+          "$ref": "#/$defs/BusinessHours"
+        }
+      }
+    },
+    "Step": {
+      "type": "object",
+      "required": [
+        "number",
+        "delay_minutes",
+        "targets"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "number": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "delay_minutes": {
+          "type": "integer",
+          "minimum": 5,
+          "maximum": 240
+        },
+        "targets": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      }
+    },
+    "BusinessHours": {
+      "type": "object",
+      "required": [
+        "start",
+        "end",
+        "time_zone",
+        "days"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "start": {
+          "type": "string",
+          "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$"
+        },
+        "end": {
+          "type": "string",
+          "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$"
+        },
+        "time_zone": {
+          "type": "string",
+          "x-relay-constant": "ZONE_NAMES",
+          "enum": [
+            "Pacific/Pago_Pago",
+            "Pacific/Honolulu",
+            "America/Los_Angeles",
+            "America/New_York",
+            "UTC",
+            "Europe/London",
+            "Europe/Berlin",
+            "Asia/Kolkata",
+            "Asia/Tokyo",
+            "Australia/Sydney",
+            "Pacific/Auckland",
+            "Pacific/Tongatapu",
+            "Pacific/Chatham",
+            "Pacific/Kiritimati"
+          ]
+        },
+        "days": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 7,
+          "uniqueItems": true,
+          "items": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 7
+          }
+        }
+      }
+    },
+    "Evaluation": {
+      "type": "object",
+      "required": [
+        "spec_version",
+        "task_id",
+        "rule_id",
+        "evaluated_at",
+        "status",
+        "fire",
+        "next_due_at"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "spec_version": {
+          "type": "string",
+          "const": "1.2.0"
+        },
+        "task_id": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "rule_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{1,64}$"
+        },
+        "evaluated_at": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "not_applicable",
+            "acknowledged",
+            "active",
+            "complete"
+          ],
+          "x-relay-constant": "STATUSES"
+        },
+        "fire": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/StepDecision"
+          }
+        },
+        "next_due_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+        }
+      }
+    },
+    "StepDecision": {
+      "type": "object",
+      "required": [
+        "step",
+        "targets",
+        "due_at"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "step": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "targets": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "due_at": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+        }
+      }
+    },
+    "Rejection": {
+      "type": "object",
+      "required": [
+        "code",
+        "message",
+        "subject"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "type": "string",
+          "x-relay-constant": "ERROR_CODES",
+          "enum": [
+            "not_rule_editor",
+            "unsupported_priority",
+            "no_steps",
+            "steps_not_numbered",
+            "delay_out_of_range",
+            "delays_not_increasing",
+            "no_targets",
+            "target_not_user",
+            "target_not_in_workspace",
+            "target_cannot_view_project",
+            "business_hours_required",
+            "business_hours_not_allowed",
+            "business_hours_invalid"
+          ]
+        },
+        "message": {
+          "type": "string"
+        },
+        "subject": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "EmailMessage": {
+      "type": "object",
+      "required": [
+        "kind",
+        "to_user",
+        "subject",
+        "body"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "escalation",
+            "summary",
+            "rule_notice"
+          ],
+          "x-relay-constant": "EMAIL_KINDS"
+        },
+        "to_user": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "subject": {
+          "type": "string",
+          "pattern": "^\\[Relay\\] [^\r\n]*$"
+        },
+        "body": {
+          "type": "string"
+        }
+      }
+    },
+    "WebhookEvent": {
+      "type": "object",
+      "required": [
+        "event",
+        "spec_version",
+        "task_id",
+        "link",
+        "priority",
+        "project_name",
+        "rule_id",
+        "rule_name",
+        "step",
+        "targets",
+        "delay_started_at",
+        "fired_at"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "event": {
+          "type": "string",
+          "enum": [
+            "task.escalated"
+          ],
+          "x-relay-constant": "WEBHOOK_EVENTS"
+        },
+        "spec_version": {
+          "type": "string",
+          "const": "1.2.0"
+        },
+        "task_id": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "link": {
+          "type": "string",
+          "pattern": "^https://"
+        },
+        "priority": {
+          "type": "string",
+          "enum": [
+            "P1",
+            "P2",
+            "P3",
+            "P4"
+          ],
+          "x-relay-constant": "PRIORITIES"
+        },
+        "project_name": {
+          "type": "string"
+        },
+        "rule_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{1,64}$"
+        },
+        "rule_name": {
+          "type": "string"
+        },
+        "step": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "targets": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "delay_started_at": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+        },
+        "fired_at": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+        }
+      }
+    },
+    "RuleDeleted": {
+      "type": "object",
+      "required": [
+        "rule_id",
+        "deleted_at",
+        "notices"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "rule_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{1,64}$"
+        },
+        "deleted_at": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+        },
+        "notices": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    }
+  }
+}

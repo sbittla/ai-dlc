@@ -1,0 +1,12 @@
+draft-agent.md: 10 finding(s) {'PM001': 2, 'PM002': 2, 'PM003': 2, 'PM004': 1, 'PM005': 1, 'PM006': 1, 'PM007': 1}
+  PM001 Detection
+  PM001 What went well
+  PM002 15:00 deploy train starts
+  PM002 15:31 rollback complete
+  PM003 human error
+  PM003 should have known
+  PM004 Be more careful with rollbacks
+  PM005 Be more careful with rollbacks: process
+  PM006 sam.o
+  PM007 The root cause was the deploy, which the assistant identified.
+reference.md: 0 finding(s) {}

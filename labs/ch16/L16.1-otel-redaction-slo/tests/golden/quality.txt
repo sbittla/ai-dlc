@@ -1,0 +1,4 @@
+SLO-TRIAGE-QUALITY (80% kept unchanged): 1441 of 1816 suggestions kept over 30 days (79.4%)
+  error budget: 375 bad of 363.2 allowed; remaining -3.2% (exhausted: the budget policy stops triage prompt, model and routing changes)
+  configured drop, 19-25 January: 277 of 444 kept (62.4%)
+  ticket from 2027-01-21 to 2027-01-26

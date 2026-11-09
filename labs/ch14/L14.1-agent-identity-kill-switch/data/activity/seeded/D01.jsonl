@@ -1,0 +1,2 @@
+{"action": "export.start", "agent_id": null, "at": "2026-12-02T02:05:00Z", "identity": "svc-0417", "on_behalf_of": null, "outcome": "ok", "resource": "workspace:support/project:support-inbox", "rows": 0, "source": "github-actions", "truth": "attacker"}
+{"action": "export.download", "agent_id": null, "at": "2026-12-02T02:21:00Z", "identity": "svc-0417", "on_behalf_of": null, "outcome": "ok", "resource": "workspace:support/project:support-inbox", "rows": 2014, "source": "github-actions", "truth": "attacker"}

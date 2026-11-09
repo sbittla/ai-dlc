@@ -1,0 +1,85 @@
+{
+  "about": "The five pull requests that modernized Relay's notification module (Chapter 9, worked example), as tasks for coding agents in separate worktrees. Each worktree under data/worktrees/<task>/ holds the files that task's agent session produced, at their repository paths. The agent sessions are SIMULATED: the files were written for the book and are labelled so; no model produced them. A task's agent starts from the integrated repository as it was when the task's dependencies had merged.",
+  "agent": "sim-coder (simulated; configured, not a model)",
+  "base": "Relay 4.21.0 with rule deletion (no relay/notify package)",
+  "tasks": [
+    {
+      "id": "T1",
+      "pr": "notify-1",
+      "title": "Import the legacy module unchanged and characterize it",
+      "depends": [],
+      "deletes": [],
+      "touches": [
+        "src/relay/notify/__init__.py",
+        "src/relay/notify/legacy.py",
+        "tests/notify/corpus.py",
+        "tests/notify/legacy_reference.py",
+        "tests/notify/test_notify_characterization.py"
+      ],
+      "rollback": "revert (nothing calls the package yet)"
+    },
+    {
+      "id": "T2",
+      "pr": "notify-2",
+      "title": "Extract the send decision into a pure function",
+      "depends": [
+        "T1"
+      ],
+      "deletes": [],
+      "touches": [
+        "src/relay/notify/decide.py",
+        "src/relay/notify/legacy.py",
+        "tests/notify/test_notify_decide.py"
+      ],
+      "rollback": "revert (behaviour identical)"
+    },
+    {
+      "id": "T3",
+      "pr": "notify-3",
+      "title": "New tables, a proved migration, and writes to both tables",
+      "depends": [
+        "T1"
+      ],
+      "deletes": [],
+      "rerun": "T3-rebased",
+      "touches": [
+        "src/relay/notify/migrate.py",
+        "src/relay/notify/store.py",
+        "src/relay/notify/legacy.py",
+        "tests/notify/test_notify_migration.py"
+      ],
+      "rollback": "revert (the legacy table was never altered)"
+    },
+    {
+      "id": "T4",
+      "pr": "notify-4",
+      "title": "The compatibility layer, reading in shadow mode",
+      "depends": [
+        "T2",
+        "T3"
+      ],
+      "deletes": [],
+      "touches": [
+        "src/relay/notify/__init__.py",
+        "tests/notify/test_notify_characterization.py",
+        "tests/notify/test_notify_compat.py"
+      ],
+      "rollback": "RELAY_NOTIFY_READ_FROM=legacy, or revert"
+    },
+    {
+      "id": "T5",
+      "pr": "notify-5",
+      "title": "Read from the new tables; retire the legacy working copy",
+      "depends": [
+        "T4"
+      ],
+      "deletes": [
+        "src/relay/notify/legacy.py"
+      ],
+      "touches": [
+        "src/relay/notify/__init__.py"
+      ],
+      "rollback": "RELAY_NOTIFY_READ_FROM=legacy (dual write until 2027-01-31)"
+    }
+  ]
+}

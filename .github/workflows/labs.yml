@@ -29,8 +29,16 @@ jobs:
           - labs/ch07/L7.2-judge-calibration
           - labs/ch08/L8.1-test-first-agent
           - labs/ch08/L8.2-mutation-property-repair
+          - labs/ch09/L9.1-spec-to-reviewed-pr
+          - labs/ch09/L9.2-legacy-refactor-characterization
+          - labs/ch10/L10.1-workflow-agent-multiagent
+          - labs/ch10/L10.2-failure-injection-approval-gates
           - labs/ch11/L11.1-guardrailed-cloud-environment
           - labs/ch11/L11.2-azure-gcp-mapping
+          - labs/ch13/L13.1-secure-agent-loop
+          - labs/ch13/L13.2-poisoned-instructions-ci-injection
+          - labs/ch14/L14.1-agent-identity-kill-switch
+          - labs/ch14/L14.2-governance-pack
     defaults:
       run:
         working-directory: ${{ matrix.lab }}
@@ -62,22 +70,103 @@ jobs:
         if: matrix.lab == 'labs/ch05/L5.1-spec-first-delivery'
         working-directory: labs/ch03/L3.1-accountable-workspace/solution
         run: python -m audit.report --policy ../data/policy.json --as-of 2026-11-24 --fail-on high ../../../ch05/L5.1-spec-first-delivery/solution/relay-repo
+      - name: Relay 4.24.0 passes its own suite and lint (Lab 10.1 only)
+        if: matrix.lab == 'labs/ch10/L10.1-workflow-agent-multiagent'
+        shell: bash
+        working-directory: labs/ch10/L10.1-workflow-agent-multiagent/solution/relay-repo
+        run: |
+          PYTHONPATH=src python -m pytest -q
+          python tools/lint.py
+      - name: Relay 4.24.0 passes the workspace audit (Lab 10.1 only)
+        if: matrix.lab == 'labs/ch10/L10.1-workflow-agent-multiagent'
+        working-directory: labs/ch03/L3.1-accountable-workspace/solution
+        run: python -m audit.report --policy ../data/policy.json --as-of 2027-01-26 --fail-on high ../../../ch10/L10.1-workflow-agent-multiagent/solution/relay-repo
       - name: Relay 4.21.0 passes the workspace audit (Lab 11.1 only)
         if: matrix.lab == 'labs/ch11/L11.1-guardrailed-cloud-environment'
         working-directory: labs/ch03/L3.1-accountable-workspace/solution
         run: python -m audit.report --policy ../data/policy.json --as-of 2026-11-30 --fail-on high ../../../ch11/L11.1-guardrailed-cloud-environment/relay-repo
+      - name: Relay 4.25.0 passes lint and the supply-chain check (Lab 13.1 only)
+        if: matrix.lab == 'labs/ch13/L13.1-secure-agent-loop'
+        working-directory: labs/ch13/L13.1-secure-agent-loop/relay-repo
+        shell: bash
+        run: |
+          python tools/lint.py
+          python tools/supplychain.py
+      - name: ADR-028 to ADR-031 pass Chapter 6's ADR checker (Lab 13.1 only)
+        if: matrix.lab == 'labs/ch13/L13.1-secure-agent-loop'
+        working-directory: labs/ch06/L6.1-architecture-options-adr/solution
+        run: python -m archscore.report adr --drivers ../data/drivers.json ../../../ch13/L13.1-secure-agent-loop/relay-repo/docs/adr/ADR-028-mirror-only-dependencies-and-pinned-artefacts.md ../../../ch13/L13.1-secure-agent-loop/relay-repo/docs/adr/ADR-029-security-gates-for-agent-written-changes.md ../../../ch13/L13.1-secure-agent-loop/relay-repo/docs/adr/ADR-030-signed-sbom-ai-bom-and-provenance.md ../../../ch13/L13.1-secure-agent-loop/relay-repo/docs/adr/ADR-031-deployment-wiring-and-migration-role.md --gate
+      - name: Relay 4.25.0 passes the workspace audit (Lab 13.1 only)
+        if: matrix.lab == 'labs/ch13/L13.1-secure-agent-loop'
+        working-directory: labs/ch03/L3.1-accountable-workspace/solution
+        run: python -m audit.report --policy ../data/policy.json --as-of 2027-01-28 --fail-on high ../../../ch13/L13.1-secure-agent-loop/relay-repo
+      - name: Relay 4.23.0 passes the workspace audit (Lab 14.1 only)
+        if: matrix.lab == 'labs/ch14/L14.1-agent-identity-kill-switch'
+        working-directory: labs/ch03/L3.1-accountable-workspace/solution
+        run: python -m audit.report --policy ../data/policy.json --as-of 2027-01-12 --fail-on high ../../../ch14/L14.1-agent-identity-kill-switch/relay-repo
+      - name: PRD v1.1 passes Chapter 4's requirements gate (Lab 8.1 only)
+        if: matrix.lab == 'labs/ch08/L8.1-test-first-agent'
+        working-directory: labs/ch04/L4.1-brief-to-prd/solution
+        run: python -m reqcheck.report --sources ../data/sources --lexicon ../data/lexicon.json ../../../ch08/L8.1-test-first-agent/data/prd-v1.1.md --gate
+      - name: Spec 1.1.0 passes Chapter 5's spec checker (Lab 8.1 only)
+        if: matrix.lab == 'labs/ch08/L8.1-test-first-agent'
+        working-directory: labs/ch05/L5.1-spec-first-delivery/solution
+        run: python -m speccheck.report --prd ../../../ch08/L8.1-test-first-agent/data/prd-v1.1.md --tests ../../../ch08/L8.1-test-first-agent/solution/relay-repo/tests --spec ../../../ch08/L8.1-test-first-agent/solution/relay-repo/specs/001-escalation-rules --gate
       - name: Relay 4.20.0 passes the workspace audit (Lab 8.1 only)
         if: matrix.lab == 'labs/ch08/L8.1-test-first-agent'
         working-directory: labs/ch03/L3.1-accountable-workspace/solution
         run: python -m audit.report --policy ../data/policy.json --as-of 2026-12-04 --fail-on high ../../../ch08/L8.1-test-first-agent/solution/relay-repo
+      - name: Relay 4.20.0 passes its own suite and lint (Lab 8.1 only)
+        if: matrix.lab == 'labs/ch08/L8.1-test-first-agent'
+        shell: bash
+        working-directory: labs/ch08/L8.1-test-first-agent/solution/relay-repo
+        run: |
+          PYTHONPATH=src python -m pytest -q
+          python tools/lint.py
+      - name: Relay 4.22.0 passes its own suite and lint (Lab 9.1 only)
+        if: matrix.lab == 'labs/ch09/L9.1-spec-to-reviewed-pr'
+        shell: bash
+        working-directory: labs/ch09/L9.1-spec-to-reviewed-pr/solution/relay-repo
+        run: |
+          PYTHONPATH=src python -m pytest -q
+          python tools/lint.py
+      - name: PRD v1.1 passes Chapter 4's requirements gate (Lab 9.1 only)
+        if: matrix.lab == 'labs/ch09/L9.1-spec-to-reviewed-pr'
+        working-directory: labs/ch04/L4.1-brief-to-prd/solution
+        run: python -m reqcheck.report --sources ../data/sources --lexicon ../data/lexicon.json ../../../ch09/L9.1-spec-to-reviewed-pr/data/prd-v1.1.md --gate
+      - name: Spec 1.2.0 passes Chapter 5's spec checker (Lab 9.1 only)
+        if: matrix.lab == 'labs/ch09/L9.1-spec-to-reviewed-pr'
+        working-directory: labs/ch05/L5.1-spec-first-delivery/solution
+        run: python -m speccheck.report --prd ../../../ch09/L9.1-spec-to-reviewed-pr/data/prd-v1.1.md --tests ../../../ch09/L9.1-spec-to-reviewed-pr/solution/relay-repo/tests --spec ../../../ch09/L9.1-spec-to-reviewed-pr/solution/relay-repo/specs/001-escalation-rules --gate
+      - name: ADR-016 to ADR-019 pass Chapter 6's ADR checker (Lab 9.1 only)
+        if: matrix.lab == 'labs/ch09/L9.1-spec-to-reviewed-pr'
+        working-directory: labs/ch06/L6.1-architecture-options-adr/solution
+        run: python -m archscore.report adr --drivers ../data/drivers.json ../../../ch09/L9.1-spec-to-reviewed-pr/solution/relay-repo/docs/adr/ADR-016-rule-deletion-and-rule-notices.md ../../../ch09/L9.1-spec-to-reviewed-pr/solution/relay-repo/docs/adr/ADR-017-worker-runs-escalation-passes.md ../../../ch09/L9.1-spec-to-reviewed-pr/solution/relay-repo/docs/adr/ADR-018-legacy-notification-module.md ../../../ch09/L9.1-spec-to-reviewed-pr/solution/relay-repo/docs/adr/ADR-019-schema-versions-and-migrations.md --gate
+      - name: Relay 4.22.0 passes the workspace audit (Lab 9.1 only)
+        if: matrix.lab == 'labs/ch09/L9.1-spec-to-reviewed-pr'
+        working-directory: labs/ch03/L3.1-accountable-workspace/solution
+        run: python -m audit.report --policy ../data/policy.json --as-of 2026-12-18 --fail-on high ../../../ch09/L9.1-spec-to-reviewed-pr/solution/relay-repo
 
   relay-baseline:
-    name: canonical Relay 4.19.0 (${{ matrix.os }})
+    name: canonical Relay ${{ matrix.version }} (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
+        version: ["4.19.0", "4.21.0", "4.23.0", "4.25.0"]
+        include:
+          - version: "4.19.0"
+            script: merge_4_19_0.py
+          - version: "4.21.0"
+            script: merge_4_21_0.py
+            audit_as_of: "2026-12-04"
+          - version: "4.23.0"
+            script: merge_4_23_0.py
+            audit_as_of: "2027-01-12"
+          - version: "4.25.0"
+            script: merge_4_25_0.py
+            audit_as_of: "2027-01-28"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -88,12 +177,17 @@ jobs:
       - name: Merge reproduces the committed baseline
         shell: bash
         run: |
-          python labs/relay-baselines/merge_4_19_0.py
+          python labs/relay-baselines/${{ matrix.script }}
           git diff --exit-code -- labs/relay-baselines
           test -z "$(git status --porcelain -- labs/relay-baselines)"
       - name: Tests and lint
         shell: bash
-        working-directory: labs/relay-baselines/4.19.0/relay-repo
+        working-directory: labs/relay-baselines/${{ matrix.version }}/relay-repo
         run: |
           PYTHONPATH=src python -m pytest -q
           python tools/lint.py
+          if [ -f tools/supplychain.py ]; then python tools/supplychain.py; fi
+      - name: Workspace audit (Lab 3.1)
+        if: matrix.audit_as_of
+        working-directory: labs/ch03/L3.1-accountable-workspace/solution
+        run: python -m pip install -e "..[dev]" && python -m audit.report --policy ../data/policy.json --as-of ${{ matrix.audit_as_of }} --fail-on high ../../../relay-baselines/${{ matrix.version }}/relay-repo

@@ -1,0 +1,14 @@
+# Installed in the container image only (ADR-015). Nothing under src/ imports it,
+# so Relay's own dependencies stay empty (pyproject.toml; ADR-007's AR5).
+#
+# From 4.25.0 (ADR-028): only from Relay's mirror, only wheels, every file pinned by hash.
+# `tools/supplychain.py` checks each line against supply-chain/mirror.json. The hashes in this
+# snapshot are lab stand-ins (supply-chain/mirror.json, "hash_source"); a real lock takes them
+# from the mirror with `pip-compile --generate-hashes`.
+--index-url https://pypi-mirror.relay.example/simple/
+--only-binary :all:
+--require-hashes
+gunicorn==23.0.0 \
+    --hash=sha256:853e47c194f2dac0fe6d7832e8c60e8b7a00ca9c15fc88fc98ddc36088e13aaf
+packaging==25.0 \
+    --hash=sha256:36afcca8dbb405bd1b0f025196cffc3e7f7b0753d8826257333667b3e03e46cc

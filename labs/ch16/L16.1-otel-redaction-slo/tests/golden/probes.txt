@@ -1,0 +1,13 @@
+Redaction probes (data/redaction/probes.jsonl): 4.23.0's relay.audit.redact vs 4.27.0's relay.telemetry
+category       probes  4.23.0 caught  4.27.0 caught
+plain               3              3              3
+encoding           10              1             10
+headers             5              2              5
+phone               5              0              4
+identifiers         3              0              3
+free-text           3              0              0
+benign             10              1              1
+in-context          5              0              5
+secret-fields       4              0              4
+sensitive probes: 38; caught by 4.23.0 6, by 4.27.0 34; false positives 1 and 1
+still missed by 4.27.0 (known misses, pinned): P23, P26, P27, P28

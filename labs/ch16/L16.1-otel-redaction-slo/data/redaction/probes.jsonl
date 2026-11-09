@@ -1,0 +1,48 @@
+{"category": "plain", "id": "P01", "sensitive": true, "text": "contact jane.doe@example.com about the export"}
+{"category": "plain", "id": "P02", "sensitive": true, "text": "Authorization: Bearer rly_live_f0e1d2c3b4a59687f0e1d2c3b4a59687"}
+{"category": "plain", "id": "P03", "sensitive": true, "text": "call +44 20 7946 0958 after 5"}
+{"category": "encoding", "id": "P04", "sensitive": true, "text": "jane.doe%40example.com"}
+{"category": "encoding", "id": "P05", "sensitive": true, "text": "jane.doe%2540example.com"}
+{"category": "encoding", "id": "P06", "sensitive": true, "text": "jane%2Edoe%40example%2Ecom"}
+{"category": "encoding", "id": "P07", "sensitive": true, "text": "jane&#64;example.com"}
+{"category": "encoding", "id": "P08", "sensitive": true, "text": "jane\\u0040example.com"}
+{"category": "encoding", "id": "P09", "sensitive": true, "text": "jane\uff20example.com"}
+{"category": "encoding", "id": "P10", "sensitive": true, "text": "jane\u200b@example.com"}
+{"category": "encoding", "id": "P11", "sensitive": true, "text": "amFuZS5kb2VAZXhhbXBsZS5jb20="}
+{"category": "encoding", "id": "P12", "sensitive": true, "text": "aGFydmVzdGVyOnJseV9saXZlX2YwZTFkMmMzYjRhNTk2ODdmMGUxZDJjM2I0YTU5Njg3"}
+{"category": "encoding", "id": "P13", "sensitive": true, "text": "6a616e652e646f65406578616d706c652e636f6d"}
+{"category": "headers", "id": "P14", "sensitive": true, "text": "Cookie: session=7b2a9c1f; theme=dark"}
+{"category": "headers", "id": "P15", "sensitive": true, "text": "X-Api-Key: 9f8e7d6c5b4a3921"}
+{"category": "headers", "id": "P16", "sensitive": true, "text": "proxy-authorization: Basic dXNlcjpwYXNzd29yZA=="}
+{"category": "headers", "id": "P17", "sensitive": true, "text": "authorization=Basic dXNlcjpwYXNzd29yZA=="}
+{"category": "headers", "id": "P18", "sensitive": true, "text": "GET /v1/export?access_token=abc123def456&page=2"}
+{"category": "phone", "id": "P19", "sensitive": true, "text": "call 030 1234567"}
+{"category": "phone", "id": "P20", "sensitive": true, "text": "call 020 7946 0958"}
+{"category": "phone", "id": "P21", "sensitive": true, "text": "call 06 12 34 56 78"}
+{"category": "phone", "id": "P22", "sensitive": true, "text": "call (415) 555-0134"}
+{"category": "phone", "id": "P23", "sensitive": true, "text": "call 4155550134"}
+{"category": "identifiers", "id": "P24", "sensitive": true, "text": "from 203.0.113.45"}
+{"category": "identifiers", "id": "P25", "sensitive": true, "text": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.c2lnbmF0dXJlc2ln"}
+{"category": "free-text", "id": "P26", "sensitive": true, "text": "jane dot doe at example dot com"}
+{"category": "free-text", "id": "P27", "sensitive": true, "text": "Jane Doe, 12 Harbour Street, Rotterdam"}
+{"category": "free-text", "id": "P28", "sensitive": true, "text": "YWxpY2U6aHVudGVyMg=="}
+{"category": "benign", "id": "P29", "sensitive": false, "text": "version 4.27.0 deployed on 2027-02-02 at 15:04:00"}
+{"category": "benign", "id": "P30", "sensitive": false, "text": "network 203.0.113.0/24, 37 failures"}
+{"category": "benign", "id": "P31", "sensitive": false, "text": "trace 4bf92f3577b34da6a3ce929d0e0e4736 span 00f067aa0ba902b7"}
+{"category": "benign", "id": "P32", "sensitive": false, "text": "sha256 9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"}
+{"category": "benign", "id": "P33", "sensitive": false, "text": "job 02 02 2027 finished, 1234 5678 rows"}
+{"category": "benign", "id": "P34", "sensitive": false, "text": "GET /v1/projects/{pid}/tasks/{tid} 200 in 0.041 s"}
+{"category": "benign", "id": "P35", "sensitive": false, "text": "token rotation is scheduled"}
+{"category": "benign", "id": "P36", "sensitive": false, "text": "idempotency key triage-0042-retry"}
+{"category": "in-context", "id": "P37", "sensitive": true, "text": "user=amFuZS5kb2VAZXhhbXBsZS5jb20="}
+{"category": "in-context", "id": "P38", "sensitive": true, "text": "/v1/users/amFuZS5kb2VAZXhhbXBsZS5jb20=/tasks"}
+{"category": "in-context", "id": "P39", "sensitive": true, "text": "tok=QmVhcmVyIHJseV9saXZlX2YwZTFkMmMzYjRhNTk2ODdmMGUxZDJjM2I0YTU5Njg3"}
+{"category": "in-context", "id": "P40", "sensitive": true, "text": "h=6a616e652e646f65406578616d706c652e636f6d"}
+{"category": "in-context", "id": "P41", "sensitive": true, "text": "YWJAY2QuaW8="}
+{"category": "identifiers", "id": "P42", "sensitive": true, "text": "from 2001:db8:85a3::8a2e:370:7334"}
+{"category": "secret-fields", "id": "P43", "sensitive": true, "text": "{\"authorization\": \"abcdefghijklmnopqrstu\"}"}
+{"category": "secret-fields", "id": "P44", "sensitive": true, "text": "{\"password\": \"correct horse battery\"}"}
+{"category": "secret-fields", "id": "P45", "sensitive": true, "text": "password=hunter2hunter2 retry=3"}
+{"category": "secret-fields", "id": "P46", "sensitive": true, "text": "refresh_token: def456ghi789jkl0"}
+{"category": "benign", "id": "P47", "sensitive": false, "text": "network 2001:db8:1234::/48, ratio 3:4:5"}
+{"category": "benign", "id": "P48", "sensitive": false, "text": "mac aa:bb:cc:dd:ee:ff at 15:04:00"}

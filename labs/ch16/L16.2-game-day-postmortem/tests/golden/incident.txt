@@ -1,0 +1,11 @@
+Attack (generated): 95,211 sign-in attempts from 120 networks, 15:06 to 17:19; 110 succeeded
+Latency SLO page: 15:16 (10 min after the first attack request)
+Rollback done 15:31 (15 min after the page); attack continued 109 min until the mitigation at 17:20
+Security P1 declared 16:52: 106 min after the first attack request
+Assistant v0 asked 15:18: Root cause: the 15:00 deploy introduced a slower query path. Confidence: high (0.86). Recommend rolling back the 15:00 release.
+Events: deploy-2027-02-02 15:00-15:04; page-slo-latency 15:16; ask-assistant-1 15:18; rollback-2027-02-02 15:22-15:31; ask-assistant-2 15:41; customer-report 16:41; security-p1 16:52; mitigation 17:20; resets 17:35
+Replayed with relay-service-detection-v1 (as 4.27.0 deploys it):
+  SD-001 first at 15:10 (4 min after the first attack request): SD-001 for *: 201 over 200
+  SD-002 first at 15:10 (4 min after the first attack request): SD-002 for 100.64.235.0/24: 21 over 20
+  SD-003 first at 15:15 (9 min after the first attack request): SD-003 for 100.66.60.0/24: 20 over 20
+  alerts in all: 441 (SD-001 3, SD-002 360, SD-003 78); pages after grouping by rule for an hour: 6

@@ -1,0 +1,44 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ModelCallsOnlyThroughAVpcEndpoint",
+      "Effect": "Deny",
+      "Action": ["bedrock:InvokeModel", "bedrock:InvokeModelWithResponseStream"],
+      "Resource": "*",
+      "Condition": {
+        "Null": {
+          "aws:SourceVpc": "true"
+        }
+      }
+    },
+    {
+      "Sid": "InstancesNeedAnOwnerTag",
+      "Effect": "Deny",
+      "Action": "ec2:RunInstances",
+      "Resource": "arn:aws:ec2:*:*:instance/*",
+      "Condition": {"Null": {"aws:RequestTag/owner": "true"}}
+    },
+    {
+      "Sid": "InstancesNeedACostCenterTag",
+      "Effect": "Deny",
+      "Action": "ec2:RunInstances",
+      "Resource": "arn:aws:ec2:*:*:instance/*",
+      "Condition": {"Null": {"aws:RequestTag/cost-center": "true"}}
+    },
+    {
+      "Sid": "DatabasesNeedAnOwnerTag",
+      "Effect": "Deny",
+      "Action": "rds:CreateDBInstance",
+      "Resource": "arn:aws:rds:*:*:db:*",
+      "Condition": {"Null": {"aws:RequestTag/owner": "true"}}
+    },
+    {
+      "Sid": "DatabasesNeedACostCenterTag",
+      "Effect": "Deny",
+      "Action": "rds:CreateDBInstance",
+      "Resource": "arn:aws:rds:*:*:db:*",
+      "Condition": {"Null": {"aws:RequestTag/cost-center": "true"}}
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "version": "designs-v1",
+  "note": "Budgets are set from the dev split: 1.5 times the 95th percentile of successful dev runs under the calibration budget, rounded up (python -m agentlab.report budgets). Stop rules are Chapter 9's three-attempt stop signal and a stall limit.",
+  "repeats": 3,
+  "reference": "single",
+  "gate": {"margin_points": 5, "benefit_cost_reduction": 0.10},
+  "calibration_budget": {"max_steps": 400, "max_usd": 50.0, "max_seconds": 7200},
+  "designs": {
+    "workflow": {"max_attempts": 3, "budget": {"max_steps": 30, "max_usd": 0.30, "max_seconds": 240}},
+    "single": {"stop": {"repeat_limit": 3, "no_progress_limit": 6},
+               "budget": {"max_steps": 53, "max_usd": 0.40, "max_seconds": 300}},
+    "multi": {"stop": {"repeat_limit": 3, "no_progress_limit": 6},
+              "budget": {"max_steps": 87, "max_usd": 0.65, "max_seconds": 420}},
+    "routed": {"workflow": {"max_attempts": 3}, "agent": {"stop": {"repeat_limit": 3, "no_progress_limit": 6}},
+               "budget": {"max_steps": 62, "max_usd": 0.55, "max_seconds": 360}}
+  }
+}

@@ -1,0 +1,21 @@
+# Every change needs review from a human owner. Agents are never code owners.
+*                    @relay/maintainers
+/AGENTS.md           @relay/platform-leads
+/.github/            @relay/platform-leads
+/governance/         @relay/platform-leads
+/src/relay/roles.py  @relay/security
+/docs/adr/          @relay/platform-leads
+/tests/test_architecture.py  @relay/platform-leads
+/specs/             @relay/product
+/src/relay/escalation/rules.py  @relay/security
+/src/relay/escalation/evaluate.py  @relay/security
+/src/relay/escalation/delivery.py  @relay/security
+/src/relay/service/escalation_routes.py  @relay/security
+/tests/escalation/test_escalation_policy.py  @relay/security
+/infra/            @relay/platform-leads
+/infra/org/        @relay/security
+/deploy/egress-proxy/  @relay/security
+/src/relay/audit/  @relay/security
+/governance/agents.json  @relay/security
+/infra/agents.tf   @relay/security
+/infra/detection/  @relay/security

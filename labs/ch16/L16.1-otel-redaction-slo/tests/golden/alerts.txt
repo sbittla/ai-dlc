@@ -1,0 +1,10 @@
+SLO-API-AVAIL (99.9%), 30 days from 2027-01-04; events (configured in the generator):
+  E1 01-08 10:12-01-08 10:36 spent 23.9% of the budget (significant): bad release: 22% of requests fail
+  E2 01-13 06:00-01-14 17:59 spent 32.5% of the budget (significant): degraded dependency: 0.5% of requests fail for 36 hours
+  E3 01-20 14:31-01-20 14:33 spent 8.5% of the budget (significant): three-minute outage: 60% of requests fail
+  E4 01-26 09:40-01-26 09:40 spent 1.3% of the budget (not significant): one-minute blip: 40% of requests fail
+strategy                   pages false  detected  missed  detection (min)        reset (min)
+static 5 min > budget        732   644  E1,E2,E3,E4 -       E1 0, E2 2, E3 0, E4 0 E1 51, E2 48, E3 54, E4 4
+burn 1 h >= 14.4               2     0  E1,E3     E2      E1 3, E3 1             E1 56, E3 58
+multi-window (workbook)        2     0  E1,E3     E2      E1 3, E3 1             E1 29, E3 4
+                           tickets 3: detected E1,E2,E3; first after E1 9 min, E2 458 min, E3 2 min

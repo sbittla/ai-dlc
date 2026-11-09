@@ -132,7 +132,7 @@ Write `evidence/ci-test-first.yml`: a `test-first` job that runs `python -m test
 
 ### 6S. Attack the routes (Security, 55 min)
 
-Read `relay-repo/tests/service_helpers.py`'s refusal matrix against spec B7, and `relay-repo/tests/test_service_escalation.py`'s fuzz tests. Write `evidence/abuse-cases.md` with at least five abuse cases the matrix does not yet name (for example a rule name carrying an email header, a 64-character rule ID collision across projects, or model output passed to `record_suggestion`), and add tests for two of them in `relay-repo/tests/test_service_abuse.py`. Every new test must pass on the reference code and be read against the spec.
+Read `relay-repo/tests/service_helpers.py`'s refusal matrix against spec B7, and `relay-repo/tests/test_service_escalation.py`'s fuzz tests. Write `evidence/abuse-cases.md` with at least five abuse cases the matrix does not yet name (for example a rule name carrying an email header, a 64-character rule ID collision across projects, or model output passed to `record_suggestion`), and add tests for two of them in `relay-repo/tests/test_service_abuse.py`. Every new test must pass on the reference code and be read against the spec: `tests/test_relay.py` runs your file against a copy of the reference repository, and skips while the file does not exist.
 
 ### 7. Replay the incident (15 min)
 

@@ -1,0 +1,8 @@
+{
+  "GENERATED": "by scripts/generate_data.py",
+  "files": [
+    "traffic/meta.json",
+    "traffic/week-2027-02-01.csv"
+  ],
+  "not_generated": "measured/ holds load-test runs recorded with relay-repo/tools/loadtest.py"
+}

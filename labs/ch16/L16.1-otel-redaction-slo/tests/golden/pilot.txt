@@ -1,0 +1,12 @@
+ESC-AC30 per pilot week (steps fired within 60 s of their due time; at least 95%):
+  week 1: 625 of 625 (100.0%), worst 1.8 s: PASS
+  week 2: 615 of 615 (100.0%), worst 1.8 s: PASS
+  week 3: 668 of 738 (90.5%), worst 8941.3 s: FAIL
+  week 4: 578 of 578 (100.0%), worst 1.8 s: PASS
+D7 flood cap, January pilot: 2556 steps, 2509 emails, held by priority {'P1': 3, 'P3': 44}
+  target-hours over the cap: 104@2027-01-21T10, 207@2027-01-12T13
+    user 104, 2027-01-21T10:00: 23 steps over 44 min, {'P1': 23}; first acknowledgement 10:03:05
+    user 207, 2027-01-12T13:00: 64 steps over 39 min, {'P3': 64}; first acknowledgement none recorded
+  P1 held: 3 (targets [104]); unacknowledged 10 min after: 0; their webhook events delivered: 3
+  most P1 emails for one target in one hour: 23 (outside the 21 January outage: 2)
+  P1 steps acknowledged within 10 minutes: 399 of 457

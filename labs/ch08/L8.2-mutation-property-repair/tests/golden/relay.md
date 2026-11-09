@@ -1,6 +1,6 @@
 # Mutation report: relay
 
-Policy: `relay-mutation-v1` · threshold 90% per module, inclusive · operators ROR, AOR, CRP, LCR, NEG, RSD · 128 test cases
+Policy: `relay-mutation-v1` · threshold 90% per module, inclusive · operators ROR, AOR, CRP, LCR, NEG, RSD · 129 test cases
 
 | Module | Line coverage | Mutants | Killed | Survived | Not covered | Equivalent | Score | Score with no equivalence claims |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |

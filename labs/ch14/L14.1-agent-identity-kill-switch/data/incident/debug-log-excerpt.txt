@@ -1,0 +1,13 @@
+# FAKE debug log excerpt (generated). The token and every address below are fake.
+2026-11-23T14:10:03Z DEBUG harvest: GET /api/v1/projects/support-inbox/tasks?page=1&per_page=100
+2026-11-23T14:10:03Z DEBUG harvest: > Authorization: Basic cmx5X2xpdmVfMGYxZTJkM2M0YjVhNjk3ODg3OTZhNWI0YzNkMmUxZjA6
+2026-11-23T14:10:03Z DEBUG harvest: > User-Agent: relay-eval-harvester/0.9
+2026-11-23T14:10:04Z DEBUG harvest: < HTTP/1.1 502 Bad Gateway
+2026-11-23T14:10:04Z DEBUG harvest: retrying in 30 s with RELAY_TOKEN=rly_live_0f1e2d3c4b5a69788796a5b4c3d2e1f0
+2026-11-23T14:10:34Z DEBUG harvest: < HTTP/1.1 200 OK (100 tasks)
+2026-11-23T14:10:34Z DEBUG harvest: < {"id": 48210, "requester": "mara.ilves@example.com", "title": "Cannot log in after SSO change", "phone": "+44 20 7946 0000"}
+2026-11-23T14:10:34Z DEBUG harvest: < {"id": 48211, "requester": "j.okafor@example.net", "title": "Cannot log in after SSO change", "phone": "+44 20 7946 0001"}
+2026-11-23T14:10:34Z DEBUG harvest: < {"id": 48212, "requester": "lin.wei@example.org", "title": "Cannot log in after SSO change", "phone": "+44 20 7946 0002"}
+2026-11-23T14:10:34Z DEBUG harvest: < {"id": 48213, "requester": "pablo.ruiz@example.com", "title": "Cannot log in after SSO change", "phone": "+44 20 7946 0003"}
+2026-11-23T14:10:34Z DEBUG harvest: < {"id": 48214, "requester": "ines.costa@example.net", "title": "Cannot log in after SSO change", "phone": "+44 20 7946 0004"}
+2026-11-23T14:10:34Z DEBUG harvest: < {"id": 48215, "requester": "tamar.levi@example.org", "title": "Cannot log in after SSO change", "phone": "+44 20 7946 0005"}
