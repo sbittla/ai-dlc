@@ -1,0 +1,76 @@
+"""Policy checks over a workflow file (TODO 1 in starter/).
+
+    PL001  an action is not pinned to a full commit SHA (a remote reusable workflow too; docker:// by digest)
+    PL002  the workflow has no top-level `permissions`, or they grant write anywhere (write-all included)
+    PL003  a job asks for `write-all`, or for `id-token: write` without a protected `environment`
+           (a job that only calls a local reusable workflow is checked in that workflow instead)
+    PL004  an untrusted trigger (pull_request_target, issue_comment, issues, workflow_run) in a workflow
+           where any job can write, mint an OIDC token or read a secret
+    PL005  a long-lived cloud credential: a secret whose name is a cloud key, or a key passed to an action
+    PL006  event or input text pasted into a `run:` script (script injection)
+    PL007  actions/checkout without `persist-credentials: false`
+    PL008  a self-hosted runner without the `ephemeral` label (Relay's one runner group registers only
+           one-job runners and gives them that label; the label is all a workflow file can show)
+    PL009  `continue-on-error` set to anything other than literal `false` (an expression counts)
+    PL010  a container image by tag, not digest: `docker run`/`docker pull` in a script, a job `container`,
+           or a `services` image
+
+Relay's own workflows must have none. Lab 15.1 also lints a pipeline an agent drafted (`data/drafts/`).
+"""
+
+from __future__ import annotations
+
+import re
+from dataclasses import dataclass
+
+from . import yamlish
+
+SHA = re.compile(r"@[0-9a-f]{40}$")
+DIGEST = re.compile(r"@sha256:[0-9a-f]{64}")
+UNTRUSTED = {"pull_request_target", "issue_comment", "issues", "workflow_run"}
+CLOUD_KEY = re.compile(r"AWS_ACCESS_KEY_ID|AWS_SECRET_ACCESS_KEY|ACCESS_KEY|SERVICE_ACCOUNT_KEY|GOOGLE_CREDENTIALS|"
+                       r"GCP_CREDENTIALS|AZURE_CLIENT_SECRET|AZURE_CREDENTIALS", re.IGNORECASE)
+KEY_INPUTS = {"aws-access-key-id", "aws-secret-access-key", "credentials_json", "client-secret", "creds"}
+INJECTION = re.compile(r"\$\{\{\s*(github\.event\.|inputs\.|github\.head_ref)")
+DOCKER_IMAGE = re.compile(r"docker\s+(?:run|pull)\b[^\n]*?\s([a-z0-9][\w./-]*:[\w.-]+)(?=\s|$)")
+
+
+@dataclass(frozen=True)
+class Finding:
+    rule: str
+    where: str
+    message: str
+
+
+def triggers(doc: dict) -> set[str]:
+    on = doc.get("on", doc.get(True))
+    if isinstance(on, str):
+        return {on}
+    if isinstance(on, list):
+        return {str(t) for t in on}
+    if isinstance(on, dict):
+        return {str(t) for t in on}
+    return set()
+
+
+def _writes(perms) -> bool:
+    if perms == "write-all":
+        return True
+    return isinstance(perms, dict) and any(v == "write" for v in perms.values())
+
+
+def _steps(job: dict) -> list[dict]:
+    return [s for s in job.get("steps") or [] if isinstance(s, dict)]
+
+
+def _images(text: str) -> list[str]:
+    return [m for m in DOCKER_IMAGE.findall(text) if not DIGEST.search(m)]
+
+
+def lint(doc: dict, path: str = "workflow") -> list[Finding]:
+    """Every finding for one parsed workflow, in rule order, then job order, then step order."""
+    raise NotImplementedError("TODO 1: lint")
+
+
+def lint_text(text: str, path: str = "workflow") -> list[Finding]:
+    return lint(yamlish.loads(text), path)

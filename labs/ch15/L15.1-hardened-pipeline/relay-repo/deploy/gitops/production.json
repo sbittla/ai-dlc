@@ -1,0 +1,14 @@
+{
+  "environment": "production",
+  "adr": "ADR-046",
+  "note": "Production's desired state for Relay's release. The production job of .github/workflows/pipeline.yml reconciles to it: it admits each image under deploy/admission/policy.json, applies the rollout in deploy/rollout/canary.json and records what runs. Drift is any difference between this file and what runs; the reconciler reports it and never changes this file. Digests are lab stand-ins in the right form.",
+  "release": "4.29.0",
+  "images": {
+    "relay": "sha256:dba8d07acc7d054e394a7d62a9737c12cc35d2a9c2086903dcfbd4d003824d74",
+    "relay-egress-proxy": "sha256:2a86a2b198ad76232795a24c38e27fc29baf8b3109930c7ef15b715074bc0dbb"
+  },
+  "flags": "deploy/flags.json",
+  "rollout": "deploy/rollout/canary.json",
+  "mode": "deliver",
+  "mode_note": "verify-only from 2027-03-22 to 2027-05-03: the pipeline ran every gate and admission check alongside the 15:00 UTC deploy train and deployed nothing. deliver from 2027-05-04, after Gate G4's adversarial row held on 2027-04-30."
+}

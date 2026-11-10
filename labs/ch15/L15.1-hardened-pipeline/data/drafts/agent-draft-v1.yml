@@ -1,0 +1,27 @@
+# A deploy workflow an agent drafted when asked for "a GitHub Actions workflow that scans and deploys
+# Relay to ECS". GENERATED fixture for Lab 15.1; never run.
+name: deploy
+on:
+  push:
+    branches: [main]
+  pull_request_target:
+    types: [opened]
+permissions: write-all
+jobs:
+  deploy:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      - name: Scan
+        run: docker run aquasec/trivy:latest fs .
+        continue-on-error: true
+      - name: Deploy
+        run: |
+          echo "Deploying ${{ github.event.pull_request.title }}"
+          docker build -t relay:latest . && docker push "$REGISTRY/relay:latest"
+          aws ecs update-service --cluster relay --service relay --force-new-deployment

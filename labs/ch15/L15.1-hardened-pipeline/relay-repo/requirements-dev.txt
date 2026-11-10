@@ -1,0 +1,17 @@
+# The test runner for CI and the dev container (ADR-028). Same rules as deploy/requirements.txt:
+# Relay's mirror only, wheels only, every file pinned by a hash (lab stand-ins in this snapshot).
+--index-url https://pypi-mirror.relay.example/simple/
+--only-binary :all:
+--require-hashes
+pytest==9.1.1 \
+    --hash=sha256:21292180eae3f3bca528d3cf2dc7a52f0af023bcd25a7c1377b33b1183ee5137
+iniconfig==2.1.0 \
+    --hash=sha256:ead4cbe4d778b4758e6e64324fe1f32017cd556af98851aff530749ae9cd6008
+packaging==25.0 \
+    --hash=sha256:36afcca8dbb405bd1b0f025196cffc3e7f7b0753d8826257333667b3e03e46cc
+pluggy==1.6.0 \
+    --hash=sha256:886d075e3d99ee41428e4c2e8559e8ecf7524426a938efc0e25a1ba358e72e00
+pygments==2.19.2 \
+    --hash=sha256:f352388bf493075b28f4e86768a81858d7d810ba0b16e4531986c8bbaee82a3e
+colorama==0.4.6 ; sys_platform == "win32" \
+    --hash=sha256:71c6467c75d4cba2f88f241bcaa70cf47eb1894f83a804f4736d3d9fbe704788

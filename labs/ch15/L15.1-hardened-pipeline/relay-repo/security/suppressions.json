@@ -1,0 +1,5 @@
+{
+  "policy": "relay-security-gates-v1",
+  "note": "Each entry silences one finding: one rule at one fingerprint. It needs a reason, a reviewer who is a person on the policy's list and not the author, and an expiry at most 90 days ahead. Dependency findings cannot be suppressed. Relay 4.25.0 has no open suppressions; Lab 13.1's replay has its own file.",
+  "suppressions": []
+}

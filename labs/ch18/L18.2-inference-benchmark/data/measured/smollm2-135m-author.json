@@ -1,0 +1,58 @@
+{
+  "model": "HuggingFaceTB/SmolLM2-135M-Instruct",
+  "revision": "12fd25f77366fa6b3b4b768ec3050bf629380bac",
+  "verified_sha256": true,
+  "environment": {
+    "platform": "Windows-11-10.0.26200-SP0",
+    "cpus": 24,
+    "python": "3.13.14",
+    "torch": "2.15.0+cpu",
+    "transformers": "5.22.2",
+    "threads": 16
+  },
+  "settings": {
+    "greedy": true,
+    "max_new_tokens": 48,
+    "dtype": "float32"
+  },
+  "one_at_a_time": [
+    {
+      "input_tokens": 78,
+      "output_tokens": 41,
+      "ttft_s": 0.467,
+      "wall_s": 3.352
+    },
+    {
+      "input_tokens": 76,
+      "output_tokens": 38,
+      "ttft_s": 0.364,
+      "wall_s": 3.151
+    },
+    {
+      "input_tokens": 73,
+      "output_tokens": 48,
+      "ttft_s": 0.347,
+      "wall_s": 3.795
+    },
+    {
+      "input_tokens": 74,
+      "output_tokens": 11,
+      "ttft_s": 0.355,
+      "wall_s": 1.028
+    },
+    {
+      "input_tokens": 76,
+      "output_tokens": 48,
+      "ttft_s": 0.362,
+      "wall_s": 3.913
+    }
+  ],
+  "summary": {
+    "ttft_median_s": 0.362,
+    "sequential_tokens_per_s": 12.2,
+    "batch_of_5_wall_s": 5.947,
+    "batch_of_5_tokens": 183,
+    "batch_tokens_per_s": 30.8
+  },
+  "note": "RECORDED once on the author's laptop on 2026-11-10 with scripts/run_real_model.py (not generated). Your numbers will differ; compare ratios, not values."
+}

@@ -1,0 +1,28 @@
+# The same request after the pipeline lint's findings went back to the agent and a platform lead reviewed
+# the result. GENERATED fixture for Lab 15.1; never run.
+name: deploy
+on:
+  push:
+    tags: ["v*"]
+permissions: {}
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    permissions: {contents: read, id-token: write}
+    steps:
+      - uses: actions/checkout@1111111111111111111111111111111111111111  # v4, stand-in SHA
+        with: {persist-credentials: false}
+      - uses: aws-actions/configure-aws-credentials@8888888888888888888888888888888888888888  # v4, stand-in SHA
+        with:
+          role-to-assume: ${{ vars.RELAY_PRODUCTION_DEPLOY_ROLE }}
+          aws-region: ${{ vars.RELAY_PRODUCTION_REGION }}
+      - name: Scan the image that will be deployed
+        run: >-
+          docker run --rm --network=none
+          aquasec/trivy@sha256:5555555555555555555555555555555555555555555555555555555555555555
+          image --input relay.tar --exit-code 1 --severity HIGH,CRITICAL
+      - name: Deploy by digest
+        env:
+          TITLE: ${{ github.ref_name }}
+        run: python tools/reconcile.py --desired deploy/gitops/production.json --release "$TITLE"

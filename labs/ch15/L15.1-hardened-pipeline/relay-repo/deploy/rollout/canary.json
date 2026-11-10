@@ -1,0 +1,46 @@
+{
+  "policy": "relay-canary-v1",
+  "adr": "ADR-047",
+  "note": "How a release reaches production traffic. Each step holds for its bake time. Each minute the canary is compared with the stable version on that minute's SLIs, and a minute is judged only when the last five minutes hold at least 100 canary requests. A minute in which the stable version burns is a hold: if the canary also burns but its bad share is at most both_ratio_max times the stable version's, the minute is 'both' (hold and page); if the canary's is higher, the canary is bad. Holds of any kind count towards max_hold_minutes in the step, and only a minute in which neither version burns advances the bake clock. Thresholds come from relay-slo-v1 (docs/slo/slos.json), not from the caller.",
+  "steps": [
+    {
+      "percent": 5,
+      "bake_minutes": 15
+    },
+    {
+      "percent": 25,
+      "bake_minutes": 15
+    },
+    {
+      "percent": 50,
+      "bake_minutes": 15
+    },
+    {
+      "percent": 100,
+      "bake_minutes": 0
+    }
+  ],
+  "signals": [
+    "SLO-API-AVAIL",
+    "SLO-API-LATENCY"
+  ],
+  "rollback_burn_rate": 14.4,
+  "rollback_sustained_minutes": 3,
+  "min_events_per_window": 100,
+  "window_minutes": 5,
+  "hold_when_too_few_events": true,
+  "ai_feature_signals": {
+    "SLO-TRIAGE-QUALITY": "triage_routing_c",
+    "SLO-TRIAGE-SAFETY": "ticket_summaries"
+  },
+  "ai_feature_action": "trip the feature's kill switch; the release stays",
+  "max_hold_minutes": 60,
+  "max_hold_action": "roll back: a canary that cannot be judged, or a shared problem that does not clear, is never promoted",
+  "ai_feature_rule": {
+    "min_events_each": 20,
+    "min_drop_points": 5.0,
+    "one_sided_z": 2.326,
+    "note": "Per AI feature: compare the cohort that has the feature with the cohort that does not, on the feature's AI signal, cumulatively since the feature's rollout changed. Trip the kill switch when both cohorts have at least 20 events, the feature's cohort is worse by at least 5 points, and a one-sided two-proportion z-test gives z of at least 2.326 (p below 0.01). The cohorts are different workspaces, so the test assumes their tickets are comparable; the stable hash assigns workspaces to cohorts."
+  },
+  "both_ratio_max": 2.0
+}

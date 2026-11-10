@@ -1,0 +1,29 @@
+{
+  "policy": "relay-admission-v1",
+  "adr": "ADR-046",
+  "note": "What the production reconciler admits. Every image by digest; Relay's own images signed by the release workflow at the release's own X.Y.Z tag, logged, with SBOM, AI-BOM and provenance attestations and a gate-results attestation saying all four gates succeeded, all bound to the same digest. Images signed in verify-only mode after a failed gate carry a gate-results attestation that says so, and are refused. Releases on the revoked list are refused, which stops a rollback to a release later found vulnerable. Third-party images are admitted only through supply-chain/images.json. A tag, a pattern identity or a missing attestation is refused; there is no override in this file.",
+  "issuer": "https://token.actions.githubusercontent.com",
+  "identity": "https://github.com/relay-example/relay/.github/workflows/release.yml@refs/tags/v{version}",
+  "require_tlog": true,
+  "attestations": [
+    "https://cyclonedx.org/bom",
+    "https://relay.example/attestations/ai-bom/v1",
+    "https://slsa.dev/provenance/v1"
+  ],
+  "images": [
+    "relay",
+    "relay-egress-proxy"
+  ],
+  "refuse_tags": true,
+  "version_pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+  "gate_results": {
+    "type": "https://relay.example/attestations/gate-results/v1",
+    "required": {
+      "test": "success",
+      "eval": "success",
+      "adversarial": "success",
+      "scan": "success"
+    }
+  },
+  "revoked_releases": []
+}

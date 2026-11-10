@@ -1,0 +1,28 @@
+# Relay container image (ADR-015; supply chain ADR-028 and ADR-030). One image for the service,
+# the worker and the migration task; their task definitions override the entry point. Build
+# from the repository root:
+#
+#   docker build -f deploy/Containerfile -t relay:4.25.0 .
+#
+# The base image is pinned by digest (ADR-028). The digest below is a lab stand-in in the right
+# form; supply-chain/images.json records it with the publisher, tag and the date it was reviewed.
+# The release workflow signs the built image and attaches its SBOM and AI-BOM (ADR-030).
+FROM python:3.12-slim@sha256:b156cf605ac3bb6d29b5f44387eb789f9b293ed037ba8fdc516df4f04565dd9b
+
+# Only from the mirror, only wheels, only the hashes in the lock: no package's setup code runs
+# while the image is built, and a file that changed upstream fails the install.
+COPY deploy/requirements.txt /tmp/requirements.txt
+RUN python -m pip install --no-cache-dir --require-hashes --only-binary :all: -r /tmp/requirements.txt \
+    && rm /tmp/requirements.txt
+
+COPY src/ /app/src/
+ENV PYTHONPATH=/app/src \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+# A numeric, unprivileged user; the task definition also makes the root filesystem
+# read-only and drops every Linux capability.
+USER 10001
+EXPOSE 8080
+ENTRYPOINT ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "2", "--access-logfile", "-", \
+            "relay.service.wsgi:application"]

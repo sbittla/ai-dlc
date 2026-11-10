@@ -1,0 +1,31 @@
+{
+  "version": "relay-alerts-v1",
+  "note": "Operational threshold rules (ADR-038), evaluated every minute over the metrics in relay.telemetry. SLO burn-rate alerts come from docs/slo/slos.json and detection alerts from infra/detection/; all three are routed by routing.json.",
+  "rules": [
+    {"id": "AL-001", "title": "Worker stalled: no completed pass for 5 minutes", "metric": "relay.worker.heartbeat_age",
+     "op": ">", "threshold": 300, "severity": "page", "category": "reliability", "source": "ESC-AC29, ESC-N09",
+     "runbook": "infra/runbooks/worker-stalled.md"},
+    {"id": "AL-002", "title": "Escalation rules that cannot be evaluated", "metric": "relay.escalation.cannot_evaluate.1h",
+     "op": ">", "threshold": 0, "severity": "ticket", "category": "reliability", "source": "Chapter 8 (ADR-010's table)",
+     "runbook": "infra/runbooks/worker-stalled.md"},
+    {"id": "AL-003", "title": "Escalation passes failing", "metric": "relay.escalation.failed.5m",
+     "op": ">", "threshold": 0, "severity": "ticket", "category": "reliability", "source": "Chapter 9 (ADR-017)",
+     "runbook": "infra/runbooks/worker-stalled.md"},
+    {"id": "AL-004", "title": "Agent runs stopped by a budget", "metric": "relay.agent.budget_stops.1h",
+     "op": ">=", "threshold": 1, "severity": "ticket", "category": "reliability", "source": "Chapter 10 (ADR-024)",
+     "runbook": "infra/runbooks/incident-response.md"},
+    {"id": "AL-005", "title": "Agent step with an unknown outcome", "metric": "relay.agent.unknown_outcome.1h",
+     "op": ">=", "threshold": 1, "severity": "ticket", "category": "reliability", "source": "Chapter 10 (ADR-026)",
+     "runbook": "infra/runbooks/incident-response.md"},
+    {"id": "AL-006", "title": "P1 escalation held by the flood cap and not acknowledged within 10 minutes",
+     "metric": "relay.escalation.p1_held_unacknowledged", "op": ">", "threshold": 0, "severity": "page",
+     "category": "reliability", "source": "D7 pilot review (docs/slo/d7-pilot-review.md)",
+     "runbook": "infra/runbooks/worker-stalled.md"},
+    {"id": "AL-007", "title": "Personal data or content found in exported telemetry", "metric": "relay.telemetry.leaks",
+     "op": ">", "threshold": 0, "severity": "page", "category": "security", "source": "RF-003, ADR-023",
+     "runbook": "infra/runbooks/incident-response.md"},
+    {"id": "AL-008", "title": "Metric cardinality over an instrument's limit", "metric": "relay.telemetry.overflow",
+     "op": ">", "threshold": 0, "severity": "ticket", "category": "reliability", "source": "RF-004",
+     "runbook": "infra/runbooks/incident-response.md"}
+  ]
+}

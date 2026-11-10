@@ -1,0 +1,107 @@
+# Relay's Semgrep rules (ADR-029), run in pre-commit, the agent loop and CI. Each rule names
+# the weakness (CWE) and a security-severity for the gate (security/gates.json). The rules are
+# Relay's own; the public rule registries add more. A rule that catches nothing in a quarter is
+# reviewed, and a rule with more than one confirmed false alarm a month is rewritten.
+rules:
+  - id: relay.sql-built-from-strings
+    languages: [python]
+    severity: ERROR
+    message: SQL built from strings; pass values as parameters (checklist item 14, CWE-89)
+    metadata: {cwe: "CWE-89", security-severity: 8.8}
+    patterns:
+      - pattern-either:
+          - pattern: $CONN.execute(f"...", ...)
+          - pattern: $CONN.execute("..." % $X, ...)
+          - pattern: $CONN.execute("..." + $X, ...)
+          - pattern: $CONN.execute("...".format(...), ...)
+
+  - id: relay.route-loads-task-without-can-view
+    languages: [python]
+    severity: ERROR
+    message: a route reads a task or project without calling can_view first (CWE-862)
+    metadata: {cwe: "CWE-862", security-severity: 8.1}
+    patterns:
+      - pattern-inside: |
+          def $ROUTE(self, user, ...):
+              ...
+      - pattern: self.app.tasks.$GET(...)
+      - pattern-not-inside: |
+          if not self.app.can_view(user, ...):
+              ...
+          ...
+
+  - id: relay.hardcoded-credential
+    languages: [python]
+    severity: ERROR
+    message: a credential is assigned from a literal; read it from the environment or a secret (CWE-798)
+    metadata: {cwe: "CWE-798", security-severity: 7.5}
+    patterns:
+      - pattern-either:
+          - pattern: $NAME = "..."
+          - pattern: $NAME = "..." + "..."
+      - metavariable-regex:
+          metavariable: $NAME
+          regex: (?i).*(token|secret|password|api_key).*
+
+  - id: relay.weak-hash-or-random-for-secrets
+    languages: [python]
+    severity: ERROR
+    message: md5, sha1 or the random module used for a token, password or code (CWE-327, CWE-338)
+    metadata: {cwe: "CWE-327", security-severity: 7.4}
+    pattern-either:
+      - pattern: hashlib.md5(...)
+      - pattern: hashlib.sha1(...)
+      - patterns:
+          - pattern-inside: |
+              def $F(...):
+                  ...
+          - metavariable-regex:
+              metavariable: $F
+              regex: (?i).*(token|code|password|secret|protect|reset).*
+          - pattern-either:
+              - pattern: random.choice(...)
+              - pattern: random.random()
+
+  # The random module elsewhere (retry jitter, demo shuffles) is reported, not blocked.
+  - id: relay.random-not-for-secrets
+    languages: [python]
+    severity: WARNING
+    message: the random module is not for secrets; use secrets if this value is ever one (CWE-338)
+    metadata: {cwe: "CWE-338", security-severity: 4.0}
+    patterns:
+      - pattern-inside: |
+          def $F(...):
+              ...
+      - metavariable-regex:
+          metavariable: $F
+          regex: ^(?!.*(?i:token|code|password|secret|protect|reset)).*$
+      - pattern-either:
+          - pattern: random.choice(...)
+          - pattern: random.random()
+
+  - id: relay.unsafe-deserialization
+    languages: [python]
+    severity: ERROR
+    message: deserializing untrusted bytes can run code; use json (CWE-502)
+    metadata: {cwe: "CWE-502", security-severity: 9.0}
+    pattern-either:
+      - pattern: pickle.loads(...)
+      - pattern: marshal.loads(...)
+      - pattern: shelve.open(...)
+      - pattern: eval(...)
+
+  - id: relay.shell-command-from-input
+    languages: [python]
+    severity: ERROR
+    message: a shell command built from input (CWE-78); pass a list and shell=False
+    metadata: {cwe: "CWE-78", security-severity: 9.1}
+    pattern-either:
+      - pattern: subprocess.$F(..., shell=True, ...)
+      - pattern: os.system(...)
+
+  - id: relay.path-from-request
+    languages: [python]
+    severity: ERROR
+    message: a file path joined from request input without resolving it under its base (CWE-22)
+    metadata: {cwe: "CWE-22", security-severity: 7.5}
+    pattern: open(os.path.join($BASE, $REQ.$FIELD), ...)

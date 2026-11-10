@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lab-18-2-inference-benchmark"
+version = "1.0.0"
+requires-python = ">=3.11"
+dependencies = []  # standard library only: the serving model is simulated
+
+[project.optional-dependencies]
+dev = ["pytest==9.1.1"]
+# OPTIONAL real run (scripts/run_real_model.py), in labs/ch18/.venv only; never in CI. Install torch first from
+# https://download.pytorch.org/whl/cpu (see the README); 2.15.0+cpu satisfies the pin below. $0; about 271 MB of
+# model files are downloaded once.
+real = ["torch==2.15.0", "transformers==5.22.2", "safetensors==0.8.0", "huggingface_hub==2.4.0",
+        "tokenizers==0.23.3", "numpy==2.5.4"]
+
+[tool.setuptools]
+packages = []  # a lab, not a library: nothing to install except dependencies
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra -p no:cacheprovider"

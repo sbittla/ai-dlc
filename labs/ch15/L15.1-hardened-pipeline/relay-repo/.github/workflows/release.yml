@@ -1,0 +1,85 @@
+# Relay release (ADR-030). ILLUSTRATIVE: the snapshot shows the shape of the release; the action
+# SHAs and image digests are lab stand-ins in the right form. On a version tag it builds the image,
+# pushes it by digest, writes the SBOM and the AI-BOM, signs the image with Sigstore's keyless
+# flow (the workflow's own OIDC identity, no stored key), attaches both BOMs as signed
+# attestations and records build provenance.
+name: release
+#
+# From 4.29.0 the pipeline (pipeline.yml) calls this workflow after its gates pass (ADR-044); a tag push alone no
+# longer runs it. A reusable workflow keeps its own identity in the signing certificate, so admission still
+# expects release.yml at the version tag.
+# It always signs a gate-results attestation from the caller's `gates` input. Admission refuses an image unless
+# that attestation says all four gates passed (AD008), so an image signed in verify-only mode after a failed gate
+# can never be deployed through admission.
+on:
+  workflow_call:
+    inputs:
+      gates:
+        description: The four gates' results, as JSON
+        required: true
+        type: string
+    outputs:
+      digest:
+        description: The pushed image's digest
+        value: ${{ jobs.release.outputs.digest }}
+      digests:
+        description: The pushed images' digests, as JSON
+        value: ${{ jobs.release.outputs.digests }}
+permissions:
+  contents: read
+jobs:
+  release:
+    outputs:
+      digest: ${{ steps.build.outputs.digest }}
+      digests: ${{ steps.build.outputs.digests }}
+    runs-on: ubuntu-latest
+    environment: release          # protected: v[0-9]* tags only; one required reviewer from the maintainers
+    # A tag ruleset lets only maintainers create or move v* tags, so a signature at refs/tags/v* means a
+    # maintainer cut the release (ADR-030). Recorded in the platform's settings, not in this snapshot.
+    permissions:
+      contents: read
+      id-token: write             # the OIDC token Sigstore's certificate authority checks
+      packages: write
+      attestations: write
+    steps:
+      - uses: actions/checkout@1111111111111111111111111111111111111111  # v4, stand-in SHA
+        with: {persist-credentials: false}
+      - uses: actions/setup-python@2222222222222222222222222222222222222222  # v5, stand-in SHA
+        with: {python-version: "3.11"}
+      - run: python tools/supplychain.py
+      # From 4.29.0 the image is the one pipeline.yml's build job made and its gates scanned (ADR-044): load it,
+      # never rebuild it, then push it.
+      - uses: actions/download-artifact@aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa  # v4, stand-in SHA
+        with: {name: relay-image}
+      - id: build
+        run: |
+          docker load -i relay.tar
+          docker tag relay:candidate "$REGISTRY/relay:${GITHUB_REF_NAME#v}"
+          docker push "$REGISTRY/relay:${GITHUB_REF_NAME#v}"
+          D="$(docker inspect --format '{{index .RepoDigests 0}}' "$REGISTRY/relay:${GITHUB_REF_NAME#v}" | cut -d@ -f2)"
+          echo "digest=$D" >> "$GITHUB_OUTPUT"
+          echo "digests={\"relay\": \"$D\"}" >> "$GITHUB_OUTPUT"
+        env: {REGISTRY: "${{ vars.RELAY_REGISTRY }}"}
+      - env: {DIGEST: "${{ steps.build.outputs.digest }}"}
+        run: >-
+          python tools/sbom.py --version "${GITHUB_REF_NAME#v}" --image-digest "$DIGEST"
+          --date "$(git log -1 --format=%cs)" --out-dir dist
+      - uses: sigstore/cosign-installer@6666666666666666666666666666666666666666  # v3, stand-in SHA
+      - name: Sign the image and attest both BOMs (keyless)
+        env: {IMAGE: "${{ vars.RELAY_REGISTRY }}/relay@${{ steps.build.outputs.digest }}"}
+        run: |
+          cosign sign --yes "$IMAGE"
+          cosign attest --yes --type cyclonedx --predicate dist/sbom.cdx.json "$IMAGE"
+          cosign attest --yes --type https://relay.example/attestations/ai-bom/v1 --predicate dist/aibom.cdx.json "$IMAGE"
+      - name: Attest the four gates' results (always; admission requires all four "success")
+        env:
+          IMAGE: "${{ vars.RELAY_REGISTRY }}/relay@${{ steps.build.outputs.digest }}"
+          GATES: ${{ inputs.gates }}
+        run: |
+          printf '%s' "$GATES" > dist/gates.json
+          cosign attest --yes --type https://relay.example/attestations/gate-results/v1 --predicate dist/gates.json "$IMAGE"
+      - uses: actions/attest-build-provenance@7777777777777777777777777777777777777777  # v2, stand-in SHA
+        with:
+          subject-name: ${{ vars.RELAY_REGISTRY }}/relay
+          subject-digest: ${{ steps.build.outputs.digest }}
+          push-to-registry: true

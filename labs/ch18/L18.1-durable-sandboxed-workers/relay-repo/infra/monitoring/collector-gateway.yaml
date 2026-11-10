@@ -1,0 +1,67 @@
+# OpenTelemetry Collector, gateway service with the monitor beside it (ADR-038).
+#
+# Receives OTLP from every task's sidecar inside the VPC, exports to the backends, and writes the three inputs
+# the monitor reads to its task-local volume. The monitor (`python -m relay.service.monitor`, every minute)
+# evaluates SLO burn rates, the operational rules and both detection rule sets, and pages through the paging
+# provider's HTTPS events API, the gateway task's only egress beyond the AWS endpoints.
+#
+# Backends: CloudWatch Logs for logs and the audit trail, through the existing `logs` VPC endpoint; CloudWatch
+# metrics through embedded metric format (also written via the logs endpoint). Traces go to an OTLP backend that
+# 4.27.0 has not chosen (a placeholder endpoint; ADR-036, open item). Component names are collector-contrib's as
+# of late 2026 (awscloudwatchlogs, awsemf, file, otlphttp); check them, and the AWS Distro for OpenTelemetry's
+# support for each, before use.
+
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318   # reachable only from Relay's task security group (ADR-038)
+  otlp/audit:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4319   # the audit trail of agent actions only
+
+processors:
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 400
+  batch:
+    timeout: 5s
+
+exporters:
+  awscloudwatchlogs/telemetry:
+    log_group_name: /relay/nonprod/telemetry     # 30 days (ADR-023: traces 30 days)
+    log_stream_name: otlp
+  awscloudwatchlogs/audit:
+    log_group_name: /relay/nonprod/agent-audit   # 400 days, created by infra/agents.tf (ADR-021)
+    log_stream_name: trail
+  otlphttp/traces:
+    endpoint: https://otlp.observability.relay.example   # placeholder: no tracing backend chosen yet
+  awsemf:
+    namespace: Relay/nonprod
+    log_group_name: /relay/nonprod/telemetry-metrics
+  file/monitor-metrics:
+    path: /var/lib/relay-monitor/metrics.jsonl
+  file/monitor-logs:
+    path: /var/lib/relay-monitor/logs.jsonl
+  file/monitor-trail:
+    path: /var/lib/relay-monitor/trail.jsonl
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [otlphttp/traces]
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [awsemf, file/monitor-metrics]
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [awscloudwatchlogs/telemetry, file/monitor-logs]
+    logs/audit:
+      receivers: [otlp/audit]
+      processors: [memory_limiter, batch]
+      exporters: [awscloudwatchlogs/audit, file/monitor-trail]

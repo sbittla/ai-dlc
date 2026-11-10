@@ -1,0 +1,29 @@
+{
+  "policy": "relay-flags-v1",
+  "adr": "ADR-047",
+  "updated": "2027-05-04",
+  "note": "Rollout percentages for product features. AI features are off unless listed here with a percentage, and a kill switch (relay.release.flags.KillStore) beats this file. Changing this file is a release: it goes through the pipeline. Tripping a kill switch is not: it is one row, read on every decision.",
+  "features": {
+    "triage_suggestions": {
+      "ai": true,
+      "owner": "lena.k",
+      "rollout_percent": 100,
+      "killed": false,
+      "description": "Triage suggestions from the worker (triage-v3.1, route A)."
+    },
+    "triage_routing_c": {
+      "ai": true,
+      "owner": "priya.n",
+      "rollout_percent": 0,
+      "killed": false,
+      "description": "ADR-042's configuration C. Waits for the route-chosen timeout hook; 0 until then."
+    },
+    "ticket_summaries": {
+      "ai": true,
+      "owner": "tomas.b",
+      "rollout_percent": 5,
+      "killed": false,
+      "description": "Two-line ticket summaries in the support console (ADR-032), constrained and rendered by relay.render."
+    }
+  }
+}

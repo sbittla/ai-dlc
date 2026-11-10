@@ -1,0 +1,153 @@
+# Relay's delivery pipeline (ADR-044 to ADR-048). ILLUSTRATIVE in this snapshot: the action SHAs and image
+# digests are lab stand-ins in the right form, the evaluation, adversarial and gate steps name tools this
+# snapshot does not vendor, and Lab 15.1 runs the same stages in a deterministic simulator.
+#
+# Order: build once, then four gates in parallel (test, eval, adversarial, scan), then package, sign and attest
+# (release.yml, called as a reusable workflow), then admit. Deployment is a separate step: a reviewed pull
+# request sets deploy/gitops/production.json to the admitted digests, and deploy.yml reconciles to it on merge.
+#
+# Failure behaviour (ADR-044): a gate that cannot produce its evidence fails; exit 2 ("cannot decide") is a
+# failure, never a skip. A skipped job is not a passed job: every condition below names `success` explicitly.
+#
+# Modes (repository variable RELAY_PIPELINE_MODE, set by platform leads; ADR-044):
+#   verify-only  every gate runs and is recorded. release.yml still signs the image, because the deploy train
+#                deploys it, but it also signs a gate-results attestation recording which gates failed, and
+#                admission refuses any image whose four gates did not all pass (AD008). 2027-03-22 to 05-03.
+#   deliver      release.yml runs only when all four gates passed (from 2027-05-04).
+#   unset/other  as deliver, and deploy.yml deploys nothing (fail closed).
+#
+# Tags: only v<digit>… tags start the pipeline, and admission accepts only X.Y.Z versions (ADR-046).
+name: pipeline
+on:
+  push:
+    branches: [main]
+    tags: ["v[0-9]*"]
+permissions: {}
+concurrency:
+  group: pipeline-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions: {contents: read}
+    steps:
+      - uses: actions/checkout@1111111111111111111111111111111111111111  # v4, stand-in SHA
+        with: {persist-credentials: false, fetch-depth: 0}
+      # A tag ruleset limits who may create v* tags, not which commit they name. A tag on an unmerged branch would
+      # run that branch's pipeline.yml, which supplies release.yml's gate results. So a tag must name a commit on main.
+      - name: A tagged commit must be on main
+        if: startsWith(github.ref, 'refs/tags/')
+        run: git merge-base --is-ancestor "$GITHUB_SHA" origin/main
+      - uses: actions/setup-python@2222222222222222222222222222222222222222  # v5, stand-in SHA
+        with: {python-version: "3.11"}
+      - run: python -m pip install --require-hashes --only-binary :all: -r requirements-dev.txt
+      - run: python tools/supplychain.py
+      - name: Build the image once; every later job uses this file (ILLUSTRATIVE)
+        run: docker build -f deploy/Containerfile -t relay:candidate -o type=docker,dest=relay.tar .
+      - uses: actions/upload-artifact@bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb  # v4, stand-in SHA
+        with: {name: relay-image, path: relay.tar}
+
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions: {contents: read}
+    steps:
+      - uses: actions/checkout@1111111111111111111111111111111111111111  # v4, stand-in SHA
+        with: {persist-credentials: false}
+      - uses: actions/setup-python@2222222222222222222222222222222222222222  # v5, stand-in SHA
+        with: {python-version: "3.11"}
+      - run: python -m pip install --require-hashes --only-binary :all: -r requirements-dev.txt
+      - run: python -m pytest -q
+      - run: python tools/lint.py
+
+  # Chapter 7's triage gate (triage-gate-v1) on the release's prompt and model, plus ADR-048's rule:
+  # judge-injection items are decided by a person's label bound to the answer's hash (relay.release.judged);
+  # a missing or stale label exits 2. Labels live in evals/, a pipeline path owned by @relay/security.
+  eval:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: eval            # protected; required reviewer; evaluation-only credential with a spend limit
+    permissions: {contents: read}
+    steps:
+      - uses: actions/checkout@1111111111111111111111111111111111111111  # v4, stand-in SHA
+        with: {persist-credentials: false}
+      - name: Triage gate and human labels (ILLUSTRATIVE; Lab 7.1 and Lab 15.1 run it)
+        run: python -m evalsuite.report gate --policy triage-gate-v1 --labels evals/human-labels.json
+
+  # Chapter 12's coverage gate (relay-coverage-gate-v2) on this release's own artefacts.
+  adversarial:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions: {contents: read}
+    steps:
+      - uses: actions/checkout@1111111111111111111111111111111111111111  # v4, stand-in SHA
+        with: {persist-credentials: false}
+      - name: Coverage gate (ILLUSTRATIVE; Lab 12.1 and Lab 15.1 run it)
+        run: python -m redteam.report gate --release "${GITHUB_REF_NAME#v}"
+
+  # Chapter 13's three scanners, run here on the release's own commit and image, independent of ci.yml.
+  # --require-reports: a report that is missing, empty or names no tool fails the gate (the March incident).
+  scan:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions: {contents: read}
+    steps:
+      - uses: actions/checkout@1111111111111111111111111111111111111111  # v4, stand-in SHA
+        with: {persist-credentials: false, fetch-depth: 0}
+      - uses: actions/download-artifact@aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa  # v4, stand-in SHA
+        with: {name: relay-image}
+      - name: SAST (Semgrep, Relay's rules in security/semgrep.yml)
+        run: >-
+          docker run --rm --network=none -v "$PWD:/src"
+          semgrep/semgrep@sha256:3333333333333333333333333333333333333333333333333333333333333333
+          semgrep scan --config /src/security/semgrep.yml --sarif --output /src/semgrep.sarif /src
+      - name: Secrets (gitleaks, full history)
+        run: >-
+          docker run --rm --network=none -v "$PWD:/repo"
+          zricethezav/gitleaks@sha256:4444444444444444444444444444444444444444444444444444444444444444
+          git /repo --config /repo/security/gitleaks.toml --report-format sarif --report-path /repo/gitleaks.sarif
+      - name: Dependencies and IaC (Trivy)
+        run: >-
+          docker run --rm -v "$PWD:/src"
+          aquasec/trivy@sha256:5555555555555555555555555555555555555555555555555555555555555555
+          fs --offline-scan --scanners vuln,misconfig --format sarif --output /src/trivy.sarif /src
+      - name: Image scan of the image built once (pull-request checks scan source only)
+        run: >-
+          docker run --rm -v "$PWD:/src"
+          aquasec/trivy@sha256:5555555555555555555555555555555555555555555555555555555555555555
+          image --input /src/relay.tar --format sarif --output /src/trivy-image.sarif
+      - name: Gate (ILLUSTRATIVE; the gate script is not vendored)
+        run: >-
+          python tools/security_gate.py --policy security/gates.json --require-reports
+          semgrep.sarif gitleaks.sarif trivy.sarif trivy-image.sarif
+
+  # Package, sign and attest: Chapter 13's release workflow, called here with the four gates' results. Its
+  # identity stays release.yml at the version tag. It always signs a gate-results attestation; admission
+  # refuses an image unless that attestation says all four gates passed.
+  release:
+    needs: [build, test, eval, adversarial, scan]
+    if: >-
+      !cancelled() && startsWith(github.ref, 'refs/tags/v') && needs.build.result == 'success' &&
+      (vars.RELAY_PIPELINE_MODE == 'verify-only' || (needs.test.result == 'success' &&
+      needs.eval.result == 'success' && needs.adversarial.result == 'success' && needs.scan.result == 'success'))
+    permissions: {contents: read, id-token: write, packages: write, attestations: write}
+    uses: ./.github/workflows/release.yml
+    with:
+      gates: >-
+        {"test": "${{ needs.test.result }}", "eval": "${{ needs.eval.result }}",
+        "adversarial": "${{ needs.adversarial.result }}", "scan": "${{ needs.scan.result }}"}
+
+  # Admission under deploy/admission/policy.json for both images. Recorded; the deploy happens in deploy.yml.
+  admit:
+    needs: release
+    if: ${{ !cancelled() && needs.release.result == 'success' }}
+    runs-on: ubuntu-latest
+    permissions: {contents: read}
+    steps:
+      - uses: actions/checkout@1111111111111111111111111111111111111111  # v4, stand-in SHA
+        with: {persist-credentials: false}
+      - uses: sigstore/cosign-installer@6666666666666666666666666666666666666666  # v3, stand-in SHA
+      - name: Admission (ILLUSTRATIVE; Lab 15.1 runs AD001-AD009)
+        env: {DIGESTS: "${{ needs.release.outputs.digests }}", REGISTRY: "${{ vars.RELAY_REGISTRY }}"}
+        run: python tools/admit.py --policy deploy/admission/policy.json --version "${GITHUB_REF_NAME#v}" --digests "$DIGESTS"

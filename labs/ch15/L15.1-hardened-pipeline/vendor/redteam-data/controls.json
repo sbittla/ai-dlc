@@ -1,0 +1,187 @@
+{
+  "controls": {
+    "approval": {
+      "adr": "ADR-026",
+      "artefact": "relay.agents.tools.OPEN_PULL_REQUEST",
+      "depends_on": [
+        "relay.agents.boundary",
+        "relay.agents.approval"
+      ],
+      "deploy_due": "2027-02-26",
+      "deploy_note": "in the runtime, but the helper is not running: its GitHub App is not installed",
+      "deploy_owner": "sam.o (platform leads)",
+      "deployed": false,
+      "kind": "blocking",
+      "since": "4.24.0",
+      "what": "A gated call waits for an authenticated person's approval of its exact arguments."
+    },
+    "delivery_binding": {
+      "adr": "ADR-033",
+      "artefact": "relay.delivery.EmailAdapter",
+      "depends_on": [
+        "relay.delivery.email_smtp"
+      ],
+      "deploy_due": "2027-03-31",
+      "deploy_note": "nothing runs the adapter yet; SMTP settings are not supplied",
+      "deploy_owner": "sam.o",
+      "deployed": false,
+      "kind": "blocking",
+      "since": "4.26.0",
+      "what": "Recipients come from the directory by user ID; any address outside Relay is refused."
+    },
+    "egress": {
+      "adr": "ADR-035",
+      "artefact": "deploy/egress-proxy (squid.conf and its lists, modelled)",
+      "depends_on": [
+        "deploy/egress-proxy"
+      ],
+      "deploy_due": "2027-03-31",
+      "deploy_note": "modelled only: the bump CA is not generated and the configuration has not run in a container",
+      "deploy_owner": "sam.o",
+      "deployed": false,
+      "kind": "blocking",
+      "since": "4.26.0",
+      "what": "Content hosts are decrypted and only Relay's repository allowed; other server names terminated."
+    },
+    "egress_domain_only": {
+      "adr": "ADR-013",
+      "artefact": "the 4.25.0 domain allowlist (modelled)",
+      "depends_on": [
+        "deploy/egress-proxy"
+      ],
+      "deploy_note": "Chapter 11's proxy",
+      "deployed": true,
+      "kind": "blocking",
+      "since": "4.21.0",
+      "until": "4.25.0",
+      "what": "The 4.21.0 to 4.25.0 allowlist: names only, every tunnel spliced."
+    },
+    "judge_isolation": {
+      "adr": "Chapter 7",
+      "artefact": "a lab model; Relay's evaluation harness is not in the snapshot",
+      "depends_on": [
+        "redteam.judge (lab model)"
+      ],
+      "kind": "mitigating",
+      "since": "lab",
+      "what": "The judged answer is placed in a data envelope and grader directives in it are neutralized. Spotlighting applied to a judge: it lowers, it does not stop."
+    },
+    "marking": {
+      "adr": "ADR-032",
+      "artefact": "relay.worker.untrusted.mark",
+      "depends_on": [
+        "relay.worker.untrusted"
+      ],
+      "kind": "mitigating",
+      "since": "4.26.0",
+      "what": "Spotlighting envelope with a secret nonce; hidden characters removed. Lowers how often a model obeys; a probe cannot show it stops an effect."
+    },
+    "memory_review": {
+      "adr": "ADR-026",
+      "artefact": "relay.agents.memory.MemoryStore",
+      "depends_on": [
+        "relay.agents.memory"
+      ],
+      "deploy_due": "2027-04-30",
+      "deploy_note": "no deployed agent uses long-term memory yet",
+      "deploy_owner": "sam.o",
+      "deployed": false,
+      "kind": "blocking",
+      "since": "4.24.0",
+      "what": "A proposed fact is never recalled until a person accepts it."
+    },
+    "memory_trust": {
+      "adr": "ADR-034",
+      "artefact": "relay.agents.memory.MemoryStore.propose",
+      "depends_on": [
+        "relay.agents.memory"
+      ],
+      "kind": "mitigating",
+      "since": "4.26.0",
+      "what": "A pattern filter on untrusted facts. A fact written to look harmless passes it."
+    },
+    "output_constraint": {
+      "adr": "ADR-032",
+      "artefact": "relay.worker.untrusted.parse_summary",
+      "depends_on": [
+        "relay.worker.untrusted"
+      ],
+      "deploy_due": "2027-03-31",
+      "deploy_note": "the worker's command line constructs no summarizer yet",
+      "deploy_owner": "sam.o",
+      "deployed": false,
+      "kind": "blocking",
+      "since": "4.26.0",
+      "what": "An allowlist: a summary of letters, digits, spaces and short punctuation, with no host-like token."
+    },
+    "platform_permissions": {
+      "adr": "ADR-025",
+      "artefact": "governance/agents.json and governance/branch-protection.json",
+      "depends_on": [
+        "github:relay-spec-to-pr",
+        "github:branch-protection"
+      ],
+      "deploy_due": "2027-02-26",
+      "deploy_note": "the relay-spec-to-pr GitHub App is not yet installed (Chapter 10)",
+      "deploy_owner": "sam.o (platform leads)",
+      "deployed": false,
+      "kind": "blocking",
+      "since": "4.24.0",
+      "what": "The agent's GitHub App cannot merge, push to main, edit workflows or change settings, so a change reaches main only through a person."
+    },
+    "recall_taint": {
+      "adr": "ADR-034",
+      "artefact": "relay.agents.tools.RECALL_MEMORY",
+      "depends_on": [
+        "relay.agents.boundary",
+        "relay.agents.tools"
+      ],
+      "kind": "latent",
+      "since": "4.26.0",
+      "what": "Recall taints the run, so a planted fact cannot drive an unapproved external effect. Latent for the same reason as run_taint."
+    },
+    "render": {
+      "adr": "ADR-032",
+      "artefact": "relay.api.suggestion_view and relay.render.render_text",
+      "depends_on": [
+        "relay.render"
+      ],
+      "deploy_due": "2027-03-31",
+      "deploy_note": "suggestion_view is not routed, and the client needs its Content-Security-Policy",
+      "deploy_owner": "priya.n",
+      "deployed": false,
+      "kind": "blocking",
+      "since": "4.26.0",
+      "what": "Untrusted text becomes HTML with no image and no clickable address outside Relay."
+    },
+    "run_taint": {
+      "adr": "ADR-034",
+      "artefact": "relay.agents.boundary (taint rule)",
+      "depends_on": [
+        "relay.agents.boundary",
+        "relay.agents.contracts",
+        "relay.agents.tools"
+      ],
+      "kind": "latent",
+      "since": "4.26.0",
+      "what": "After an untrusted read, an external effect with no approval rule is refused. No Relay agent has such a tool, so it stops nothing today."
+    },
+    "tool_allowlist": {
+      "adr": "ADR-025",
+      "artefact": "relay.agents.tools.HELPER_TOOLS",
+      "depends_on": [
+        "relay.agents.boundary",
+        "relay.agents.session",
+        "relay.audit.identity"
+      ],
+      "deploy_due": "2027-02-26",
+      "deploy_note": "in the runtime, but the helper is not running: its GitHub App is not installed",
+      "deploy_owner": "sam.o (platform leads)",
+      "deployed": false,
+      "kind": "blocking",
+      "since": "4.24.0",
+      "what": "A tool not in the agent's contracts, or outside its token's scope, is refused."
+    }
+  },
+  "generated": "GENERATED by labs/ch12/L12.1-agentic-red-team/scripts/generate_data.py"
+}

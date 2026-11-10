@@ -1,0 +1,43 @@
+# The spec-to-PR helper's job (ADR-027), with its test runs in a container that has no network (ADR-048).
+# ILLUSTRATIVE: the helper's runner is not in this snapshot (Chapter 10 runs it from CI); the action SHAs are
+# lab stand-ins. What this file fixes is the order and the isolation:
+#
+#   0. the job runs on an ephemeral runner in Chapter 11's agent sandbox subnet, whose only route out is the
+#      egress proxy (ADR-045's one exception to hosted runners; ADR-048), so the proxy is on the helper's path;
+#   1. dependencies are installed from the lock file, with hashes, inside the test image, before any code the
+#      agent writes exists;
+#   2. tools/sandbox_run.py refuses to build a test command unless deploy/test-sandbox/policy.json passes
+#      SB001-SB007 (network none, read-only, no credentials in the environment);
+#   3. every run_tests call the helper makes goes through `tools/sandbox_run.py run`, so code under test can
+#      reach loopback and nothing else, whatever the egress proxy allows.
+#
+# workflow_dispatch: only people with write access can start it; it is not an untrusted trigger.
+name: spec-to-pr
+on:
+  workflow_dispatch:
+    inputs:
+      task:
+        description: The approved task ID
+        required: true
+permissions: {}
+jobs:
+  helper:
+    # The relay-sandbox runner group is limited to selected workflows: this file at refs/heads/main only, so a
+    # branch's workflow cannot target it. Its runners are registered with --ephemeral (one job each); the label
+    # only shows it.
+    runs-on: [self-hosted, relay-sandbox, ephemeral]
+    environment: spec-to-pr      # OIDC subject repo:relay-example/relay:environment:spec-to-pr (agents.json)
+    permissions: {contents: read, id-token: write}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@1111111111111111111111111111111111111111  # v4, stand-in SHA
+        with: {persist-credentials: false}
+      - name: Test dependencies, inside the test image, before any agent code runs (network via the proxy)
+        run: python3 tools/sandbox_run.py install --repo "$GITHUB_WORKSPACE" --venv "$RUNNER_TEMP/venv-test"
+      - name: The test sandbox's policy (SB001-SB007)
+        run: python3 tools/sandbox_run.py check
+      - name: Run the helper (ILLUSTRATIVE runner; run_tests is bound to the sandboxed command)
+        env:
+          RELAY_RUN_TESTS: python3 tools/sandbox_run.py run --repo ${{ github.workspace }} --venv ${{ runner.temp }}/venv-test
+          TASK: ${{ inputs.task }}     # passed as data, never pasted into the script
+        run: python -m spec_to_pr_helper --task "$TASK"
