@@ -81,6 +81,9 @@ def finalize(pack: dict, pack_dir: Path, files: dict) -> None:
             q = resolve(s["ref"], roots)
             if q.is_file() and s.get("sha256", "") == "":
                 s["sha256"] = sha(q)
+    rec = pack.get("prs_record")
+    if rec and rec.get("sha256", "") == "":
+        rec["sha256"] = sha(resolve(rec["ref"], roots))
     write_json(pack_dir / "pack.json", pack)
 
 
@@ -498,14 +501,17 @@ def ab_files(track: str, team: str, system: str, release: str, agent: str) -> tu
             "criteria": [{"id": f"{pfx}-AC0{k}", "evidence": [f"{pfx}{n:02d}" for n in v]}
                          for k, v in crit_map.items()],
             "items": items,
-            "prs": [{"id": "#8", "title": "ADR-001 and the threat model", "authors": [a, c]},
+            "prs_record": {"ref": "pack:records/prs.json", "sha256": "",
+                           "source": "export of the repository's merged pull requests from the code host, "
+                                     "taken at the readiness review (fixture)"},
+            "open_items": [{"id": "OI-1", "what": "medium red-team finding RT-02", "owner": a, "due": "2027-08-20"}]}
+    files["records/prs.json"] = {"prs": [{"id": "#8", "title": "ADR-001 and the threat model", "authors": [a, c]},
                     {"id": "#11", "title": "the at-risk detector in the worker", "authors": [a]},
                     {"id": "#14", "title": "the AI step and its fallback", "authors": [b]},
                     {"id": "#17", "title": "recipient binding in the notifier", "authors": [c]},
                     {"id": "#19", "title": "characterization tests for the legacy notifier", "authors": [a, b]},
                     {"id": "#21", "title": "the SLO and burn-rate alert", "authors": [c]},
-                    {"id": "#23", "title": "the release workflow and admission check", "authors": [b]}],
-            "open_items": [{"id": "OI-1", "what": "medium red-team finding RT-02", "owner": a, "due": "2027-08-20"}]}
+                    {"id": "#23", "title": "the release workflow and admission check", "authors": [b]}]}
     return pack, files
 
 
@@ -1118,7 +1124,8 @@ def records() -> None:
         {"id": "P07", "prs": ["#23"], "title": "the release workflow and admission check", "authors": ["k.bo"], "ai_assisted": True,
          "change_requests": ["refuse images built on a laptop"]},
     ]
-    st = {"team": "kestrel", "track": "A", "pack": "data/fixtures/a-pass", "members": ["k.ade", "k.bo", "k.cy"],
+    st = {"team": "kestrel", "track": "A", "pack": "data/fixtures/a-pass",
+          "parts_approved": {"by": "instructor", "date": "2027-08-06"}, "members": ["k.ade", "k.bo", "k.cy"],
           "parts": parts,
           "criteria": [f"A-AC0{n}" for n in range(1, 7)]}
     st["frozen_sha256"] = canonical_sha256({"members": st["members"], "parts": st["parts"]})
@@ -1127,7 +1134,8 @@ def records() -> None:
     write_json(DATA / "defense" / "kestrel-panel.json",
                {"team": "kestrel", "committed": "2027-08-11", "seed_commitment":
                 hashlib.sha256(seed.encode("utf-8")).hexdigest(), "revealed": "2027-08-17", "seed": seed})
-    solo = {"team": "lark", "track": "B", "members": ["l.ade"],
+    solo = {"team": "lark", "track": "B", "parts_approved": {"by": "instructor", "date": "2027-08-06"},
+            "members": ["l.ade"],
             "parts": [{"id": "P01", "title": "the approval gate's binding to the diff hash", "authors": ["l.ade"],
                        "ai_assisted": True, "change_requests": ["bind the approval to the base commit too"]},
                       {"id": "P02", "title": "the tool contracts", "authors": ["l.ade"], "ai_assisted": True,

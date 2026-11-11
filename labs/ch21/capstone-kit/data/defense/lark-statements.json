@@ -1,6 +1,10 @@
 {
   "team": "lark",
   "track": "B",
+  "parts_approved": {
+    "by": "instructor",
+    "date": "2027-08-06"
+  },
   "members": [
     "l.ade"
   ],

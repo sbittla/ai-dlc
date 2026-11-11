@@ -380,59 +380,11 @@
       ]
     }
   ],
-  "prs": [
-    {
-      "id": "#8",
-      "title": "ADR-001 and the threat model",
-      "authors": [
-        "h.ade",
-        "h.cy"
-      ]
-    },
-    {
-      "id": "#11",
-      "title": "the at-risk detector in the worker",
-      "authors": [
-        "h.ade"
-      ]
-    },
-    {
-      "id": "#14",
-      "title": "the AI step and its fallback",
-      "authors": [
-        "h.bo"
-      ]
-    },
-    {
-      "id": "#17",
-      "title": "recipient binding in the notifier",
-      "authors": [
-        "h.cy"
-      ]
-    },
-    {
-      "id": "#19",
-      "title": "characterization tests for the legacy notifier",
-      "authors": [
-        "h.ade",
-        "h.bo"
-      ]
-    },
-    {
-      "id": "#21",
-      "title": "the SLO and burn-rate alert",
-      "authors": [
-        "h.cy"
-      ]
-    },
-    {
-      "id": "#23",
-      "title": "the release workflow and admission check",
-      "authors": [
-        "h.bo"
-      ]
-    }
-  ],
+  "prs_record": {
+    "ref": "pack:records/prs.json",
+    "sha256": "f0e99dd343f6c22f8c1a5c3310ab78f11f4b581282a94dfd49cb3f3844dacd73",
+    "source": "export of the repository's merged pull requests from the code host, taken at the readiness review (fixture)"
+  },
   "open_items": [
     {
       "id": "OI-1",

@@ -192,6 +192,9 @@ def test_the_defending_team_must_be_named_and_match_the_pack():
     codes = [x.code for x in redteam.validate(log, ["k.ade", "k.bo", "k.cy"], "kestrel")["findings"]]
     assert codes == ["RT010"]
     assert [x.code for x in redteam.validate(log)["findings"]] == []   # outside a pack the kit cannot know
+    log["defender"], log["defender_members"] = "kestrel-sla", ["nobody"]   # renamed so the pack check is skipped
+    codes = [x.code for x in redteam.validate(log, ["k.ade", "k.bo", "k.cy"], "kestrel")["findings"]]
+    assert codes == ["RT010"]
 
 
 def test_a_high_finding_not_reproduced_closes_only_with_an_outside_confirmation():
@@ -220,8 +223,27 @@ def _statements(name="kestrel"):
     return json.loads((DATA_DIR / "defense" / f"{name}-statements.json").read_text(encoding="utf-8"))
 
 
+PACK_DIR = FIX / "a-pass"
+
+
 def _pack(name="a-pass"):
     return json.loads((FIX / name / "pack.json").read_text(encoding="utf-8"))
+
+
+def _pack_copy(tmp_path, edit_prs=None):
+    """a-pass copied to tmp_path, its PR record optionally edited and re-hashed (as a team could)."""
+    import shutil
+    d = tmp_path / "pack"
+    shutil.copytree(PACK_DIR, d)
+    if edit_prs:
+        rec = d / "records" / "prs.json"
+        data = json.loads(rec.read_text(encoding="utf-8"))
+        edit_prs(data["prs"])
+        rec.write_text(json.dumps(data), encoding="utf-8")
+        pk = json.loads((d / "pack.json").read_text(encoding="utf-8"))
+        pk["prs_record"]["sha256"] = hashlib.sha256(rec.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
+        (d / "pack.json").write_text(json.dumps(pk), encoding="utf-8")
+    return json.loads((d / "pack.json").read_text(encoding="utf-8")), d
 
 
 def _commit(seed):
@@ -231,8 +253,8 @@ def _commit(seed):
 def test_nobody_draws_a_part_they_wrote_and_the_draw_is_reproducible():
     st = _statements()
     for seed in ("s1", "s2", "s3", "kestrel-panel-2027-08-17"):
-        draws = defense.draw(st, seed, _commit(seed), _pack())
-        assert draws == defense.draw(st, seed, _commit(seed), _pack())
+        draws = defense.draw(st, seed, _commit(seed), _pack(), PACK_DIR)
+        assert draws == defense.draw(st, seed, _commit(seed), _pack(), PACK_DIR)
         for d in draws:
             assert d["member"] not in d["authors"] and not d["solo"]
 
@@ -240,7 +262,7 @@ def test_nobody_draws_a_part_they_wrote_and_the_draw_is_reproducible():
 def test_the_draw_is_the_smallest_digest_among_the_candidates():
     st = _statements()
     seed = "s1"
-    d = defense.draw(st, seed, _commit(seed), _pack())[0]
+    d = defense.draw(st, seed, _commit(seed), _pack(), PACK_DIR)[0]
     cands = [p["id"] for p in st["parts"] if "k.ade" not in p["authors"]]
     want = min(cands, key=lambda p: hashlib.sha256(f"{seed}|{st['frozen_sha256']}|k.ade|{p}".encode()).hexdigest())
     assert d["part"] == want
@@ -250,12 +272,12 @@ def test_statements_changed_after_the_freeze_are_refused():
     st = _statements()
     st["parts"][0]["authors"] = ["k.bo"]
     with pytest.raises(ValueError, match="DF001"):
-        defense.draw(st, "s1", _commit("s1"), _pack())
+        defense.draw(st, "s1", _commit("s1"), _pack(), PACK_DIR)
 
 
 def test_a_seed_that_does_not_match_the_commitment_is_refused():
     with pytest.raises(ValueError, match="DF004"):
-        defense.draw(_statements(), "s1", _commit("s2"), _pack())
+        defense.draw(_statements(), "s1", _commit("s2"), _pack(), PACK_DIR)
 
 
 def test_a_solo_learner_draws_from_every_part():
@@ -268,7 +290,7 @@ def test_unknown_authors_are_df003():
     st = _statements()
     st["parts"][0]["authors"] = ["k.zed"]
     st["frozen_sha256"] = canonical_sha256({"members": st["members"], "parts": st["parts"]})
-    assert [f.code for f in defense.check(st, _pack())] == ["DF003", "DF005"]
+    assert [f.code for f in defense.check(st, _pack(), PACK_DIR)] == ["DF003", "DF005"]
 
 
 def test_overclaimed_coauthorship_cannot_aim_the_draw():
@@ -278,14 +300,68 @@ def test_overclaimed_coauthorship_cannot_aim_the_draw():
         if p["id"] != "P02" and "k.cy" not in p["authors"]:
             p["authors"].append("k.cy")
     st["frozen_sha256"] = canonical_sha256({"members": st["members"], "parts": st["parts"]})
-    codes = [f.code for f in defense.check(st, _pack())]
+    codes = [f.code for f in defense.check(st, _pack(), PACK_DIR)]
     assert "DF005" in codes and "DF006" in codes          # not the pack's PR authors; pool of 1 < 4
-    pack = _pack()                                         # even if the pack's PR record is inflated too
-    for pr in pack["prs"]:
-        pr["authors"] = sorted(set(pr["authors"]) | ({"k.cy"} if pr["id"] != "#14" else set()))
-    assert [f.code for f in defense.check(st, pack)] == ["DF006"]
+
+
+
+def test_an_inflated_pr_record_is_still_bounded_by_the_pool(tmp_path):
+    st = _statements()
+    for p in st["parts"]:
+        if p["id"] != "P02" and "k.cy" not in p["authors"]:
+            p["authors"].append("k.cy")
+    st["frozen_sha256"] = canonical_sha256({"members": st["members"], "parts": st["parts"]})
+
+    def inflate(prs):
+        for pr in prs:
+            if pr["id"] != "#14":
+                pr["authors"] = sorted(set(pr["authors"]) | {"k.cy"})
+    pack, d = _pack_copy(tmp_path, inflate)
+    assert [f.code for f in defense.check(st, pack, d)] == ["DF006"]
     with pytest.raises(ValueError, match="DF006"):
-        defense.draw(st, "s1", _commit("s1"), pack)
+        defense.draw(st, "s1", _commit("s1"), pack, d)
+
+
+def test_every_recorded_pr_must_belong_to_a_part():
+    st = _statements()
+    st["parts"] = [p for p in st["parts"] if p["id"] != "P07"]          # #23 could then never be drawn
+    st["frozen_sha256"] = canonical_sha256({"members": st["members"], "parts": st["parts"]})
+    assert ("DF008", "#23") in [(f.code, f.where) for f in defense.check(st, _pack(), PACK_DIR)]
+
+
+def test_an_edited_pr_record_is_refused(tmp_path):
+    pack, d = _pack_copy(tmp_path)
+    (d / "records" / "prs.json").write_text('{"prs": []}', encoding="utf-8")   # hash not updated
+    assert ("DF008", "prs_record") in [(f.code, f.where) for f in defense.check(_statements(), pack, d)]
+    assert any(f.code == "EV010" and f.where == "prs_record" for f in evidence.check(d).findings)
+
+
+def test_the_part_list_needs_an_instructors_approval():
+    st = _statements()
+    st.pop("parts_approved")
+    assert [f.code for f in defense.check(st, _pack(), PACK_DIR)] == ["DF009"]
+    st["parts_approved"] = {"by": "k.bo", "date": "2027-08-06"}          # a member cannot be the approver
+    assert [f.code for f in defense.check(st, _pack(), PACK_DIR)] == ["DF009"]
+
+
+def test_red_team_evidence_must_be_an_attack_on_the_teams_own_system(tmp_path):
+    import shutil
+    d = tmp_path / "pack"
+    shutil.copytree(PACK_DIR, d)
+    log_path = d / "items" / "redteam-log.json"
+    log = json.loads(log_path.read_text(encoding="utf-8"))
+    log["attacker"], log["defender"] = "kestrel", "osprey"              # kestrel attacked osprey instead
+    log["defender_members"] = ["o.ade", "o.bo", "o.cy"]
+    log_path.write_text(json.dumps(log), encoding="utf-8")
+    pk = json.loads((d / "pack.json").read_text(encoding="utf-8"))
+    for it in pk["items"]:
+        if it["id"] == "A06":
+            it["sha256"] = hashlib.sha256(log_path.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
+    (d / "pack.json").write_text(json.dumps(pk), encoding="utf-8")
+    res = evidence.check(d)
+    assert [(f.code, f.where) for f in res.blocking] == [("EV004", "A06")]
+    out = rubric.score(_scores(), res)
+    assert out["gates"]["security"] == "fail" and "RB008 security gate: red-team blocked" in out["notes"]
 
 
 def test_a_team_draw_needs_its_pack():

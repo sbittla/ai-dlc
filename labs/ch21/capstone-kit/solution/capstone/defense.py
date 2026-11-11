@@ -18,10 +18,15 @@ a draw towards a part it chose.
     DF006  a member's pool of parts they did not write is smaller than max(3, half the parts): a team cannot
            narrow a draw by having one member claim nearly everything
     DF007  the statements' members are not the pack's members, or a team's statements name no pack
+    DF008  a pull request in the pack's record belongs to no part, so it could never be drawn; or the record
+           itself is missing, unhashed or changed
+    DF009  the part list has no instructor's approval, or a team member signed it (parts are only as fine as the
+           team makes them); the kit can refuse a member, and the instructor confirms who actually approved
 
-What remains possible: a team could still record co-authors on pull requests that a member barely touched. The
-pack's pull-request record is reviewed at every checkpoint, and DF006 bounds how far it can narrow a draw; the
-panel can also ask any member about any part in the question segment.
+What remains possible: the pull-request record is the team's own export. The kit checks that it is unchanged
+since its hash was recorded and that every part maps onto it; the instructor checks it against the code host.
+A team could still record co-authors on pull requests a member barely touched. DF006 bounds how far that can
+narrow a draw, and the panel can ask any member about any part in the question segment.
 """
 
 from __future__ import annotations
@@ -40,8 +45,14 @@ def min_pool(n_parts: int) -> int:
     return max(3, math.ceil(n_parts / 2))
 
 
-def check(statements: dict, pack: dict | None = None) -> list[Finding]:
+def check(statements: dict, pack: dict | None = None, pack_dir=None) -> list[Finding]:
     out = []
+    approved = statements.get("parts_approved") or {}
+    if not (approved.get("by") and approved.get("date")):
+        out.append(Finding("DF009", "block", "statements", "the part list has no instructor's approval"))
+    elif approved["by"] in statements["members"]:
+        out.append(Finding("DF009", "block", "statements", f"the part list was approved by {approved['by']}, a "
+                                                         "member of the team, not the instructor"))
     if frozen_hash(statements) != statements.get("frozen_sha256"):
         out.append(Finding("DF001", "block", "statements", "changed after they were frozen"))
     members = set(statements["members"])
@@ -57,7 +68,15 @@ def check(statements: dict, pack: dict | None = None) -> list[Finding]:
         else:
             if members != {m["id"] for m in pack.get("members", [])}:
                 out.append(Finding("DF007", "block", "statements", "members differ from the pack's members"))
-            prs = {pr["id"]: set(pr.get("authors", [])) for pr in pack.get("prs", [])}
+            from .evidence import load_prs
+            records, problems = load_prs(pack, pack_dir) if pack_dir is not None else ([], ["no pack folder"])
+            for m in problems:
+                out.append(Finding("DF008", "block", "prs_record", m))
+            prs = {pr["id"]: set(pr.get("authors", [])) for pr in records}
+            covered = {x for p in statements["parts"] for x in (p.get("prs") or [])}
+            for pr_id in prs:
+                if pr_id not in covered:
+                    out.append(Finding("DF008", "block", pr_id, "belongs to no part, so it could never be drawn"))
             for p in statements["parts"]:
                 named = p.get("prs") or []
                 unknown = [x for x in named if x not in prs]
@@ -77,12 +96,12 @@ def _digest(seed: str, freeze: str, member: str, key: str) -> str:
     return hashlib.sha256(f"{seed}|{freeze}|{member}|{key}".encode("utf-8")).hexdigest()
 
 
-def draw(statements: dict, seed: str, commitment: str, pack: dict | None = None) -> list[dict]:
+def draw(statements: dict, seed: str, commitment: str, pack: dict | None = None, pack_dir=None) -> list[dict]:
     """One draw per member, in member order: {member, part, title, solo, questions}. Candidates are the parts the
     member did not write; a solo learner, who wrote everything, draws from all parts. The change request is
     the part's change_requests entry at index int(digest, 16) % len(...). `commitment` comes from the panel's own
     record, not from the team's statements; `pack` is the team's pack manifest (needed for a team, DF007)."""
-    problems = check(statements, pack)
+    problems = check(statements, pack, pack_dir)
     if hashlib.sha256(seed.encode("utf-8")).hexdigest() != commitment:
         problems.append(Finding("DF004", "block", "seed", "does not match the panel's commitment"))
     if problems:

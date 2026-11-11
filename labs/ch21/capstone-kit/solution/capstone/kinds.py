@@ -169,7 +169,11 @@ def v_coverage_report(path, item, ctx):
 
 
 def v_redteam_log(path, item, ctx):
-    result = validate_log(_json(path), ctx.get("members"), ctx.get("team"))
+    log = _json(path)
+    result = validate_log(log, ctx.get("members"), ctx.get("team"))
+    if ctx["requirement"]["id"] == "red-team" and log.get("defender") != ctx.get("team"):
+        # A and B's red-team evidence must be an attack on the team's own system, not one it made on another's
+        return [f"the log's defender is {log.get('defender')!r}, not this team ({ctx.get('team')!r})"], [], []
     bad = [f.line() for f in result["findings"] if f.code not in ("RT005", "RT006")]
     failing = [f.line() for f in result["findings"] if f.code == "RT005"]
     content = [f.line() for f in result["findings"] if f.code == "RT006"]

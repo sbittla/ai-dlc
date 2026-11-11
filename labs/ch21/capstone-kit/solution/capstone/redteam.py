@@ -17,8 +17,8 @@ Rules (all from Chapter 21, Section 21.3):
     RT007  a finding marked fixed has no pull request or no re-test that blocked it
     RT008  the attacking team is the defending team
     RT009  a finding ID is used twice
-    RT010  the log does not name the defending team's members, or (inside a pack) names members that do not
-           match the pack's: who counts as "outside the team" must not be the team's own choice
+    RT010  the log does not name the defending team's members; or, inside a pack, it names neither the pack's
+           team as defender or attacker, or names defender members that do not match the pack's: who counts as "outside the team" must not be the team's own choice
 """
 
 from __future__ import annotations
@@ -72,6 +72,9 @@ def validate(log: dict, pack_members: list[str] | None = None, pack_team: str | 
     defenders = set(log.get("defender_members") or [])
     if not defenders:
         out.append(Finding("RT010", "block", "log", "names no members of the defending team"))
+    elif pack_members is not None and pack_team not in (log.get("defender"), log.get("attacker")):
+        out.append(Finding("RT010", "block", "log", f"names neither the pack's team {pack_team!r} as defender nor "
+                                                    "as attacker"))
     elif pack_members is not None and pack_team == log.get("defender") and defenders != set(pack_members):
         out.append(Finding("RT010", "block", "log", "defender_members differ from the pack's members"))
     elif pack_members is not None and pack_team == log.get("attacker") and defenders & set(pack_members):

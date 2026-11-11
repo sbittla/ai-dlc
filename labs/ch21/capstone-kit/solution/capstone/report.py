@@ -105,8 +105,9 @@ def render_score(scores_path: str) -> tuple[str, int]:
 
 def render_defense(path: str, seed: str, commitment: str) -> str:
     st = load_json(_path(path))
-    pack = load_json(_path(st["pack"]) / "pack.json") if st.get("pack") else None
-    draws = defense.draw(st, seed, commitment, pack)
+    pack_dir = _path(st["pack"]) if st.get("pack") else None
+    pack = load_json(pack_dir / "pack.json") if pack_dir else None
+    draws = defense.draw(st, seed, commitment, pack, pack_dir)
     crit = defense.draw_criteria(st.get("criteria", []), seed, st["frozen_sha256"])
     lines = [f"# Defense draw for {st['team']} (seed {seed!r}, statements {st['frozen_sha256'][:12]})", ""]
     for d in draws:

@@ -23,8 +23,9 @@ It has five parts:
 2. **A rubric scorer** (`score`, `ceilings`): the grading levels, with ceilings the evidence sets on each
    dimension, the gates, and the rule that a team grade cannot lift a member who cannot explain the work.
 3. **A defense draw** (`defense`): for each member, a part of the work they did not write, drawn from a seed the
-   panel committed to before the team froze its contribution statements. Authorship comes from the pack's record
-   of pull requests (DF005), and each member keeps a minimum pool of parts to draw from (DF006). The scorer
+   panel committed to before the team froze its contribution statements. Authorship comes from the pack's hashed export
+   of pull requests, every one of which must belong to a part (DF005, DF008), the instructor approves the part
+   list (DF009), and each member keeps a minimum pool of parts to draw from (DF006). The scorer
    refuses a score sheet that leaves a member off (RB007) and reports Gate G6 not met while the pack has any
    blocking finding (RB009).
 4. **A red-team log validator** (`redteam`): scope, window, template, shared severity scale, no attack text, and

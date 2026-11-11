@@ -322,59 +322,11 @@
       "release": "sla-1.0.0"
     }
   ],
-  "prs": [
-    {
-      "id": "#8",
-      "title": "ADR-001 and the threat model",
-      "authors": [
-        "k.ade",
-        "k.cy"
-      ]
-    },
-    {
-      "id": "#11",
-      "title": "the at-risk detector in the worker",
-      "authors": [
-        "k.ade"
-      ]
-    },
-    {
-      "id": "#14",
-      "title": "the AI step and its fallback",
-      "authors": [
-        "k.bo"
-      ]
-    },
-    {
-      "id": "#17",
-      "title": "recipient binding in the notifier",
-      "authors": [
-        "k.cy"
-      ]
-    },
-    {
-      "id": "#19",
-      "title": "characterization tests for the legacy notifier",
-      "authors": [
-        "k.ade",
-        "k.bo"
-      ]
-    },
-    {
-      "id": "#21",
-      "title": "the SLO and burn-rate alert",
-      "authors": [
-        "k.cy"
-      ]
-    },
-    {
-      "id": "#23",
-      "title": "the release workflow and admission check",
-      "authors": [
-        "k.bo"
-      ]
-    }
-  ],
+  "prs_record": {
+    "ref": "pack:records/prs.json",
+    "sha256": "1a64d8453259319930cfc42e1e5564711e1dee1a26ca145959f56c16e7b19ab2",
+    "source": "export of the repository's merged pull requests from the code host, taken at the readiness review (fixture)"
+  },
   "open_items": [
     {
       "id": "OI-1",

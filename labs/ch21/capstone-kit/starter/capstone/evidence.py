@@ -78,6 +78,23 @@ def resolver(pack: dict, pack_dir: Path):
     return resolve
 
 
+def load_prs(pack: dict, pack_dir: Path) -> tuple[list[dict], list[str]]:
+    """The pack's record of pull requests: an export from the code host, kept as a file whose SHA-256 the
+    manifest records (`prs_record`: ref, sha256, source). The kit checks the file matches its hash; it cannot
+    check the export against the code host, which the instructor does. Returns (prs, problems)."""
+    rec = pack.get("prs_record")
+    if not rec:
+        return [], ["no pull-request record (prs_record)"]
+    path = resolver(pack, pack_dir)(rec.get("ref", ""))
+    if path is None:
+        return [], [f"pull-request record {rec.get('ref')!r} does not resolve"]
+    if not rec.get("sha256") or sha256_file(path) != rec["sha256"]:
+        return [], ["pull-request record changed since its hash was recorded, or has no hash"]
+    if not rec.get("source"):
+        return [], ["pull-request record does not say where it was exported from"]
+    return load_json(path).get("prs", []), []
+
+
 def trace_sources(item: dict, resolve) -> list[str]:
     """Problems with an item's sources (EV005): none listed; a reference that does not resolve; a recorded hash
     that no longer matches. Each source is {"ref": ..., "sha256": optional}."""
@@ -186,7 +203,10 @@ def check(pack_dir: Path) -> Result:
             add(Finding("EV010", "block", m["id"], "no contribution statement"))
         if not owned.get(m["id"]):
             add(Finding("EV010", "block", m["id"], "owns no item"))
-    for pr in pack.get("prs", []):
+    prs, problems = load_prs(pack, pack_dir) if pack.get("prs_record") else ([], [])
+    for m in problems:
+        add(Finding("EV010", "block", "prs_record", m))
+    for pr in prs:
         for a in pr.get("authors", []):
             if a not in members:
                 add(Finding("EV010", "block", pr["id"], f"author {a} is not a member of the team"))
