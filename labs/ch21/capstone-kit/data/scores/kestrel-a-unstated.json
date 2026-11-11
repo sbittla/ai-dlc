@@ -2,6 +2,7 @@
   "track": "A",
   "team": "kestrel",
   "pack": "data/fixtures/a-pass",
+  "statements": "data/defense/kestrel-statements.json",
   "limitations_found_by_panel": 1,
   "gates": {
     "security": "pass",

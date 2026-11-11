@@ -50,6 +50,15 @@ def test_lab_report_snapshots_are_current(name):
     assert gen.run_lab(LABS / lab, argv) == (PACK / "items" / name).read_text(encoding="utf-8")
 
 
+@pytest.mark.parametrize("name", ["lab-20.1-catalog.md", "lab-20.2-power.md"])
+def test_track_c_snapshots_are_current(name):
+    gen = _gen()
+    lab, argv = gen.C_SNAPSHOTS[name]
+    _need(LABS / lab)
+    assert gen.run_lab(LABS / lab, argv) == (DATA_DIR / "fixtures" / "c-pass" / "items" / name).read_text(
+        encoding="utf-8")
+
+
 def test_coverage_snapshot_is_what_lab_15_1_computes():
     gen = _gen()
     _need(LABS / "ch15" / "L15.1-hardened-pipeline")

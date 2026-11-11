@@ -103,6 +103,44 @@ def test_ceilings_follow_the_state_of_each_required_kind():
     assert rubric.ceilings(res)["security"] == (74, ["adversarial has blocking findings"])
 
 
+def _scores(name="kestrel-a"):
+    return json.loads((DATA_DIR / "scores" / f"{name}.json").read_text(encoding="utf-8"))
+
+
+def test_nobody_can_be_left_off_the_score_sheet():
+    res = evidence.check(FIX / "a-pass")
+    s = _scores()
+    s["members"] = [m for m in s["members"] if m["id"] != "k.cy"]
+    with pytest.raises(ValueError, match="RB007"):
+        rubric.score(s, res)
+    s["members"] = []
+    with pytest.raises(ValueError, match="RB007"):
+        rubric.score(s, res)
+    st = _statements()
+    st["members"] = ["k.ade", "k.bo"]
+    with pytest.raises(ValueError, match="RB007"):
+        rubric.score(_scores(), res, st)
+
+
+def test_a_blocking_finding_means_g6_is_not_met():
+    res = evidence.check(FIX / "a-fail-criterion")
+    out = rubric.score(_scores(), res)
+    assert all(g == "not met" for _, g in out["g6"])
+    assert any(n.startswith("RB009") for n in out["notes"])
+    assert all(g == "met" for _, g in rubric.score(_scores(), evidence.check(FIX / "a-pass"))["g6"])
+
+
+def test_unsound_security_evidence_fails_the_security_gate_whatever_the_panel_says():
+    out = rubric.score(_scores(), evidence.check(FIX / "a-fail-overclaim"))
+    assert out["gates"]["security"] == "fail" and out["level"] == "Fail"
+    assert "RB008 security gate: adversarial blocked" in out["notes"]
+
+
+def test_an_open_item_is_not_evidence():
+    res = evidence.check(FIX / "a-fail-open-label")
+    assert res.requirement_state["spec"] == "missing" and res.item_ok["A01"] is False
+
+
 def test_levels():
     assert [rubric.level(x) for x in (100, 90, 89.9, 75, 74.9, 60, 59.9, 0)] == \
         ["Excellent", "Excellent", "Acceptable", "Acceptable", "Needs work", "Needs work", "Fail", "Fail"]
@@ -143,6 +181,31 @@ def test_the_bad_log_breaks_each_rule_once():
     assert codes == ["RT001", "RT006", "RT002", "RT004", "RT007", "RT005"]
 
 
+def test_the_defending_team_must_be_named_and_match_the_pack():
+    log = _log()
+    log["defender_members"] = []
+    assert [f.code for f in redteam.validate(log)["findings"]][:1] == ["RT010"]
+    log = _log()
+    f = log["findings"][0]
+    f["status"], f["block"] = "blocked", {"owner": "k.ade", "due": "2027-08-20", "reviewer": "k.bo"}
+    log["defender_members"] = ["k.ade"]                    # k.bo left off, so k.bo looks independent
+    codes = [x.code for x in redteam.validate(log, ["k.ade", "k.bo", "k.cy"], "kestrel")["findings"]]
+    assert codes == ["RT010"]
+    assert [x.code for x in redteam.validate(log)["findings"]] == []   # outside a pack the kit cannot know
+
+
+def test_a_high_finding_not_reproduced_closes_only_with_an_outside_confirmation():
+    log = _log()
+    f = log["findings"][0]
+    f["status"] = "not reproduced"
+    f.pop("fix")
+    assert [x.code for x in redteam.validate(log)["findings"]] == ["RT005"]
+    f["confirmed_by"] = "k.bo"
+    assert [x.code for x in redteam.validate(log)["findings"]] == ["RT005"]
+    f["confirmed_by"] = "security reviewer"
+    assert redteam.validate(log)["findings"] == []
+
+
 def test_attacking_yourself_and_duplicate_ids():
     log = _log()
     log["attacker"] = log["defender"]
@@ -157,6 +220,10 @@ def _statements(name="kestrel"):
     return json.loads((DATA_DIR / "defense" / f"{name}-statements.json").read_text(encoding="utf-8"))
 
 
+def _pack(name="a-pass"):
+    return json.loads((FIX / name / "pack.json").read_text(encoding="utf-8"))
+
+
 def _commit(seed):
     return hashlib.sha256(seed.encode("utf-8")).hexdigest()
 
@@ -164,8 +231,8 @@ def _commit(seed):
 def test_nobody_draws_a_part_they_wrote_and_the_draw_is_reproducible():
     st = _statements()
     for seed in ("s1", "s2", "s3", "kestrel-panel-2027-08-17"):
-        draws = defense.draw(st, seed, _commit(seed))
-        assert draws == defense.draw(st, seed, _commit(seed))
+        draws = defense.draw(st, seed, _commit(seed), _pack())
+        assert draws == defense.draw(st, seed, _commit(seed), _pack())
         for d in draws:
             assert d["member"] not in d["authors"] and not d["solo"]
 
@@ -173,7 +240,7 @@ def test_nobody_draws_a_part_they_wrote_and_the_draw_is_reproducible():
 def test_the_draw_is_the_smallest_digest_among_the_candidates():
     st = _statements()
     seed = "s1"
-    d = defense.draw(st, seed, _commit(seed))[0]
+    d = defense.draw(st, seed, _commit(seed), _pack())[0]
     cands = [p["id"] for p in st["parts"] if "k.ade" not in p["authors"]]
     want = min(cands, key=lambda p: hashlib.sha256(f"{seed}|{st['frozen_sha256']}|k.ade|{p}".encode()).hexdigest())
     assert d["part"] == want
@@ -183,12 +250,12 @@ def test_statements_changed_after_the_freeze_are_refused():
     st = _statements()
     st["parts"][0]["authors"] = ["k.bo"]
     with pytest.raises(ValueError, match="DF001"):
-        defense.draw(st, "s1", _commit("s1"))
+        defense.draw(st, "s1", _commit("s1"), _pack())
 
 
 def test_a_seed_that_does_not_match_the_commitment_is_refused():
     with pytest.raises(ValueError, match="DF004"):
-        defense.draw(_statements(), "s1", _commit("s2"))
+        defense.draw(_statements(), "s1", _commit("s2"), _pack())
 
 
 def test_a_solo_learner_draws_from_every_part():
@@ -201,7 +268,29 @@ def test_unknown_authors_are_df003():
     st = _statements()
     st["parts"][0]["authors"] = ["k.zed"]
     st["frozen_sha256"] = canonical_sha256({"members": st["members"], "parts": st["parts"]})
-    assert [f.code for f in defense.check(st)] == ["DF003"]
+    assert [f.code for f in defense.check(st, _pack())] == ["DF003", "DF005"]
+
+
+def test_overclaimed_coauthorship_cannot_aim_the_draw():
+    # k.cy claims to have co-written every part but P02, which would force P02 under any seed
+    st = _statements()
+    for p in st["parts"]:
+        if p["id"] != "P02" and "k.cy" not in p["authors"]:
+            p["authors"].append("k.cy")
+    st["frozen_sha256"] = canonical_sha256({"members": st["members"], "parts": st["parts"]})
+    codes = [f.code for f in defense.check(st, _pack())]
+    assert "DF005" in codes and "DF006" in codes          # not the pack's PR authors; pool of 1 < 4
+    pack = _pack()                                         # even if the pack's PR record is inflated too
+    for pr in pack["prs"]:
+        pr["authors"] = sorted(set(pr["authors"]) | ({"k.cy"} if pr["id"] != "#14" else set()))
+    assert [f.code for f in defense.check(st, pack)] == ["DF006"]
+    with pytest.raises(ValueError, match="DF006"):
+        defense.draw(st, "s1", _commit("s1"), pack)
+
+
+def test_a_team_draw_needs_its_pack():
+    with pytest.raises(ValueError, match="DF007"):
+        defense.draw(_statements(), "s1", _commit("s1"))
 
 
 # --- the checker as a whole: every fixture fails in its stated way ----------------------------------------------
@@ -211,7 +300,8 @@ EXPECTED = {
     "a-fail-no-disclosure": {"EV001"}, "a-fail-tampered": {"EV003"}, "a-fail-untraced": {"EV005"},
     "a-fail-stale": {"EV008"}, "a-fail-overclaim": {"EV004", "EV011"}, "a-fail-criterion": {"EV006"},
     "a-fail-label": {"EV007"}, "a-fail-open-high": {"EV011"}, "a-fail-interval": {"EV004"},
-    "a-fail-owner": {"EV010"}, "b-fail-merge-tool": {"EV011"}, "b-fail-case-evidence": {"EV004"},
+    "a-fail-owner": {"EV010"}, "a-fail-no-release": {"EV008"}, "a-fail-file-release": {"EV008"},
+    "a-fail-open-label": {"EV001"}, "a-fail-thin-disclosure": {"EV004"}, "a-fail-redteam-members": {"EV004"}, "b-fail-merge-tool": {"EV011"}, "b-fail-case-evidence": {"EV004"},
     "c-fail-roi": {"EV011"}, "c-fail-operating-model": {"EV011"}, "c-fail-pilot-wording": {"EV004"},
     "c-fail-maturity-claim": {"EV004"}, "d-fail-attack-text": {"EV012"}, "d-fail-shared-domain": {"EV011"},
     "d-fail-self-review": {"EV004", "EV006"}, "d-fail-drill": {"EV011", "EV006"}, "d-fail-asr-scope": {"EV004"},

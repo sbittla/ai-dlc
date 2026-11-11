@@ -53,6 +53,7 @@ jobs:
           - labs/ch19/L19.2-safety-security-case
           - labs/ch20/L20.1-maturity-operating-model-roi
           - labs/ch20/L20.2-controlled-adoption-experiment
+          - labs/ch21/capstone-kit
     defaults:
       run:
         working-directory: ${{ matrix.lab }}

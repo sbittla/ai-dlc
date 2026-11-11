@@ -11,6 +11,11 @@ can carry:
     RB005  a gate failed: the team's level is Fail, whatever the score
     RB006  a member could not explain and modify the part drawn for them: that member fails, whatever the
            team's level ("a team grade cannot lift an individual who cannot explain the system")
+    RB007  refused: the members scored are not exactly the pack's members (and the draw's, when the scores name
+           the frozen statements); nobody can be left off the sheet
+    RB008  the security gate fails when the red-team log or the coverage-gate report is missing or has a
+           blocking finding, whatever the panel marked
+    RB009  Gate G6 is not met while the pack has any blocking finding, whatever the score
 
 Levels: Excellent 90-100, Acceptable 75-89, Needs work 60-74 (a conditional pass, with five working days to
 remediate), Fail below 60 or any gate failed.
@@ -24,6 +29,8 @@ CAP_BLOCKED = 74
 CAP_MISSING = 59
 CAP_UNSTATED = 89
 GATES = ("security", "reproducibility", "explain", "disclosure", "hygiene")
+SECURITY_EVIDENCE = {"A": ("red-team", "adversarial"), "B": ("red-team", "adversarial"),
+                     "D": ("findings", "matrix"), "C": ()}
 
 
 def level(total: float) -> str:
@@ -53,8 +60,15 @@ def ceilings(res: Result) -> dict[str, tuple[int, list[str]]]:
     return out
 
 
-def score(scores: dict, res: Result) -> dict:
+def score(scores: dict, res: Result, statements: dict | None = None) -> dict:
     spec = tracks()["tracks"][scores["track"]]
+    scored = [m["id"] for m in scores.get("members", [])]
+    pack_members = [m["id"] for m in res.pack.get("members", [])]
+    if not scored or set(scored) != set(pack_members) or len(scored) != len(set(scored)):
+        raise ValueError(f"RB007 members scored {sorted(scored)} must be exactly the pack's {sorted(pack_members)}")
+    if statements is not None and set(statements["members"]) != set(scored):
+        raise ValueError(f"RB007 members scored {sorted(scored)} must be exactly the draw's "
+                         f"{sorted(statements['members'])}")
     dims = {d["id"]: d for d in spec["dimensions"]}
     if set(scores["dimensions"]) != set(dims):
         raise ValueError(f"dimensions must be exactly {sorted(dims)}")
@@ -94,6 +108,10 @@ def score(scores: dict, res: Result) -> dict:
     if open_high:
         gates["security"] = "fail"
         notes.append(f"RB005 security gate: open critical or high red-team finding in {', '.join(open_high)}")
+    unsound = [r for r in SECURITY_EVIDENCE[scores["track"]] if res.requirement_state.get(r) != "ok"]
+    if unsound:
+        gates["security"] = "fail"
+        notes.append(f"RB008 security gate: {', '.join(f'{r} {res.requirement_state.get(r)}' for r in unsound)}")
     team_gates_failed = [g for g in GATES if g != "explain" and gates.get(g) != "pass"]
     team_level = "Fail" if team_gates_failed else level(total)
     if team_gates_failed:
@@ -107,5 +125,10 @@ def score(scores: dict, res: Result) -> dict:
     outcome = {"Excellent": "pass", "Acceptable": "pass",
                "Needs work": "conditional pass: five working days to remediate, then re-scored",
                "Fail": "fail"}[team_level]
+    blocking = len(res.blocking)
+    if blocking:
+        notes.append(f"RB009 the pack has {blocking} blocking finding(s): Gate G6 not met until they are gone")
+    g6_team = not blocking and team_level in ("Excellent", "Acceptable")
+    g6 = [(m, "met" if g6_team and lv != "Fail" else "not met") for m, lv, _ in people]
     return {"rows": rows, "total": total, "level": team_level, "outcome": outcome, "gates": gates,
-            "notes": notes, "people": people}
+            "notes": notes, "people": people, "g6": g6, "pack_blocking": blocking}

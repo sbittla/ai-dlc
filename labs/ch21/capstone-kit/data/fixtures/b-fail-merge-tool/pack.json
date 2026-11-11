@@ -118,7 +118,7 @@
       "file": "pack:items/eval.json",
       "label": "verified",
       "owner": "h.bo",
-      "sha256": "7aca95d1280bf69125639f5db34913b263cf4f5ea036c3049006dee2767a59a4",
+      "sha256": "9f0f8574f095f359178179f9acb6f856edeb916fc8f5ef2c4c03ece20add6ea7",
       "sources": [
         {
           "ref": "pack:repo/evals/cases.jsonl",
@@ -134,7 +134,7 @@
       "file": "pack:items/coverage.json",
       "label": "verified",
       "owner": "h.cy",
-      "sha256": "b8bd90b3f4e6f1d9e20a873829bc7ba3ef4d869252dda805bfe563ca20e744b3",
+      "sha256": "50d639468fd99221871076b036156dec8368b92c22296f68c3d7393fc9a4ca6d",
       "sources": [
         {
           "ref": "pack:repo/src/service/ai_step.py",
@@ -169,7 +169,7 @@
       "file": "pack:items/tests.json",
       "label": "verified",
       "owner": "h.bo",
-      "sha256": "db9d14218cb00e41e4d51da0b41b40d3b538d31eb5cc3aeb7326a3e6c173f6dd",
+      "sha256": "ac40bcccfe3caffb8f90e2f0c044989145f25ccd2c81c3a17942b4568ebd04df",
       "sources": [
         {
           "ref": "pack:repo/tests/check_core.py",
@@ -217,7 +217,7 @@
       "file": "pack:items/signature.json",
       "label": "verified",
       "owner": "h.bo",
-      "sha256": "368eae0c10a635f5da50c8259bacf71fb4d31626d659b0621fcc0e5b3cb6ab66",
+      "sha256": "6534f2c0893351e0b1a8a5ea3b9bde075f6aa8689984f07471daeb29d605a69c",
       "sources": [
         {
           "ref": "pack:repo/.github/workflows/release.yml",
@@ -295,13 +295,14 @@
       "file": "pack:items/readiness.json",
       "label": "verified",
       "owner": "h.ade",
-      "sha256": "891cb619b06183d300e09f0d4984079e5f1c8f41401fbed35d8b1b3bfbe8f1f8",
+      "sha256": "2461ab12a44929869fbbbf65414eb116577705ce40810ae68298f37bdb7bbc41",
       "sources": [
         {
           "ref": "pack:items/tests.json",
-          "sha256": "db9d14218cb00e41e4d51da0b41b40d3b538d31eb5cc3aeb7326a3e6c173f6dd"
+          "sha256": "ac40bcccfe3caffb8f90e2f0c044989145f25ccd2c81c3a17942b4568ebd04df"
         }
-      ]
+      ],
+      "release": "stp-0.3.0"
     },
     {
       "id": "B16",
@@ -374,8 +375,61 @@
       "sources": [
         {
           "ref": "pack:items/coverage.json",
-          "sha256": "b8bd90b3f4e6f1d9e20a873829bc7ba3ef4d869252dda805bfe563ca20e744b3"
+          "sha256": "50d639468fd99221871076b036156dec8368b92c22296f68c3d7393fc9a4ca6d"
         }
+      ]
+    }
+  ],
+  "prs": [
+    {
+      "id": "#8",
+      "title": "ADR-001 and the threat model",
+      "authors": [
+        "h.ade",
+        "h.cy"
+      ]
+    },
+    {
+      "id": "#11",
+      "title": "the at-risk detector in the worker",
+      "authors": [
+        "h.ade"
+      ]
+    },
+    {
+      "id": "#14",
+      "title": "the AI step and its fallback",
+      "authors": [
+        "h.bo"
+      ]
+    },
+    {
+      "id": "#17",
+      "title": "recipient binding in the notifier",
+      "authors": [
+        "h.cy"
+      ]
+    },
+    {
+      "id": "#19",
+      "title": "characterization tests for the legacy notifier",
+      "authors": [
+        "h.ade",
+        "h.bo"
+      ]
+    },
+    {
+      "id": "#21",
+      "title": "the SLO and burn-rate alert",
+      "authors": [
+        "h.cy"
+      ]
+    },
+    {
+      "id": "#23",
+      "title": "the release workflow and admission check",
+      "authors": [
+        "h.bo"
       ]
     }
   ],

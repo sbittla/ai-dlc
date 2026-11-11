@@ -17,6 +17,8 @@ Rules (all from Chapter 21, Section 21.3):
     RT007  a finding marked fixed has no pull request or no re-test that blocked it
     RT008  the attacking team is the defending team
     RT009  a finding ID is used twice
+    RT010  the log does not name the defending team's members, or (inside a pack) names members that do not
+           match the pack's: who counts as "outside the team" must not be the team's own choice
 """
 
 from __future__ import annotations
@@ -28,7 +30,7 @@ from . import Finding
 SCALE = ("critical", "high", "medium", "low")
 TEMPLATE = ("target", "at", "class", "variant", "severity", "attacked", "steps", "evidence", "impact",
             "suggested_fix", "status")
-ALLOWED = set(TEMPLATE) | {"id", "fix", "block", "detection"}
+ALLOWED = set(TEMPLATE) | {"id", "fix", "block", "detection", "confirmed_by"}
 STATUSES = ("open", "fixed", "blocked", "not reproduced")
 
 
@@ -38,12 +40,15 @@ def retested(finding: dict) -> bool:
 
 
 def closed(finding: dict, defenders: set[str]) -> bool:
-    """Is a critical or high finding closed before the readiness review? Either it is "fixed" with a pull
-    request and a re-test that the attack class's variant now fails against (fix.retest_result "blocked"), or it
-    is "blocked" formally: block.owner, block.due and block.reviewer all present, and the reviewer is not one of
-    the defending team's members (`defenders`), who cannot accept their own risk."""
+    """Is a critical or high finding closed before the readiness review? It is "fixed" with a pull request and a
+    re-test that the attack class's variant now fails against (fix.retest_result "blocked"); or "blocked"
+    formally, with block.owner, block.due and block.reviewer, the reviewer not one of the defending team's
+    members (`defenders`), who cannot accept their own risk; or "not reproduced", confirmed (`confirmed_by`) by
+    someone who is not a defender, such as the security reviewer."""
     if finding.get("status") == "fixed":
         return retested(finding)
+    if finding.get("status") == "not reproduced":
+        return bool(finding.get("confirmed_by")) and finding["confirmed_by"] not in defenders
     block = finding.get("block") or {}
     return (finding.get("status") == "blocked" and bool(block.get("owner")) and bool(block.get("due"))
             and bool(block.get("reviewer")) and block["reviewer"] not in defenders)
@@ -53,16 +58,24 @@ def _time(s: str) -> datetime:
     return datetime.fromisoformat(s.replace("Z", "+00:00"))
 
 
-def validate(log: dict) -> dict:
+def validate(log: dict, pack_members: list[str] | None = None, pack_team: str | None = None) -> dict:
     """Check a log. Returns {"findings": [Finding], "valid": [ids], "defender_credit": n, "attacker_credit": n,
     "open_high": [ids]}. A finding is valid when it has no RT001-RT004, RT006 or RT009 problem. The defending team
     earns one credit per fix re-tested as blocked and one per finding whose detection fired; the attacking team
-    one per valid finding."""
+    one per valid finding. Inside a pack, `pack_members` and `pack_team` say who the pack's team is: if it
+    defended, the log's defender_members must be exactly its members; if it attacked, none of its members may be
+    listed as a defender."""
     out: list[Finding] = []
     scope = log.get("scope", {})
     targets = set(scope.get("targets", []))
     start, end = _time(scope["window"]["start"]), _time(scope["window"]["end"])
-    defenders = set(log.get("defender_members", []))
+    defenders = set(log.get("defender_members") or [])
+    if not defenders:
+        out.append(Finding("RT010", "block", "log", "names no members of the defending team"))
+    elif pack_members is not None and pack_team == log.get("defender") and defenders != set(pack_members):
+        out.append(Finding("RT010", "block", "log", "defender_members differ from the pack's members"))
+    elif pack_members is not None and pack_team == log.get("attacker") and defenders & set(pack_members):
+        out.append(Finding("RT010", "block", "log", "lists a member of the attacking team as a defender"))
     if log.get("attacker") == log.get("defender"):
         out.append(Finding("RT008", "block", "log", f"{log.get('attacker')} attacked its own system"))
     seen: set[str] = set()

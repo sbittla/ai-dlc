@@ -1,6 +1,7 @@
 {
   "team": "kestrel",
   "track": "A",
+  "pack": "data/fixtures/a-pass",
   "members": [
     "k.ade",
     "k.bo",
@@ -9,6 +10,9 @@
   "parts": [
     {
       "id": "P01",
+      "prs": [
+        "#11"
+      ],
       "title": "the at-risk detector in the worker",
       "authors": [
         "k.ade"
@@ -21,6 +25,9 @@
     },
     {
       "id": "P02",
+      "prs": [
+        "#14"
+      ],
       "title": "the AI summary step and its fallback",
       "authors": [
         "k.bo"
@@ -32,6 +39,9 @@
     },
     {
       "id": "P03",
+      "prs": [
+        "#17"
+      ],
       "title": "the recipient binding in the notifier",
       "authors": [
         "k.cy"
@@ -43,6 +53,9 @@
     },
     {
       "id": "P04",
+      "prs": [
+        "#19"
+      ],
       "title": "the legacy notifier's characterization tests",
       "authors": [
         "k.ade",
@@ -55,6 +68,9 @@
     },
     {
       "id": "P05",
+      "prs": [
+        "#21"
+      ],
       "title": "the SLO and burn-rate alert",
       "authors": [
         "k.cy"
@@ -66,6 +82,9 @@
     },
     {
       "id": "P06",
+      "prs": [
+        "#8"
+      ],
       "title": "ADR-001 and the threat model",
       "authors": [
         "k.ade",
@@ -78,6 +97,9 @@
     },
     {
       "id": "P07",
+      "prs": [
+        "#23"
+      ],
       "title": "the release workflow and admission check",
       "authors": [
         "k.bo"
@@ -96,5 +118,5 @@
     "A-AC05",
     "A-AC06"
   ],
-  "frozen_sha256": "ba787c26c5199358b35a7b81954a13d89f0fc42c1459c21f9f8f5217ca3ba41f"
+  "frozen_sha256": "65c3d0b623509e5257e2197934fb755efdedb9496817bfb1e0528e79837d8fb8"
 }

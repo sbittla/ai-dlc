@@ -1,0 +1,15 @@
+{
+  "dataset": "routing-eval",
+  "version": "2027.08.1",
+  "metric": "routing accuracy",
+  "n": 120,
+  "successes": 106,
+  "runs": 3,
+  "interval": [
+    0.8137,
+    0.9292
+  ],
+  "threshold": 0.85,
+  "simulated": false,
+  "release": "sla-1.0.0"
+}

@@ -1,0 +1,11 @@
+{
+  "slos": [
+    {
+      "slo_id": "SLO-ESC-FRESH",
+      "sli": "at-risk tasks escalated within 60 s",
+      "target": 0.99,
+      "period_days": 30,
+      "owner": "k.cy"
+    }
+  ]
+}

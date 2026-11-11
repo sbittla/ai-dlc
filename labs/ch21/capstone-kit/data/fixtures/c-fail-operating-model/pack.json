@@ -226,6 +226,52 @@
           "sha256": "57357bca57cc5a7c301ee77e6a0adb828b8b41b64962be466ab4c988a24d5e4a"
         }
       ]
+    },
+    {
+      "id": "C13",
+      "requirement": "catalogue",
+      "kind": "lab-report",
+      "file": "pack:items/lab-20.1-catalog.md",
+      "label": "verified",
+      "owner": "w.ade",
+      "sha256": "f18532b95cbdcd1fad44f4802435b2deacf8a040a792c2bb8c7c85bb39639c6e",
+      "sources": [
+        {
+          "ref": "labs:ch20/L20.1-maturity-operating-model-roi/data/catalog/catalog-reviewed.json",
+          "sha256": "679fd2818a2b387d851ee341f2ff682c8b279f7aa29d047965d8f098f796db49"
+        },
+        {
+          "ref": "labs:ch20/L20.1-maturity-operating-model-roi/data/catalog/aup-v1.md",
+          "sha256": "48c77d0cf772bbfba86cef70cdca339edbccf079df8e3e1b5fe075d3501bc8b3"
+        }
+      ],
+      "lab": "labs/ch20/L20.1-maturity-operating-model-roi",
+      "command": "python -m adoption.report catalog",
+      "title": "The approved catalogue and policy, checked against Relay's records",
+      "claims": [
+        "Entries: approved 4, prohibited 1, trial 1, under-review 1; findings: 0"
+      ]
+    },
+    {
+      "id": "C14",
+      "requirement": "power",
+      "kind": "lab-report",
+      "file": "pack:items/lab-20.2-power.md",
+      "label": "modelled",
+      "owner": "w.bo",
+      "sha256": "3e6f41469347943cbbc79eb9ca02c459ac02aa329af722c65e89a85be00f19ee",
+      "sources": [
+        {
+          "ref": "labs:ch20/L20.2-controlled-adoption-experiment/scripts/generate_data.py",
+          "sha256": "e7abf9675a9d9d2deeeeb2a42e49daae786653176da434fc5306ccaeed0eee7c"
+        }
+      ],
+      "lab": "labs/ch20/L20.2-controlled-adoption-experiment",
+      "command": "python -m experiment.report power",
+      "title": "Power of four pilot designs, by simulation",
+      "claims": [
+        "| D3 task level within the two pilot teams | task (analyzed within engineer) | 15 | 0.879 | 0.622 | 0.321 |"
+      ]
     }
   ],
   "open_items": []

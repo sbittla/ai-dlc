@@ -1,6 +1,6 @@
 """What remains: the book's open items, as recorded, seen from the capstone.
 
-`data/open-items.json` gathers the open items Chapters 4 to 20 handed on, each with the owner and the date the
+`data/open-items.json` gathers the open items Chapters 9 to 20 handed on, each with the owner and the date the
 book recorded, or null where the book recorded none. Nothing here invents an owner or a date. An item whose
 date has passed is reported as "date passed, no completion recorded": the book records no completion, which
 is not the same as knowing it was not done.

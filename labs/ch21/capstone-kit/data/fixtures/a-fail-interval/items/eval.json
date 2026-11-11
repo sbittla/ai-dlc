@@ -10,5 +10,6 @@
     0.95
   ],
   "threshold": 0.85,
-  "simulated": false
+  "simulated": false,
+  "release": "sla-1.0.0"
 }

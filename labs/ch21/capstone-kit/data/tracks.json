@@ -597,6 +597,22 @@
             "disclosure"
           ],
           "due": "CP3"
+        },
+        {
+          "id": "catalogue",
+          "title": "Lab 20.1's catalogue and policy report on the approved catalogue (the kit checks the report, not its rules)",
+          "kinds": [
+            "lab-report"
+          ],
+          "due": "CP1"
+        },
+        {
+          "id": "power",
+          "title": "Lab 20.2's power report for the pilot design (the kit checks the report, not its simulation)",
+          "kinds": [
+            "lab-report"
+          ],
+          "due": "CP0"
         }
       ],
       "dimensions": [
@@ -607,7 +623,8 @@
           "requirements": [
             "governance",
             "platform",
-            "disclosure"
+            "disclosure",
+            "catalogue"
           ]
         },
         {
@@ -617,7 +634,8 @@
           "requirements": [
             "roi",
             "pilot",
-            "kpi"
+            "kpi",
+            "power"
           ]
         },
         {

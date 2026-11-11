@@ -14,7 +14,7 @@ def test_tracks():
     text = render_tracks()
     for line in ("- A Production service: 16 required kinds of evidence, 6 rubric dimensions",
                  "- B Bounded agent platform: 19 required kinds of evidence, 6 rubric dimensions",
-                 "- C Enterprise adoption: 12 required kinds of evidence, 6 rubric dimensions",
+                 "- C Enterprise adoption: 14 required kinds of evidence, 6 rubric dimensions",
                  "- D Agentic security assessment: 10 required kinds of evidence, 6 rubric dimensions (Threat "
                  "model 10%, Attack-class coverage and findings 20%, Hardening effectiveness 20%, Verification of "
                  "defences 20%, Detection and response 15%, Judgement and communication 15%)"):
@@ -24,12 +24,14 @@ def test_tracks():
 def test_fixtures_table():
     text = render_fixtures()
     rows = [line for line in text.splitlines() if line.startswith("| ") and "Fixture" not in line and "---" not in line]
-    assert len(rows) == 25
+    assert len(rows) == 30
     assert sum("| yes |" in r for r in rows) == 4
     for line in ("| a-fail-overclaim | A | no | EV004 x2, EV011 |", "| a-fail-tampered | A | no | EV003 |",
                  "| c-fail-operating-model | C | no | EV011 x7 |", "| c-fail-roi | C | no | EV011 x4 |",
                  "| d-fail-attack-text | D | no | EV012 |", "| d-fail-shared-domain | D | no | EV011 |",
-                 "| d-fail-drill | D | no | EV006, EV011 |", "| b-fail-merge-tool | B | no | EV011 |"):
+                 "| d-fail-drill | D | no | EV006, EV011 |", "| b-fail-merge-tool | B | no | EV011 |",
+                 "| a-fail-stale | A | no | EV008 x2 |", "| a-fail-file-release | A | no | EV008 |",
+                 "| a-fail-no-release | A | no | EV008 |", "| a-fail-open-label | A | no | EV001 |"):
         assert line in text, line
 
 
@@ -81,20 +83,23 @@ def test_scores():
     text, _ = render_score("data/scores/kestrel-a-unstated.json")
     for line in ("Total: 89.0; level: Acceptable; outcome: pass",
                  "- RB004 the panel found 1 unstated limitation(s): total 90.6 capped at 89",
-                 "| k.ade | Acceptable | - |",
-                 "| k.cy | Fail | RB006 could not explain and modify the part drawn |"):
+                 "| k.ade | Acceptable | met | - |",
+                 "| k.cy | Fail | not met | RB006 could not explain and modify the part drawn |"):
         assert line in text, line
     text, code = render_score("data/scores/kestrel-a-open-high.json")
     assert code == 1
     for line in ("| security | 20% | 88 | 74 | 74 | red-team has blocking findings; RB002 A06 has blocking findings |",
                  "Total: 87.8; level: Fail; outcome: fail",
-                 "- RB005 security gate: open critical or high red-team finding in A06"):
+                 "- RB005 security gate: open critical or high red-team finding in A06",
+                 "- RB008 security gate: red-team blocked",
+                 "- RB009 the pack has 1 blocking finding(s): Gate G6 not met until they are gone",
+                 "| k.ade | Fail | not met | - |"):
         assert line in text, line
     text, _ = render_score("data/scores/kestrel-a-uncited.json")
     for line in ("| operations | 15% | 85 | 0 | 0 | RB001 no evidence cited |",
                  "| security | 20% | 88 | 59 | 59 | RB003 A99 is not in the pack |",
                  "Total: 72.0; level: Needs work; outcome: conditional pass: five working days to remediate, then "
-                 "re-scored"):
+                 "re-scored", "| k.ade | Needs work | not met | - |"):
         assert line in text, line
 
 
@@ -115,22 +120,22 @@ def test_redteam_logs():
 def test_defense_draw():
     panel = json.loads((DATA_DIR / "defense" / "kestrel-panel.json").read_text(encoding="utf-8"))
     text = render_defense("data/defense/kestrel-statements.json", panel["seed"], panel["seed_commitment"])
-    for line in ("## k.ade: P05 the SLO and burn-rate alert (written by k.cy)",
-                 "## k.bo: P01 the at-risk detector in the worker (written by k.ade; agent-assisted)",
-                 "3. With an agent, make this change and verify it: a task with no deadline is never at risk",
+    for line in ("## k.ade: P02 the AI summary step and its fallback (written by k.bo; agent-assisted)",
+                 "3. With an agent, make this change and verify it: fall back after 5 s instead of 10 s",
+                 "## k.bo: P06 ADR-001 and the threat model (written by k.ade, k.cy)",
                  "## k.cy: P07 the release workflow and admission check (written by k.bo; agent-assisted)",
-                 "Evidence walk-through: A-AC02, A-AC01"):
+                 "Evidence walk-through: A-AC02, A-AC03"):
         assert line in text, line
 
 
 def test_what_remains():
     text = render_remains("2027-07-26", None)
     for line in ("Open items: 63; date passed, no completion recorded 13; due later 4; no date recorded 46; "
-                 "no owner recorded 24",
+                 "no owner recorded 25",
                  "By capstone track: A 26, B 32, C 12, D 17"):
         assert line in text, line
     expect = {"A": "Open items: 26; date passed, no completion recorded 7; due later 2; no date recorded 17; "
-                   "no owner recorded 10",
+                   "no owner recorded 11",
               "B": "Open items: 32; date passed, no completion recorded 8; due later 2; no date recorded 22; "
                    "no owner recorded 13",
               "C": "Open items: 12; date passed, no completion recorded 0; due later 0; no date recorded 12; "
@@ -139,3 +144,23 @@ def test_what_remains():
                    "no owner recorded 6"}
     for t, line in expect.items():
         assert line in render_remains("2027-07-26", t), t
+
+
+def test_table_21_17_past_dates():
+    from capstone.remains import view
+    past = [(r["chapter"], r.get("owner"), r["due"]) for r in view("2027-07-26")["rows"]
+            if r["status"] == "date passed, no completion recorded"]
+    assert sorted(past, key=lambda x: (x[2], x[0])) == [
+        (12, "priya.n", "2027-03-31"), (16, "sam.o", "2027-03-31"), (18, "sam.o", "2027-04-16"),
+        (16, "aisha.r", "2027-04-30"), (16, None, "2027-04-30"),
+        (18, "priya.n", "2027-04-30"), (18, "sam.o", "2027-04-30"), (12, "aisha.r", "2027-05-31"),
+        (18, "sam.o", "2027-05-31"), (18, "aisha.r with sam.o", "2027-05-31"), (18, "sam.o", "2027-05-31"),
+        (18, "priya.n", "2027-06-30"), (10, "sam.o", "2027-07-22")]
+
+
+def test_relay_slos_cover_the_api_and_triage_only():
+    from conftest import REPO
+    slos = json.loads((REPO / "labs/relay-baselines/4.31.0/relay-repo/docs/slo/slos.json").read_text(
+        encoding="utf-8"))["slos"]
+    ids = [s["slo_id"] for s in slos]
+    assert len(ids) == 5 and all(i.startswith(("SLO-API-", "SLO-TRIAGE-")) for i in ids)

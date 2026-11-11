@@ -169,7 +169,7 @@ def v_coverage_report(path, item, ctx):
 
 
 def v_redteam_log(path, item, ctx):
-    result = validate_log(_json(path))
+    result = validate_log(_json(path), ctx.get("members"), ctx.get("team"))
     bad = [f.line() for f in result["findings"] if f.code not in ("RT005", "RT006")]
     failing = [f.line() for f in result["findings"] if f.code == "RT005"]
     content = [f.line() for f in result["findings"] if f.code == "RT006"]
@@ -179,6 +179,8 @@ def v_redteam_log(path, item, ctx):
 def v_test_record(path, item, ctx):
     r = _json(path)
     bad = [f"no {k}" for k in ("suite", "commit", "passed", "failed", "date") if k not in r]
+    if not bad and r["passed"] < 1:
+        bad.append("records no passing test")
     failing = [f"{r['failed']} failed"] if not bad and r["failed"] else []
     return bad, failing, []
 
@@ -195,8 +197,6 @@ def v_cyclonedx(path, item, ctx):
         bad.append("no metadata.component name and version")
     if not (b.get("components") or b.get("services")):
         bad.append("lists no components or services")
-    if comp.get("version") and item.get("release") and comp["version"] != item["release"]:
-        bad.append(f"BOM is for version {comp['version']}, item says {item['release']}")
     return bad, [], []
 
 
@@ -250,8 +250,8 @@ def v_runbook(path, item, ctx):
     bad = []
     if not text.startswith("# "):
         bad.append("no title line")
-    if not re.search(r"^\s*(\d+\.|-) ", text, re.M):
-        bad.append("no steps")
+    if len(re.findall(r"^\s*(\d+\.|-) \S", text, re.M)) < 2:
+        bad.append("fewer than two steps")
     return bad, [], []
 
 
@@ -293,9 +293,27 @@ def v_readiness_review(path, item, ctx):
     return bad, failing, []
 
 
+def _section_words(text: str) -> dict[str, int]:
+    out, cur = {}, None
+    for line in text.splitlines():
+        if line.startswith("#"):
+            cur = line.lstrip("#").strip().lower()
+            out[cur] = 0
+        elif cur is not None:
+            out[cur] += len(line.split())
+    return out
+
+
 def v_disclosure(path, item, ctx):
     text = path.read_text(encoding="utf-8")
-    return _need_headings(text, ["tools and agents", "what each produced", "how it was checked"]), [], []
+    needed = ["tools and agents", "what each produced", "how it was checked"]
+    bad = _need_headings(text, needed)
+    words = _section_words(text)
+    for h in needed:
+        n = sum(v for k, v in words.items() if h in k)
+        if not bad and n < 5:
+            bad.append(f"section '{h}' is nearly empty ({n} words)")
+    return bad, [], []
 
 
 def _contracts_from_python(text: str) -> list[dict]:
@@ -438,6 +456,18 @@ def v_ci_gate(path, item, ctx):
     bad = [f"no {k}" for k in ("workflow", "context", "required_contexts") if k not in r]
     failing = [] if bad or r["context"] in r["required_contexts"] else [f"{r['context']} is not a required check"]
     return bad, failing, []
+
+
+# Kinds whose evidence is bound to one release: the file itself must say which (evidence.check, EV008).
+def file_release(kind: str, path: Path) -> str | None:
+    if kind == "cyclonedx":
+        return _json(path).get("metadata", {}).get("component", {}).get("version")
+    if kind in VERSION_BOUND:
+        return _json(path).get("release")
+    return None
+
+
+VERSION_BOUND = {"coverage-report", "readiness-review", "test-record", "signature", "eval-record", "cyclonedx"}
 
 
 ASR_KEYS = {"system", "system_owner", "ethics_agreement", "attack_set", "configuration", "runs", "attempts",

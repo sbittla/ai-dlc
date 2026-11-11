@@ -4,5 +4,7 @@
   "failed": 0,
   "skipped": 1,
   "commit": "canonical 4.31.0 snapshot (the teaching tree has no commit hashes)",
-  "date": "2027-07-09"
+  "date": "2027-07-09",
+  "release": "4.31.0",
+  "note": "transcribed from the canonical record, not re-run by this generator"
 }

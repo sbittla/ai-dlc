@@ -1,0 +1,9 @@
+{
+  "suite": "walking skeleton smoke tests in the sandbox",
+  "commit": "a07d311",
+  "passed": 6,
+  "failed": 0,
+  "skipped": 0,
+  "date": "2027-08-05",
+  "release": "sla-1.0.0"
+}

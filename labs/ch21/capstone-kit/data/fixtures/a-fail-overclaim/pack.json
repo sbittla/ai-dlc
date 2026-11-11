@@ -118,7 +118,7 @@
       "file": "pack:items/eval.json",
       "label": "verified",
       "owner": "k.bo",
-      "sha256": "7aca95d1280bf69125639f5db34913b263cf4f5ea036c3049006dee2767a59a4",
+      "sha256": "9f2afee6fb658ac647f3dc04741e9628d5c519a344dc12646c89662c125f025b",
       "sources": [
         {
           "ref": "pack:repo/evals/cases.jsonl",
@@ -134,7 +134,7 @@
       "file": "pack:items/coverage.json",
       "label": "verified",
       "owner": "k.cy",
-      "sha256": "023ea19455a36c02a41c27f028b72cb9fdb0d09d02ed2cdb4f954f9d969bc583",
+      "sha256": "8ca5066523a0af4deba26bd9987237bee1bd277fbc0e54c6a629f4a3e4be3fa8",
       "sources": [
         {
           "ref": "pack:repo/src/service/ai_step.py",
@@ -169,7 +169,7 @@
       "file": "pack:items/tests.json",
       "label": "verified",
       "owner": "k.bo",
-      "sha256": "db9d14218cb00e41e4d51da0b41b40d3b538d31eb5cc3aeb7326a3e6c173f6dd",
+      "sha256": "1d10a3d6c63978350a5eb65063cc8dde461f5f43e4488072f72e4bc6f713e2ab",
       "sources": [
         {
           "ref": "pack:repo/tests/check_core.py",
@@ -217,7 +217,7 @@
       "file": "pack:items/signature.json",
       "label": "verified",
       "owner": "k.bo",
-      "sha256": "c7d5186ae4b3f04aff097db7c0173d01636978f12b75922648399a99098c7fc3",
+      "sha256": "8e0e228159cc1e258adb56b305f4dd08abbe8b5a81fabb2572db8ce42100bdc7",
       "sources": [
         {
           "ref": "pack:repo/.github/workflows/release.yml",
@@ -295,13 +295,14 @@
       "file": "pack:items/readiness.json",
       "label": "verified",
       "owner": "k.ade",
-      "sha256": "a930173ea39c9681911b254bc42f58bd953bb5f62854abb08d062ff875c44eab",
+      "sha256": "3cfeeec86093d33f78231868088535cb869b02c9ee10c69b55c0294913f4e1b7",
       "sources": [
         {
           "ref": "pack:items/tests.json",
-          "sha256": "db9d14218cb00e41e4d51da0b41b40d3b538d31eb5cc3aeb7326a3e6c173f6dd"
+          "sha256": "1d10a3d6c63978350a5eb65063cc8dde461f5f43e4488072f72e4bc6f713e2ab"
         }
-      ]
+      ],
+      "release": "sla-1.0.0"
     },
     {
       "id": "A16",
@@ -325,7 +326,7 @@
       "file": "pack:items/skeleton.json",
       "label": "deployed",
       "owner": "k.ade",
-      "sha256": "43567ed27b433dcdeae504cf095aa550a0d33a1b70faaa2d0b4b6358e7c1a433",
+      "sha256": "0d5b41c1a62423f97bc8f2a314b09736877cef72f7e6381bc39db1f1ca93c1fd",
       "sources": [
         {
           "ref": "pack:repo/infra/sandbox.tf",
@@ -334,6 +335,59 @@
       ],
       "deployment": "pack:items/skeleton.json",
       "release": "sla-1.0.0"
+    }
+  ],
+  "prs": [
+    {
+      "id": "#8",
+      "title": "ADR-001 and the threat model",
+      "authors": [
+        "k.ade",
+        "k.cy"
+      ]
+    },
+    {
+      "id": "#11",
+      "title": "the at-risk detector in the worker",
+      "authors": [
+        "k.ade"
+      ]
+    },
+    {
+      "id": "#14",
+      "title": "the AI step and its fallback",
+      "authors": [
+        "k.bo"
+      ]
+    },
+    {
+      "id": "#17",
+      "title": "recipient binding in the notifier",
+      "authors": [
+        "k.cy"
+      ]
+    },
+    {
+      "id": "#19",
+      "title": "characterization tests for the legacy notifier",
+      "authors": [
+        "k.ade",
+        "k.bo"
+      ]
+    },
+    {
+      "id": "#21",
+      "title": "the SLO and burn-rate alert",
+      "authors": [
+        "k.cy"
+      ]
+    },
+    {
+      "id": "#23",
+      "title": "the release workflow and admission check",
+      "authors": [
+        "k.bo"
+      ]
     }
   ],
   "open_items": [

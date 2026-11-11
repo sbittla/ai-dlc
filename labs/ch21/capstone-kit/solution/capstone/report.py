@@ -88,7 +88,8 @@ def render_fixtures() -> str:
 def render_score(scores_path: str) -> tuple[str, int]:
     scores = load_json(_path(scores_path))
     res = evidence.check(_path(scores["pack"]))
-    out = rubric.score(scores, res)
+    statements = load_json(_path(scores["statements"])) if scores.get("statements") else None
+    out = rubric.score(scores, res, statements)
     lines = [f"# Rubric: {scores['team']}, track {scores['track']}", "",
              "| Dimension | Weight | Panel | Cap | Counted | Why capped |", "| --- | ---: | ---: | ---: | ---: | --- |"]
     for r in out["rows"]:
@@ -97,14 +98,15 @@ def render_score(scores_path: str) -> tuple[str, int]:
     lines += ["", f"Total: {out['total']}; level: {out['level']}; outcome: {out['outcome']}",
               "Gates: " + ", ".join(f"{g} {out['gates'].get(g, 'missing')}" for g in rubric.GATES)]
     lines += [f"- {n}" for n in out["notes"]]
-    lines += ["", "| Member | Result | Why |", "| --- | --- | --- |"]
-    lines += [f"| {m} | {lv} | {why or '-'} |" for m, lv, why in out["people"]]
+    lines += ["", "| Member | Result | Gate G6 | Why |", "| --- | --- | --- | --- |"]
+    lines += [f"| {m} | {lv} | {g} | {why or '-'} |" for (m, lv, why), (_, g) in zip(out["people"], out["g6"])]
     return "\n".join(lines) + "\n", 0 if out["level"] != "Fail" else 1
 
 
 def render_defense(path: str, seed: str, commitment: str) -> str:
     st = load_json(_path(path))
-    draws = defense.draw(st, seed, commitment)
+    pack = load_json(_path(st["pack"]) / "pack.json") if st.get("pack") else None
+    draws = defense.draw(st, seed, commitment, pack)
     crit = defense.draw_criteria(st.get("criteria", []), seed, st["frozen_sha256"])
     lines = [f"# Defense draw for {st['team']} (seed {seed!r}, statements {st['frozen_sha256'][:12]})", ""]
     for d in draws:

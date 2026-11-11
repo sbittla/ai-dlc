@@ -4,7 +4,7 @@
 
 Writes:
     data/tracks.json            the four capstone tracks: required evidence, rubric dimensions and weights, levels
-    data/open-items.json        the book's open items as recorded in Chapters 4-20 (owner and date, or null)
+    data/open-items.json        the book's open items as recorded in Chapters 9-20 (owner and date, or null)
     data/fixtures/<name>/       synthetic evidence packs: one passing pack per track, and packs that fail in one
                                 stated way each (fixture teams and systems are fictional)
     data/packs/relay-b-4.31.0/  a Capstone B pack for Relay's spec-to-PR helper, built from Relay 4.31.0's real
@@ -190,10 +190,15 @@ TRACKS = {
                     "CP2", headings=["risks challenged", "responses"]),
                   R("briefing", "Executive briefing and evidence index", ["markdown"], "CP3",
                     headings=["decision requested", "evidence index"]),
-                  R("disclosure", "AI-use disclosure", ["disclosure"], "CP3")],
+                  R("disclosure", "AI-use disclosure", ["disclosure"], "CP3"),
+                  R("catalogue", "Lab 20.1's catalogue and policy report on the approved catalogue (the kit checks "
+                    "the report, not its rules)", ["lab-report"], "CP1"),
+                  R("power", "Lab 20.2's power report for the pilot design (the kit checks the report, not its "
+                    "simulation)", ["lab-report"], "CP0")],
               "dimensions": dims(
-                  ("governance", "Governance and security", 20, ["governance", "platform", "disclosure"]),
-                  ("economics", "Economics and measurement", 20, ["roi", "pilot", "kpi"]),
+                  ("governance", "Governance and security", 20, ["governance", "platform", "disclosure",
+                                                                 "catalogue"]),
+                  ("economics", "Economics and measurement", 20, ["roi", "pilot", "kpi", "power"]),
                   ("operating-model", "Operating model and platform", 15, ["operating-model", "platform"]),
                   ("human-factors", "Human factors and change", 15, ["human-factors"]),
                   ("roadmap", "Roadmap feasibility", 15, ["roadmap"]),
@@ -269,7 +274,7 @@ OPEN_ITEMS = [
     O(15, "Workflows name tools the snapshot does not vendor (illustrative)", None, None, "AB"),
     O(16, "Dead man's switch for the monitor", "sam.o", "2027-03-31", "A"),
     O(16, "Authenticate sidecar-to-gateway OTLP (mTLS or a token)", "aisha.r", "2027-04-30", "AD"),
-    O(16, "D7 flood-cap re-review", "lena.k", "2027-04-30", "A"),
+    O(16, "D7 flood-cap re-review (the review record names no owner)", None, "2027-04-30", "A"),
     O(16, "ESC-AC29 and ESC-AC30 into the spec; PRD v1.2 to record D7 and D8", "lena.k", None, "A"),
     O(16, "Incident-assistant evaluation set", "priya.n", None, "A"),
     O(16, "Citation check and remediation gate into src/, with the assistant's registry entry", None, None, "AB"),
@@ -376,13 +381,14 @@ def ab_files(track: str, team: str, system: str, release: str, agent: str) -> tu
              "owasp_agentic": "T2", "atlas": "AML.T0051", "controls": ["recipient-binding", "egress"]}]}
     files["items/eval.json"] = {"dataset": "routing-eval", "version": "2027.08.1", "metric": "routing accuracy",
                                 "n": 120, "successes": 106, "runs": 3, "interval": wilson(106, 120),
-                                "threshold": 0.85, "simulated": False}
-    files["items/coverage.json"] = coverage_fixture(passing=True)
+                                "threshold": 0.85, "simulated": False, "release": release}
+    files["items/coverage.json"] = dict(coverage_fixture(passing=True), release=release)
     files["items/redteam-log.json"] = redteam_log(team, "osprey" if team != "osprey" else "kestrel")
     files["items/tests.json"] = {"suite": "unit, contract and characterization", "commit": "4f1c2e9", "passed": 214,
-                                 "failed": 0, "skipped": 1, "date": "2027-08-12"}
+                                 "failed": 0, "skipped": 1, "date": "2027-08-12", "release": release}
     files["items/skeleton.json"] = {"suite": "walking skeleton smoke tests in the sandbox", "commit": "a07d311",
-                                    "passed": 6, "failed": 0, "skipped": 0, "date": "2027-08-05"}
+                                    "passed": 6, "failed": 0, "skipped": 0, "date": "2027-08-05",
+                                    "release": release}
     files["items/sbom.json"] = {"bomFormat": "CycloneDX", "specVersion": "1.6", "version": 1,
                                 "metadata": {"component": {"type": "application", "name": system,
                                                            "version": release}},
@@ -395,7 +401,8 @@ def ab_files(track: str, team: str, system: str, release: str, agent: str) -> tu
     files["items/signature.json"] = {"artefact": f"{system} image", "digest": "sha256:" + "ab" * 32,
                                      "identity": "release workflow at a v* tag (fixture)",
                                      "log_entry": "fixture-log-0001", "verified": True,
-                                     "verified_by": "admission policy", "date": "2027-08-12"}
+                                     "verified_by": "admission policy", "date": "2027-08-12",
+                                     "release": release}
     files["items/agents.json"] = {"agents": [{"agent_id": agent, "owner": b, "issuer": "fixture-issuer",
                                               "scopes": ["tasks:read"], "max_ttl_seconds": 900,
                                               "github_app": None}]}
@@ -406,7 +413,7 @@ def ab_files(track: str, team: str, system: str, release: str, agent: str) -> tu
     files["items/cost.json"] = {"unit": "per escalation", "cost_per_run": 0.0031, "cost_per_success": 0.0035,
                                 "prices_as_of": "2027-01-12", "target": 0.01}
     files["items/readiness.json"] = {
-        "date": "2027-08-13", "reviewers": [{"name": "instructor", "security": False},
+        "date": "2027-08-13", "release": release, "reviewers": [{"name": "instructor", "security": False},
                                             {"name": "security reviewer", "security": True}],
         "rows": [{"n": 1, "status": "met", "evidence": "items/tests.json"},
                  {"n": 2, "status": "met", "evidence": "items/coverage.json"},
@@ -446,7 +453,7 @@ def ab_files(track: str, team: str, system: str, release: str, agent: str) -> tu
         i(14, "cost", "cost-report", "pack:items/cost.json", "verified", b, ["pack:repo/evals/cases.jsonl"],
           release=release),
         i(15, "readiness", "readiness-review", "pack:items/readiness.json", "verified", a,
-          ["pack:items/tests.json"]),
+          ["pack:items/tests.json"], release=release),
         i(16, "disclosure", "disclosure", "pack:items/ai-use.md", "verified", a, ["pack:repo/src/service/core.py"]),
     ]
     if track == "A":
@@ -491,6 +498,13 @@ def ab_files(track: str, team: str, system: str, release: str, agent: str) -> tu
             "criteria": [{"id": f"{pfx}-AC0{k}", "evidence": [f"{pfx}{n:02d}" for n in v]}
                          for k, v in crit_map.items()],
             "items": items,
+            "prs": [{"id": "#8", "title": "ADR-001 and the threat model", "authors": [a, c]},
+                    {"id": "#11", "title": "the at-risk detector in the worker", "authors": [a]},
+                    {"id": "#14", "title": "the AI step and its fallback", "authors": [b]},
+                    {"id": "#17", "title": "recipient binding in the notifier", "authors": [c]},
+                    {"id": "#19", "title": "characterization tests for the legacy notifier", "authors": [a, b]},
+                    {"id": "#21", "title": "the SLO and burn-rate alert", "authors": [c]},
+                    {"id": "#23", "title": "the release workflow and admission check", "authors": [b]}],
             "open_items": [{"id": "OI-1", "what": "medium red-team finding RT-02", "owner": a, "due": "2027-08-20"}]}
     return pack, files
 
@@ -555,6 +569,12 @@ def redteam_log(defender: str, attacker: str, open_high: bool = False) -> dict:
             "severity_scale": ["critical", "high", "medium", "low"], "findings": findings}
 
 
+C_SNAPSHOTS = {
+    "lab-20.1-catalog.md": ("ch20/L20.1-maturity-operating-model-roi", ["-m", "adoption.report", "catalog"]),
+    "lab-20.2-power.md": ("ch20/L20.2-controlled-adoption-experiment", ["-m", "experiment.report", "power"]),
+}
+
+
 def c_files() -> tuple[dict, dict]:
     from adoption.maturity import assess
     model = json.loads((L201 / "data/maturity/model.json").read_text(encoding="utf-8"))
@@ -599,6 +619,8 @@ def c_files() -> tuple[dict, dict]:
     }
     for mm in m:
         files[f"statements/{mm}.md"] = f"# Contribution statement: {mm}\n\nI own my items in pack.json.\n"
+    for name, (lab, argv) in C_SNAPSHOTS.items():
+        files[f"items/{name}"] = run_lab(LABS / lab, argv)
     files["items/pilot.json"] = {"pre_registration": {"ref": "pack:items/pre-registration.md", "sha256": ""},
                                  "primary": {"measure": "lead-time ratio", "estimate": 1.03, "interval": [0.91, 1.17],
                                              "null": 1.0, "wording": "No clear change in lead time."}}
@@ -622,6 +644,17 @@ def c_files() -> tuple[dict, dict]:
           [f"{l201}/roi/inputs-reviewed.json"]),
         i(11, "briefing", "markdown", "pack:items/briefing.md", "verified", m[0], ["pack:items/roadmap.json"]),
         i(12, "disclosure", "disclosure", "pack:items/ai-use.md", "verified", m[1], ["pack:items/briefing.md"]),
+        i(13, "catalogue", "lab-report", "pack:items/lab-20.1-catalog.md", "verified", m[0],
+          [f"{l201}/catalog/catalog-reviewed.json", f"{l201}/catalog/aup-v1.md"],
+          lab="labs/ch20/L20.1-maturity-operating-model-roi", command="python -m adoption.report catalog",
+          title="The approved catalogue and policy, checked against Relay's records",
+          claims=["Entries: approved 4, prohibited 1, trial 1, under-review 1; findings: 0"]),
+        i(14, "power", "lab-report", "pack:items/lab-20.2-power.md", "modelled", m[1],
+          ["labs:ch20/L20.2-controlled-adoption-experiment/scripts/generate_data.py"],
+          lab="labs/ch20/L20.2-controlled-adoption-experiment", command="python -m experiment.report power",
+          title="Power of four pilot designs, by simulation",
+          claims=["| D3 task level within the two pilot teams | task (analyzed within engineer) | 15 | 0.879 | "
+                  "0.622 | 0.321 |"]),
     ]
     pack = {"pack": "capstone-pack-v1", "generated": GENERATED, "track": "C", "team": "wren",
             "system": "adoption programme (fixture on Lab 20.1's records)", "release": "plan-2027.08",
@@ -798,7 +831,7 @@ def variants() -> None:
         d / "items/spec.md", (d / "items/spec.md").read_text(encoding="utf-8").replace("10 s", "60 s")))
     write_pack("a-fail-untraced", with_item(a, "A04", sources=[]), af)
     write_pack("a-fail-stale", with_item(a, "A05", release="sla-0.9.0"), af)
-    f2 = dict(af, **{"items/coverage.json": coverage_fixture(passing=False)})
+    f2 = dict(af, **{"items/coverage.json": dict(coverage_fixture(passing=False), release="sla-1.0.0")})
     write_pack("a-fail-overclaim", a, f2)
     p = copy.deepcopy(a)
     p["criteria"][2]["evidence"] = ["A99"]
@@ -809,6 +842,19 @@ def variants() -> None:
     e = dict(af["items/eval.json"], interval=[0.85, 0.95])
     write_pack("a-fail-interval", a, dict(af, **{"items/eval.json": e}))
     write_pack("a-fail-owner", with_item(a, "A07", owner="k.zed"), af)
+    p = copy.deepcopy(a)
+    for it in p["items"]:
+        if it["id"] == "A05":
+            it.pop("release")
+    write_pack("a-fail-no-release", p, af)
+    write_pack("a-fail-file-release", a, dict(af, **{"items/coverage.json": dict(af["items/coverage.json"],
+                                                                                 release="sla-0.9.0")}))
+    write_pack("a-fail-open-label", with_item(a, "A01", label="open", due="2027-08-20"), af)
+    thin = "# AI-use disclosure\n\n## Tools and agents\n\n## What each produced\n\n## How it was checked\n"
+    write_pack("a-fail-thin-disclosure", a, dict(af, **{"items/ai-use.md": thin}))
+    lg = redteam_log("kestrel", "osprey")
+    lg["defender_members"] = []
+    write_pack("a-fail-redteam-members", a, dict(af, **{"items/redteam-log.json": lg}))
 
     b, bf = ab_files("B", "heron", "Spec-to-PR agent platform", "stp-0.3.0", "stp-agent")
     write_pack("b-pass", b, bf)
@@ -922,7 +968,8 @@ def relay_pack() -> None:
     # re-runs it on every push, so this record is checked there, not by re-running 1,184 tests here.
     files["items/relay-suite-4.31.0.json"] = {
         "suite": "Relay 4.31.0, PYTHONPATH=src python -m pytest -q", "passed": 1183, "failed": 0, "skipped": 1,
-        "commit": "canonical 4.31.0 snapshot (the teaching tree has no commit hashes)", "date": "2027-07-09"}
+        "commit": "canonical 4.31.0 snapshot (the teaching tree has no commit hashes)", "date": "2027-07-09",
+        "release": "4.31.0", "note": "transcribed from the canonical record, not re-run by this generator"}
     # Relay's own SBOM and AI-BOM tools, run on canonical 4.31.0 with the production image's stand-in digest.
     digest = json.loads((RELAY / "deploy/gitops/production.json").read_text(encoding="utf-8"))["images"]["relay"]
     tmp = d / "items"
@@ -1055,23 +1102,24 @@ def records() -> None:
 
     from capstone import canonical_sha256
     parts = [
-        {"id": "P01", "title": "the at-risk detector in the worker", "authors": ["k.ade"], "ai_assisted": True,
+        {"id": "P01", "prs": ["#11"], "title": "the at-risk detector in the worker", "authors": ["k.ade"], "ai_assisted": True,
          "change_requests": ["escalations must skip people who are on leave",
                              "a task with no deadline is never at risk"]},
-        {"id": "P02", "title": "the AI summary step and its fallback", "authors": ["k.bo"], "ai_assisted": True,
+        {"id": "P02", "prs": ["#14"], "title": "the AI summary step and its fallback", "authors": ["k.bo"], "ai_assisted": True,
          "change_requests": ["fall back after 5 s instead of 10 s"]},
-        {"id": "P03", "title": "the recipient binding in the notifier", "authors": ["k.cy"], "ai_assisted": True,
+        {"id": "P03", "prs": ["#17"], "title": "the recipient binding in the notifier", "authors": ["k.cy"], "ai_assisted": True,
          "change_requests": ["webhook recipients come from the customer's directory too"]},
-        {"id": "P04", "title": "the legacy notifier's characterization tests", "authors": ["k.ade", "k.bo"],
+        {"id": "P04", "prs": ["#19"], "title": "the legacy notifier's characterization tests", "authors": ["k.ade", "k.bo"],
          "ai_assisted": True, "change_requests": ["add a case for a muted security notice"]},
-        {"id": "P05", "title": "the SLO and burn-rate alert", "authors": ["k.cy"], "ai_assisted": False,
+        {"id": "P05", "prs": ["#21"], "title": "the SLO and burn-rate alert", "authors": ["k.cy"], "ai_assisted": False,
          "change_requests": ["page at a 6x burn over 1 hour as well"]},
-        {"id": "P06", "title": "ADR-001 and the threat model", "authors": ["k.ade", "k.cy"], "ai_assisted": False,
+        {"id": "P06", "prs": ["#8"], "title": "ADR-001 and the threat model", "authors": ["k.ade", "k.cy"], "ai_assisted": False,
          "change_requests": ["add a boundary for the webhook"]},
-        {"id": "P07", "title": "the release workflow and admission check", "authors": ["k.bo"], "ai_assisted": True,
+        {"id": "P07", "prs": ["#23"], "title": "the release workflow and admission check", "authors": ["k.bo"], "ai_assisted": True,
          "change_requests": ["refuse images built on a laptop"]},
     ]
-    st = {"team": "kestrel", "track": "A", "members": ["k.ade", "k.bo", "k.cy"], "parts": parts,
+    st = {"team": "kestrel", "track": "A", "pack": "data/fixtures/a-pass", "members": ["k.ade", "k.bo", "k.cy"],
+          "parts": parts,
           "criteria": [f"A-AC0{n}" for n in range(1, 7)]}
     st["frozen_sha256"] = canonical_sha256({"members": st["members"], "parts": st["parts"]})
     write_json(DATA / "defense" / "kestrel-statements.json", st)
@@ -1087,7 +1135,8 @@ def records() -> None:
     solo["frozen_sha256"] = canonical_sha256({"members": solo["members"], "parts": solo["parts"]})
     write_json(DATA / "defense" / "lark-statements.json", solo)
 
-    base = {"track": "A", "team": "kestrel", "pack": "data/fixtures/a-pass", "limitations_found_by_panel": 0,
+    base = {"track": "A", "team": "kestrel", "pack": "data/fixtures/a-pass",
+            "statements": "data/defense/kestrel-statements.json", "limitations_found_by_panel": 0,
             "gates": {"security": "pass", "reproducibility": "pass", "disclosure": "pass", "hygiene": "pass"},
             "members": [{"id": "k.ade", "explain": "pass"}, {"id": "k.bo", "explain": "pass"},
                         {"id": "k.cy", "explain": "pass"}],
@@ -1122,7 +1171,7 @@ def vendor() -> None:
 def main() -> None:
     vendor()
     write_json(DATA / "tracks.json", TRACKS)
-    write_json(DATA / "open-items.json", {"generated": GENERATED, "as_recorded_in": "book/CONTINUITY.md, Chapters 4-20",
+    write_json(DATA / "open-items.json", {"generated": GENERATED, "as_recorded_in": "book/CONTINUITY.md, Chapters 9-20",
                                           "items": [dict(id=f"OI-{n:03d}", **o) for n, o in
                                                     enumerate(OPEN_ITEMS, 1)]})
     variants()

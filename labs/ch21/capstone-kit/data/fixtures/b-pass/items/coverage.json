@@ -9,7 +9,7 @@
     },
     "end_to_end_legitimate_case_must_pass": true
   },
-  "release": "",
+  "release": "stp-0.3.0",
   "controls": {
     "render": {
       "kind": "blocking",

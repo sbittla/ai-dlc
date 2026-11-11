@@ -4,5 +4,6 @@
   "passed": 6,
   "failed": 0,
   "skipped": 0,
-  "date": "2027-08-05"
+  "date": "2027-08-05",
+  "release": "stp-0.3.0"
 }

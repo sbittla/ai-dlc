@@ -15,11 +15,14 @@ Codes (block = the pack is not complete; warn = reported, not blocking):
     EV004 block  an item is malformed for its kind (kinds.py), or its kind does not fit its requirement
     EV005 block  an item has no sources, or a source does not resolve or no longer matches its hash
     EV006 block  an acceptance criterion has no item that is present and free of blocking findings
-    EV007 block  an item's label is not verified, modelled, deployed or open; or "deployed" has no record
-    EV008 block  an item is evidence for another release than the one the pack defends
+    EV007 block  an item's label is not verified, modelled, deployed or open; "deployed" has no record; or
+                 "open" has no owner or due date. An open item is a promise, not evidence: it never satisfies a
+                 requirement or a criterion
+    EV008 block  an item is evidence for another release than the one the pack defends; or a version-bound item
+                 (kinds.VERSION_BOUND) does not record its release, in the manifest and in the file itself
     EV009 warn   an open item has no owner or no date; or its date has passed with no completion recorded
     EV010 block  contribution statements: a member without a statement or without owned items, or an item
-                 whose owner is not a member
+                 or pull request whose owner or author is not a member
     EV011 block  an item is well formed and records a failing result (a gate that fails, "not ready", ...)
     EV012 block  an item carries a field that could hold attack text
     EV013 warn   an item rests on generated records rather than observations (for example deployment records
@@ -33,7 +36,7 @@ from dataclasses import dataclass, field
 from pathlib import Path, PurePosixPath
 
 from . import DATA, LABELS, REPO, Finding, load_json, sha256_file
-from .kinds import NOTES, VALIDATORS
+from .kinds import NOTES, VALIDATORS, VERSION_BOUND, file_release
 
 
 @dataclass
@@ -111,6 +114,11 @@ def check(pack_dir: Path) -> Result:
             add(Finding("EV007", "block", iid, f"label {label!r} is not one of {', '.join(LABELS)}"))
         elif label == "deployed" and resolve(item.get("deployment", "")) is None:
             add(Finding("EV007", "block", iid, "labelled deployed with no deployment record"))
+        elif label == "open" and not (item.get("due") and item.get("owner")):
+            add(Finding("EV007", "block", iid, "labelled open with no owner or no due date"))
+        if label == "open":            # a dated promise: nothing to hash or validate yet
+            res.item_ok[iid] = False
+            continue
         req = reqs.get(item.get("requirement"))
         if req is None:
             add(Finding("EV004", "block", iid, f"requirement {item.get('requirement')!r} is not in track "
@@ -120,6 +128,8 @@ def check(pack_dir: Path) -> Result:
         if item.get("release") and item["release"] != pack["release"]:
             add(Finding("EV008", "block", iid, f"evidence for {item['release']}, the pack defends "
                                                f"{pack['release']}"))
+        if item.get("kind") in VERSION_BOUND and not item.get("release"):
+            add(Finding("EV008", "block", iid, "version-bound evidence with no release in the manifest"))
         if item.get("owner") and members and item["owner"] not in members:
             add(Finding("EV010", "block", iid, f"owner {item['owner']} is not a member of the team"))
         for problem in trace_sources(item, resolve):
@@ -132,9 +142,20 @@ def check(pack_dir: Path) -> Result:
                 add(Finding("EV003", "block", iid, "no SHA-256 recorded"))
             elif sha256_file(path) != item["sha256"]:
                 add(Finding("EV003", "block", iid, "file changed since its hash was recorded"))
+            if item.get("kind") in VERSION_BOUND:
+                try:
+                    inside = file_release(item["kind"], path)
+                except (ValueError, AttributeError):
+                    inside = None
+                if not inside:
+                    add(Finding("EV008", "block", iid, "the file does not say which release it is evidence for"))
+                elif item.get("release") and inside != item["release"]:
+                    add(Finding("EV008", "block", iid, f"the file says release {inside}, the manifest "
+                                                       f"{item['release']}"))
             if req is not None and item.get("kind") in VALIDATORS:
                 ctx = {"track": pack["track"], "team": pack.get("team"), "as_of": pack["as_of"],
-                       "resolve": resolve, "item_ids": item_ids, "requirement": req}
+                       "resolve": resolve, "item_ids": item_ids, "requirement": req,
+                       "members": sorted(members)}
                 try:
                     bad, failing, content = VALIDATORS[item["kind"]](path, item, ctx)
                 except (ValueError, KeyError, TypeError, AttributeError, IndexError, SyntaxError) as exc:
@@ -148,14 +169,16 @@ def check(pack_dir: Path) -> Result:
                 if not bad and item["kind"] in NOTES:
                     for m in NOTES[item["kind"]](path, item, ctx):
                         add(Finding("EV013", "warn", iid, m))
-        res.item_ok[iid] = not any(f.severity == "block" for f in res.findings[before:])
+        res.item_ok[iid] = not any(f.severity == "block" for f in res.findings[before:]) and label != "open"
 
     for rid, req in reqs.items():
-        mine = [i["id"] for i in items if i.get("requirement") == rid]
+        mine = [i["id"] for i in items if i.get("requirement") == rid and i.get("label") != "open"]
+        promised = [i for i in items if i.get("requirement") == rid and i.get("label") == "open"]
         if not mine:
             res.requirement_state[rid] = "missing"
             if not req.get("optional"):
-                add(Finding("EV001", "block", rid, f"no item for '{req['title']}'"))
+                due = f" (open: {promised[0]['owner']}, due {promised[0].get('due')})" if promised else ""
+                add(Finding("EV001", "block", rid, f"no item for '{req['title']}'{due}"))
         else:
             res.requirement_state[rid] = "ok" if all(res.item_ok[i] for i in mine) else "blocked"
 
@@ -173,6 +196,10 @@ def check(pack_dir: Path) -> Result:
             add(Finding("EV010", "block", m["id"], "no contribution statement"))
         if not owned.get(m["id"]):
             add(Finding("EV010", "block", m["id"], "owns no item"))
+    for pr in pack.get("prs", []):
+        for a in pr.get("authors", []):
+            if a not in members:
+                add(Finding("EV010", "block", pr["id"], f"author {a} is not a member of the team"))
 
     for o in pack.get("open_items", []):
         if not o.get("owner") or not (o.get("due") or o.get("due_condition")):

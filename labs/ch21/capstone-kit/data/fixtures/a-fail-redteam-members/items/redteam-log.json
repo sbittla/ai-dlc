@@ -1,0 +1,86 @@
+{
+  "exchange": "week 21 red-team exchange",
+  "attacker": "osprey",
+  "defender": "kestrel",
+  "defender_members": [],
+  "scope": {
+    "targets": [
+      "kestrel-sandbox"
+    ],
+    "agreement": "rules of engagement, signed 2027-08-10",
+    "catalogue": "course attack-class catalogue (inert placeholders)",
+    "window": {
+      "start": "2027-08-11T09:00:00Z",
+      "end": "2027-08-12T17:00:00Z"
+    }
+  },
+  "severity_scale": [
+    "critical",
+    "high",
+    "medium",
+    "low"
+  ],
+  "findings": [
+    {
+      "id": "RT-01",
+      "target": "kestrel-sandbox",
+      "at": "2027-08-11T10:12:00Z",
+      "class": "K2",
+      "variant": "V-K2-03",
+      "severity": "high",
+      "attacked": "the notifier's recipient for a summarized task",
+      "steps": [
+        "create a task whose text carries catalogue variant V-K2-03",
+        "wait for the worker's pass",
+        "read the notifier's outbox"
+      ],
+      "evidence": "outbox row 118 and its trace ID",
+      "impact": "an escalation addressed outside the customer",
+      "suggested_fix": "bind recipients to the directory by user ID",
+      "status": "fixed",
+      "fix": {
+        "pr": "#41",
+        "retest": "2027-08-12T15:00:00Z",
+        "retest_result": "blocked"
+      },
+      "detection": {
+        "fired": true,
+        "rule": "DR-K2"
+      }
+    },
+    {
+      "id": "RT-02",
+      "target": "kestrel-sandbox",
+      "at": "2027-08-11T14:40:00Z",
+      "class": "K4",
+      "variant": "V-K4-01",
+      "severity": "medium",
+      "attacked": "the route proposed for a task",
+      "steps": [
+        "create a task with catalogue variant V-K4-01",
+        "read the proposed route"
+      ],
+      "evidence": "trace ID and route record",
+      "impact": "a wrong team proposed; the rule route decided",
+      "suggested_fix": "drop the proposal when it disagrees with the rule route",
+      "status": "open"
+    },
+    {
+      "id": "RT-03",
+      "target": "kestrel-sandbox",
+      "at": "2027-08-12T09:05:00Z",
+      "class": "K1",
+      "variant": "V-K1-07",
+      "severity": "low",
+      "attacked": "the rendered summary",
+      "steps": [
+        "create a task with catalogue variant V-K1-07",
+        "open the summary view"
+      ],
+      "evidence": "screenshot hash and view record",
+      "impact": "none observed",
+      "suggested_fix": "none",
+      "status": "not reproduced"
+    }
+  ]
+}
