@@ -26,7 +26,7 @@ resource (every provider default) and the same structure. Run the optional
 live mode (README) to compare the checks against a real one.
 
 Prices in data/prices/ are the authors' reading of AWS list prices for
-us-east-1, dated 2026-11-30. They are assumptions to verify, not quotes.
+us-east-1, dated 2026-11-10. They are assumptions to verify, not quotes.
 """
 
 from __future__ import annotations
@@ -817,7 +817,7 @@ INVENTORIES = {
 
 PRICES = {
     "price_table": "aws-us-east-1-2026-11",
-    "as_of": "2026-11-30",
+    "as_of": "2026-11-10",
     "region": REGION,
     "currency": "USD",
     "hours_per_month": 730,

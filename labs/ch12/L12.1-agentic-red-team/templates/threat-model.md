@@ -14,7 +14,7 @@ Owner: <person>. Reviewed by: <security reviewer>. Date: <YYYY-MM-DD>. Release: 
 
 ## Attack classes
 
-One row per class: an effect on a channel. Use the labels in `data/mappings.json`; confirm IDs at the source.
+One row per class: an effect on a channel. Use the labels in `data/mappings.json` (OWASP LLM Top 10, 2025 edition; MITRE ATLAS, release 2026.10); confirm IDs at the source.
 
 | Class | Effect | Channel | STRIDE | OWASP LLM | OWASP Agentic | ATLAS | Harm | Claimed controls |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |

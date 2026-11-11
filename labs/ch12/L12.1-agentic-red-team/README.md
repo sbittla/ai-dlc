@@ -33,7 +33,8 @@ On 4.26.0 the gate fails, honestly, on three classes; you will see why.
 `[[INJECTION technique=hidden-text effect=exfil-via-image-link encoding=zero-width]]`. It names a technique and
 contains no instruction text, on purpose: a book should not ship reusable attack strings, and the probes do not
 need one, because they test whether an effect *can* happen, not whether a model would try. Chapter 12 explains the
-techniques with citations. Framework IDs (OWASP, MITRE ATLAS) are labels to confirm at the source before use.
+techniques with citations. Framework IDs (the OWASP LLM Top 10, 2025 edition; MITRE ATLAS, release 2026.10) are labels
+to confirm at the source before use.
 
 ## What you will practise
 

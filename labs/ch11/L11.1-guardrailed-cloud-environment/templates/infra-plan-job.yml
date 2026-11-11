@@ -25,7 +25,7 @@ jobs:
           role-duration-seconds: 3600
       - uses: opentofu/setup-opentofu@v1
         with:
-          tofu_version: 1.10.0
+          tofu_version: 1.10.10
       - name: Plan
         working-directory: infra
         run: |

@@ -125,7 +125,7 @@ python -m cloudcheck.report cost ../data/plans/relay-nonprod.plan.json --details
 python -m cloudcheck.report incident ../data/incident.json
 ```
 
-Every price in `data/prices/` is an assumption, dated 2026-11-30. Pick the two that move the total most and check them against the AWS pricing pages; record what you find.
+Every price in `data/prices/` is an assumption, dated 2026-11-10. Pick the two that move the total most and check them against the AWS pricing pages; record what you find.
 
 ### 9. Teardown: TODO 7 (30 min)
 

@@ -12,7 +12,9 @@
 
 Relay's non-production environment is designed for AWS (Lab 11.1). A customer asks whether Relay could run on Azure or Google Cloud, and a manager asks which would be cheapest. Both questions have answers that look easy and are not: a table of service names hides the differences that change a design, and a cost comparison depends on assumptions that are rarely written down.
 
-You have a structured mapping of sixteen concerns, from the account boundary to the IaC provider, each with its AWS, Azure and GCP service, how close they are, and the differences by dimension: identity, networking, quotas, pricing, guardrails and data (`data/mapping.json`). You also have an agent's first draft of a mapping (`data/mapping-draft.json`), Relay's environment described provider-neutrally (`data/workload.json`), and three dated price tables (`data/prices/`). **Every price is an assumption** dated 2026-11-30, and every service name is marked for verification.
+You have a structured mapping of sixteen concerns, from the account boundary to the IaC provider, each with its AWS, Azure and GCP service, how close they are, and the differences by dimension: identity, networking, quotas, pricing, guardrails and data (`data/mapping.json`). You also have an agent's first draft of a mapping (`data/mapping-draft.json`), Relay's environment described provider-neutrally (`data/workload.json`), and three dated price tables (`data/prices/`). **Every price is an assumption** dated 2026-11-10, and every service name is marked for verification.
+
+**A note on names.** `data/mapping.json` keeps the names "Azure OpenAI" and "Vertex AI". As of November 2026, Microsoft offers Azure OpenAI within Microsoft Foundry (formerly Azure AI Foundry). Secondary reports say Google has renamed Vertex AI as Gemini Enterprise Agent Platform; Google's own pages do not yet confirm it. See Appendix D, "A note on names", and Appendix F, entry F-L05.
 
 ## What you will practise
 

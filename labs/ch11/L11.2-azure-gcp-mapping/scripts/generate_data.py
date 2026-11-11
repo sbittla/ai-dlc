@@ -4,7 +4,7 @@
 
 The mapping is the authors' reading of each provider's documentation in November 2026. Service
 names change; every row is marked for verification before it is relied on. The prices are
-ASSUMPTIONS: list prices as the authors read them on 2026-11-30, for one region per provider, with
+ASSUMPTIONS: the authors' reading of list prices, dated 2026-11-10 and not yet re-checked at the providers, for one region per provider, with
 no discounts. The lab teaches how pricing models differ and how to compare under stated
 assumptions, not which provider is cheaper.
 """
@@ -159,12 +159,13 @@ WORKLOAD = {
     "not_compared": "Usage-based charges (data processed, requests, logs, storage growth, model tokens)",
 }
 
-STATUS = ("ASSUMPTIONS. On-demand list prices as the authors read them on the as-of date, one region, no "
+STATUS = ("ASSUMPTIONS. On-demand list prices as the authors read them in November 2026, dated as of the as-of "
+          "date and not yet re-checked, one region, no "
           "discounts, credits or commitments. Verify every price before relying on a comparison.")
 
 PRICES = {
     "aws": {
-        "provider": "aws", "region": "us-east-1", "as_of": "2026-11-30", "status": STATUS,
+        "provider": "aws", "region": "us-east-1", "as_of": "2026-11-10", "status": STATUS,
         "containers": {"billing": "per_second", "service": "ECS on Fargate, ARM64",
                        "vcpu_second": 0.03238 / 3600, "gib_second": 0.00356 / 3600,
                        "note": "billed per second with a one-minute minimum; listed as $0.03238 per vCPU-hour "
@@ -180,7 +181,7 @@ PRICES = {
         "key_month": 1.00,
     },
     "azure": {
-        "provider": "azure", "region": "East US", "as_of": "2026-11-30", "status": STATUS,
+        "provider": "azure", "region": "East US", "as_of": "2026-11-10", "status": STATUS,
         "containers": {"billing": "per_second_with_grant", "service": "Container Apps, consumption, active rate",
                        "vcpu_second": 0.000024, "gib_second": 0.000003,
                        "free_vcpu_seconds": 180000, "free_gib_seconds": 360000},
@@ -196,7 +197,7 @@ PRICES = {
         "key_month": 0.0,
     },
     "gcp": {
-        "provider": "gcp", "region": "us-central1", "as_of": "2026-11-30", "status": STATUS,
+        "provider": "gcp", "region": "us-central1", "as_of": "2026-11-10", "status": STATUS,
         "containers": {"billing": "per_second", "service": "Cloud Run, instance-based billing",
                        "vcpu_second": 0.000018, "gib_second": 0.000002},
         "database": {"service": "Cloud SQL for PostgreSQL, Enterprise edition", "class": "1 vCPU, 3.75 GB",

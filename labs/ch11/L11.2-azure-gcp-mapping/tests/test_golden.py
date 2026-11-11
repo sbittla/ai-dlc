@@ -58,7 +58,7 @@ def test_table_11_11_by_category():
 
 def test_prices_are_dated_assumptions():
     for table in PRICES.values():
-        assert table["as_of"] == "2026-11-30" and table["status"].startswith("ASSUMPTIONS")
+        assert table["as_of"] == "2026-11-10" and table["status"].startswith("ASSUMPTIONS")
 
 
 def test_generator_reproduces_committed_data(tmp_path):

@@ -108,7 +108,7 @@ def test_the_one_allowlisted_egress_rule_is_the_proxy():
 
 
 def test_prices_are_dated_assumptions():
-    assert PRICES["as_of"] == "2026-11-30" and PRICES["status"].startswith("ASSUMPTIONS")
+    assert PRICES["as_of"] == "2026-11-10" and PRICES["status"].startswith("ASSUMPTIONS")
     assert PRICES["hours_per_month"] == 730
 
 

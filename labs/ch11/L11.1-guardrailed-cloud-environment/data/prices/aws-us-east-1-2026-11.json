@@ -1,6 +1,6 @@
 {
  "price_table": "aws-us-east-1-2026-11",
- "as_of": "2026-11-30",
+ "as_of": "2026-11-10",
  "region": "us-east-1",
  "currency": "USD",
  "hours_per_month": 730,
