@@ -26,9 +26,11 @@ researcher. Ask first: which agent identity, acting for whom, since when?
 
 ## Notify
 
-Personal data exposed is a possible personal-data breach. The data protection officer decides, with the
-security lead, whether supervisory authorities, customers or individuals must be told and by when. Customer
-contracts may set shorter deadlines than the law. Record the decision and its reasons either way.
+Personal data exposed is a possible personal-data breach. Where Relay is the controller, Relay decides, with
+the security lead and on the data protection officer's advice, whether supervisory authorities, customers or
+individuals must be told and by when. Where Relay is a processor, it tells the customer (the controller) without
+undue delay. Customer contracts may set shorter deadlines than the law. Record the decision and its reasons
+either way.
 
 ## Recover and learn
 

@@ -24,7 +24,7 @@ One row per class: an effect on a channel. Use the labels in `data/mappings.json
 Paste `python -m redteam.report matrix` and `python -m redteam.report gate` for the release.
 
 - Classes with one verified control, and why one is acceptable (or the second control and its owner):
-- Classes with none (each is a release blocker under relay-coverage-gate-v1):
+- Classes with none (each is a release blocker under relay-coverage-gate-v2):
 - Controls that are mitigating only, and what would be needed to measure them (a live red-team exercise):
 
 ## Not covered by this model

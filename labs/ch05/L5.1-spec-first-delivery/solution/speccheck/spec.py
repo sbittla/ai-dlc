@@ -1,6 +1,6 @@
 """Parse a spec package (spec.md, tasks.md, the contract) and the PRD it comes from.
 
-spec.md format (see templates/spec.md):
+spec.md format (see data/spec-scaffold/spec.md):
 
     # Spec — <title>
     Spec: ESC-SPEC-1                  <- header fields, one per line, before the first "## "

@@ -57,7 +57,7 @@ L12.1-agentic-red-team/
 ├── data/                          ← GENERATED; committed
 │   ├── classes.json               ← 14 attack classes with labels, claimed controls and inert placeholders
 │   ├── controls.json              ← the control catalogue: kind, failure domains, ADR, version, deployment
-│   ├── gate-policy.json           ← relay-coverage-gate-v1
+│   ├── gate-policy.json           ← relay-coverage-gate-v2
 │   ├── mappings.json, incident/   ← framework labels; the composite incident
 ├── scripts/generate_data.py
 ├── starter/redteam/

@@ -406,7 +406,7 @@
       "file": "relay:infra/runbooks/ai-incident-playbook.md",
       "label": "verified",
       "owner": "aisha.r",
-      "sha256": "50f771244ecc4279fa1aa0adebccdef9ba71ba14ecf6ea0b0fb8445d513c42ac",
+      "sha256": "7cc4bbcc6cf2bd20fc5a96b6f4befc1ad0578eed524da31c21ecaddff5129362",
       "sources": [
         {
           "ref": "relay:docs/adr/ADR-022-detection-rules-and-kill-switch.md",
