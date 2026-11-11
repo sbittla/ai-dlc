@@ -58,7 +58,7 @@ The last row shows the old code was also wrong at UTC−12, an offset none of Re
 - **Sandbox:** an ephemeral environment per task, workspace-only files, no host mounts, egress limited to the package index and the code host, no long-lived credentials, no privileged mode; destructive commands impossible rather than merely approved, since nobody is watching.
 - **Identity:** a dedicated bot account that can push branches and open pull requests, and cannot approve, merge, change branch protection or edit `governance/` and `.github/`.
 - **Context:** the repository's instruction file; perhaps a skill for the team's test conventions; a read-only reviewer subagent. Issue text treated as untrusted (cap at T2, Chapter 1).
-- **Branch protection:** pull request required, at least one approving human review, code-owner review, approval of the most recent push, required `tests` and `secret-scan` checks, applied to administrators, force pushes blocked.
+- **Branch protection:** pull request required, at least one approving human review, code-owner review, approval of the most recent reviewable push, required `tests` and `secret-scan` checks, applied to administrators, force pushes blocked.
 - **Evidence per pull request:** the issue link and claim, the failing-test commit before the fix, CI results, the workspace audit result, an AI-use disclosure and session log, and the human reviewer.
 - Full marks need the bot identity's inability to approve and the absence of credentials worth stealing.
 

@@ -92,7 +92,7 @@ def test_guardrails_and_policy_agree():
         POLICY["allowed_instance_types"]
     assert sizes["NonProductionDatabaseSizes"]["Condition"]["StringNotLike"]["rds:DatabaseClass"] == \
         POLICY["allowed_db_classes"]
-    assert len(list((INFRA / "org").glob("scp-*.json"))) == 4  # plus FullAWSAccess: the limit of five
+    assert len(list((INFRA / "org").glob("scp-*.json"))) == 4  # plus FullAWSAccess: within the limit of ten (five before 15 May 2026)
 
 
 def test_every_endpoint_in_the_plan_has_a_known_policy():
