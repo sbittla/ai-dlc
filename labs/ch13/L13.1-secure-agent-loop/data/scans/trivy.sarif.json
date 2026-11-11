@@ -51,13 +51,13 @@
             "text": "ECS task gets a public IP"
           },
           "partialFingerprints": {
-            "primaryLocationLineHash": "613e7dfbda279ad4"
+            "primaryLocationLineHash": "eccfde512d254056"
           },
           "properties": {
             "change": "AC029",
             "security-severity": "8.2"
           },
-          "ruleId": "AVD-AWS-0104"
+          "ruleId": "RELAY-IAC-0001"
         },
         {
           "level": "error",
@@ -77,7 +77,7 @@
             "text": "cryptography==41.0.7: RSA decryption may leak timing information (Bleichenbacher-type) (fixed in 42.0.0)"
           },
           "partialFingerprints": {
-            "primaryLocationLineHash": "6ebcd6c28c296dec"
+            "primaryLocationLineHash": "b1891224c602da90"
           },
           "properties": {
             "change": "AC050",
@@ -155,7 +155,7 @@
             "text": "cryptography==41.0.7: RSA decryption may leak timing information (Bleichenbacher-type) (fixed in 42.0.0)"
           },
           "partialFingerprints": {
-            "primaryLocationLineHash": "6ebcd6c28c296dec"
+            "primaryLocationLineHash": "b1891224c602da90"
           },
           "properties": {
             "change": "AC075",
@@ -181,7 +181,7 @@
             "text": "cryptography==42.0.3: NULL pointer dereference in PKCS#12 serialization (fixed in 42.0.4)"
           },
           "partialFingerprints": {
-            "primaryLocationLineHash": "a0efc3f712637ced"
+            "primaryLocationLineHash": "3d1ec38af47395b5"
           },
           "properties": {
             "change": "AC076",
@@ -204,10 +204,10 @@
             }
           ],
           "message": {
-            "text": "gunicorn==22.0.0: HTTP request smuggling through Transfer-Encoding handling (fixed in 23.0.0)"
+            "text": "gunicorn==21.2.0: HTTP request smuggling through Transfer-Encoding handling (fixed in 22.0.0)"
           },
           "partialFingerprints": {
-            "primaryLocationLineHash": "ea19990e071ef6cc"
+            "primaryLocationLineHash": "3ce38703206eec9f"
           },
           "properties": {
             "change": "AC084",
@@ -259,7 +259,7 @@
             "text": "cryptography==42.0.3: NULL pointer dereference in PKCS#12 serialization (fixed in 42.0.4)"
           },
           "partialFingerprints": {
-            "primaryLocationLineHash": "a0efc3f712637ced"
+            "primaryLocationLineHash": "3d1ec38af47395b5"
           },
           "properties": {
             "change": "AC136",
@@ -282,10 +282,10 @@
             }
           ],
           "message": {
-            "text": "gunicorn==22.0.0: HTTP request smuggling through Transfer-Encoding handling (fixed in 23.0.0)"
+            "text": "gunicorn==21.2.0: HTTP request smuggling through Transfer-Encoding handling (fixed in 22.0.0)"
           },
           "partialFingerprints": {
-            "primaryLocationLineHash": "ea19990e071ef6cc"
+            "primaryLocationLineHash": "3ce38703206eec9f"
           },
           "properties": {
             "change": "AC140",
@@ -311,13 +311,13 @@
             "text": "security group allows ingress from 0.0.0.0/0"
           },
           "partialFingerprints": {
-            "primaryLocationLineHash": "f3212916f191a3d7"
+            "primaryLocationLineHash": "7cfd4667d5fa3595"
           },
           "properties": {
             "change": "AC157",
             "security-severity": "8.6"
           },
-          "ruleId": "AVD-AWS-0107"
+          "ruleId": "RELAY-IAC-0002"
         }
       ],
       "tool": {

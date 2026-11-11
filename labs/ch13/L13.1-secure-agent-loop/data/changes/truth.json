@@ -502,7 +502,7 @@
       "category": "vulnerable-dependency",
       "cwe": "CWE-1395",
       "seeded": true,
-      "variant": "gunicorn==22.0.0"
+      "variant": "gunicorn==21.2.0"
     },
     "AC085": {
       "category": "vulnerable-dependency",
@@ -838,7 +838,7 @@
       "category": "vulnerable-dependency",
       "cwe": "CWE-1395",
       "seeded": true,
-      "variant": "gunicorn==22.0.0"
+      "variant": "gunicorn==21.2.0"
     },
     "AC141": {
       "category": "sql-injection",

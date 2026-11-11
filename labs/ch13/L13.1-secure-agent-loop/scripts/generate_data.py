@@ -55,7 +55,7 @@ def dump(obj) -> str:
 
 ADMITTED_EXTRA_VERSIONS = {  # older versions the mirror still serves for admitted projects
     "cryptography": ["41.0.7", "42.0.3"],
-    "gunicorn": ["22.0.0"],
+    "gunicorn": ["21.2.0"],
     "pyjwt": ["2.3.0"],
 }
 ADVISORIES = [  # real records (verify before print); the fixed version is the first unaffected one
@@ -63,12 +63,12 @@ ADVISORIES = [  # real records (verify before print); the fixed version is the f
      "severity": 7.5, "summary": "RSA decryption may leak timing information (Bleichenbacher-type)"},
     {"id": "CVE-2024-26130", "package": "cryptography", "affected": "42.0.3", "fixed": "42.0.4",
      "severity": 7.5, "summary": "NULL pointer dereference in PKCS#12 serialization"},
-    {"id": "CVE-2024-6827", "package": "gunicorn", "affected": "22.0.0", "fixed": "23.0.0",
+    {"id": "CVE-2024-6827", "package": "gunicorn", "affected": "21.2.0", "fixed": "22.0.0",
      "severity": 7.5, "summary": "HTTP request smuggling through Transfer-Encoding handling"},
     {"id": "CVE-2022-29217", "package": "pyjwt", "affected": "2.3.0", "fixed": "2.4.0",
      "severity": 7.4, "summary": "algorithm confusion when algorithms are not pinned"},
 ]
-WHEEL = {"cryptography": "cp39-abi3-manylinux_2_28_aarch64", "cffi": "cp312-cp312-manylinux_2_17_aarch64"}
+WHEEL = {"cryptography": "cp37-abi3-manylinux_2_28_aarch64", "cffi": "cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64"}
 
 HALLUCINATED = [  # name, registered by an attacker on the public index?
     ("jwt-oidc-verify", True), ("pyoidc-jwks", True), ("relay-sdk-tools", False), ("gunicorn-healthcheck", True),
@@ -223,7 +223,7 @@ DETECTION = {
     "path-traversal": [("detected", {"semgrep"})] * 4 + [("pathlib", set())] * 4,
     "vulnerable-dependency": [(v, {"trivy"}) for v in ("cryptography==41.0.7", "cryptography==41.0.7",
                                                         "cryptography==42.0.3", "cryptography==42.0.3",
-                                                        "gunicorn==22.0.0", "gunicorn==22.0.0", "pyjwt==2.3.0",
+                                                        "gunicorn==21.2.0", "gunicorn==21.2.0", "pyjwt==2.3.0",
                                                         "pyjwt==2.3.0")],
     "hallucinated-package": [(n, set()) for n, _ in HALLUCINATED],
     "typosquat": [(s, set()) for s, _ in TYPOSQUATS],
@@ -241,8 +241,9 @@ SEMGREP_RULE = {"sql-injection": ("relay.sql-built-from-strings", 8.8),
                 "unsafe-deserialization": ("relay.unsafe-deserialization", 9.0),
                 "command-injection": ("relay.shell-command-from-input", 9.1),
                 "path-traversal": ("relay.path-from-request", 7.5)}
-IAC_RULE = {"public-ip": ("AVD-AWS-0104", "ECS task gets a public IP", 8.2),
-            "open-ingress": ("AVD-AWS-0107", "security group allows ingress from 0.0.0.0/0", 8.6),
+IAC_RULE = {  # RELAY-IAC-* are Relay's custom Trivy checks; Trivy's built-in set has no exact match for them
+            "public-ip": ("RELAY-IAC-0001", "ECS task gets a public IP", 8.2),
+            "open-ingress": ("RELAY-IAC-0002", "security group allows ingress from 0.0.0.0/0", 8.6),
             "mutable-tags": ("AVD-AWS-0031", "ECR repository allows mutable image tags", 7.1),
             "no-kms": ("AVD-AWS-0017", "log group not encrypted with a customer-managed key", 7.0)}
 

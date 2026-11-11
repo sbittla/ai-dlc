@@ -17,8 +17,8 @@
       "summary": "NULL pointer dereference in PKCS#12 serialization"
     },
     {
-      "affected": "22.0.0",
-      "fixed": "23.0.0",
+      "affected": "21.2.0",
+      "fixed": "22.0.0",
       "id": "CVE-2024-6827",
       "package": "gunicorn",
       "severity": 7.5,
