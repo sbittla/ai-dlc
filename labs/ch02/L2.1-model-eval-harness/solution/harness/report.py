@@ -5,6 +5,9 @@ Offline (default, free, deterministic):
 
 Live (costs money; needs `pip install anthropic` and credentials):
     python -m harness.report --data ../data/tickets.jsonl --repeats 3 --live claude-opus-5-5,claude-haiku-5-5
+
+Live runs are capped by --max-usd (default $2.00), split equally between the models: a call is
+refused before it is made if its worst-case cost would take a model's spend past its share.
 """
 
 from __future__ import annotations
@@ -51,6 +54,8 @@ def main() -> None:
     ap.add_argument("--data", type=Path, required=True)
     ap.add_argument("--repeats", type=int, default=5)
     ap.add_argument("--live", help="comma-separated Claude model IDs (costs money)")
+    ap.add_argument("--max-usd", type=float, default=2.00,
+                    help="live-mode spend ceiling, split equally between the models (default $2.00)")
     ap.add_argument("--tokens", action="store_true", help="also print the token budget of one request")
     ap.add_argument("--by-ticket", action="store_true", help="also print intervals that resample tickets, not calls")
     args = ap.parse_args()
@@ -59,13 +64,20 @@ def main() -> None:
 
     tickets = runner.load_tickets(args.data)
     if args.live:
-        clients = [models.live_model(m.strip()) for m in args.live.split(",")]
+        if args.max_usd <= 0:
+            ap.error("--max-usd must be positive")
+        clients = models.guarded_live_models([m.strip() for m in args.live.split(",")], args.max_usd)
     else:
         gold = {t["id"]: t for t in tickets}
         sims = models.simulated_models(gold)
         clients = [sims["sim-large"], sims["sim-small"]]
     records = runner.run_eval(clients, tickets, args.repeats)
     print(render(runner.summarise(records), args.repeats))
+    if args.live:
+        spent = sum(c.spent_usd for c in clients)
+        stopped = sum(c.refused for c in clients)
+        print(f"\nLive spend ${spent:.4f} of ceiling ${args.max_usd:.2f} "
+              f"(${args.max_usd / len(clients):.2f} per model); calls stopped by the budget: {stopped}")
     if args.tokens:
         tb = runner.token_budget(tickets, records)
         print(f"\nToken budget (estimated): system prompt {tb.system_tokens}, ticket mean {tb.ticket_tokens_mean:.1f} "

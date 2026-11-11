@@ -5,7 +5,7 @@
 | Chapter | 7 — Evaluation-Driven Development |
 | Type | Core (Builder, Platform, Security) |
 | Time | 4 hours, including the optional 15-minute live run |
-| Cost ceiling | $0 offline (default). Live mode: about $2–4 for two candidates × 200 tickets × 3 runs on `claude-opus-5-5` at the list prices in `models.py` (thinking tokens vary). The gate refuses to start a live run without `--max-usd`, stops calling at that ceiling, and fails closed on an incomplete run. Check current prices first |
+| Cost ceiling | $0 offline (default). Live mode: typical run about $4 for two candidates × 200 tickets × 3 runs on `claude-opus-5-5` at the list prices in `models.py`; the `--max-usd` guard is the hard limit (no default: the gate refuses to start a live run without it; the command below uses $5). It gives each candidate half, refuses a call once spend plus a pessimistic per-call estimate would pass that half, and fails closed on an incomplete run. Both figures are modelled with a mock (`labs/verify-illustrations/mock-live-runs/`), not measured, until one real run; thinking tokens vary. Check current prices first |
 | Requires | Python 3.11+ and pytest (`pip install -e ".[dev]"`, pinned to `pytest==9.1.1`). Live mode only: `pip install -e ".[live]"` (the Anthropic SDK, a pinned range `>=2.6,<3`, as in Lab 2.1) and Claude API credentials |
 
 ## Brief

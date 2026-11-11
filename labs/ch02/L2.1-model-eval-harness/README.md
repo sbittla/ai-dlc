@@ -5,7 +5,7 @@
 | Chapter | 2 — LLMs for Engineers: Models, Context and Failure Modes |
 | Type | Core (Builder, Platform, Security) |
 | Time | 4 hours |
-| Cost ceiling | $0 offline (default). Live mode: under $2 for two models × 40 tickets × 3 repeats at the list prices in `models.py` (thinking tokens vary); check current prices and set a spend limit first |
+| Cost ceiling | $0 offline (default). Live mode: typical run about $0.40 for two models × 40 tickets × 3 repeats at the list prices in `models.py`; the `--max-usd` guard is the hard limit (default $2.00, split equally between the models). Both figures are modelled with a mock (`labs/verify-illustrations/mock-live-runs/`), not measured, until one real run; thinking tokens vary. Check current prices first |
 | Requires | Python 3.11+ and pytest (`pip install -e ".[dev]"`). Live mode only: `pip install -e ".[live]"` and Claude API credentials |
 
 ## Brief
@@ -37,7 +37,7 @@ L2.1-model-eval-harness/
 ├── starter/harness/
 │   ├── schema.py               ← provided: triage schema and a small validator
 │   ├── prompt.py               ← provided: the versioned triage prompt
-│   ├── models.py               ← provided: simulated models and the live Claude adapter
+│   ├── models.py               ← provided: simulated models, the live Claude adapter and its spend guard
 │   ├── runner.py               ← provided: runs every model × ticket × repeat, summarises
 │   ├── scoring.py              ← TODO: 5 functions
 │   └── report.py               ← provided: prints the comparison table
@@ -103,6 +103,8 @@ cd starter
 python -m harness.report --data ../data/tickets.jsonl --repeats 3 --live claude-opus-5-5,claude-haiku-5-5 > ../evidence/eval-live.md
 ```
 
+The `--max-usd` guard (default $2.00) gives each model an equal share and checks every call before making it: if the call's worst-case cost (a pessimistic input estimate, and every output token up to `max_tokens` billed) would take that model's spend past its share, the call is not made and is recorded as a failure of kind `budget`. The report ends with the spend and the number of calls the budget stopped. A run with budget stops is incomplete: raise `--max-usd` within your budget, or run fewer repeats.
+
 Compare the live and simulated tables. Note where they differ, and do not mix numbers from the two in your decision.
 
 ### 6. Write the decision record (40 min)
@@ -131,6 +133,7 @@ Copy `templates/model-decision-record.md` to `evidence/` and complete it. A good
 | Consistency test fails | An invalid run (`None`) counts as a distinct answer. |
 | `ModuleNotFoundError: anthropic` | Live mode only. `pip install -e ".[live]"`. |
 | Live run returns `refusal` | Recorded as a failure of kind `refusal`. Report it; do not retry silently. |
+| Live run shows failures of kind `budget` | The `--max-usd` guard stopped calls whose worst case would pass the ceiling. Raise it within your budget, or reduce repeats. |
 
 ## Cleanup
 

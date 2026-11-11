@@ -39,7 +39,9 @@ def load_tickets(path: Path) -> list[dict]:
 
 
 def _parse(c) -> "scoring.Parsed":
-    """Classify a completion: refusals, truncation and API errors are failures in their own right."""
+    """Classify a completion: refusals, truncation, API errors and budget stops are failures in their own right."""
+    if c.stop_reason == "budget_exceeded":
+        return scoring.Parsed(None, "budget")
     if c.stop_reason == "refusal":
         return scoring.Parsed(None, "refusal")
     if c.stop_reason == "max_tokens":

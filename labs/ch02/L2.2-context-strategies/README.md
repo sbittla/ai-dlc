@@ -5,7 +5,7 @@
 | Chapter | 2 — LLMs for Engineers: Models, Context and Failure Modes |
 | Type | Stretch (all technical tracks) |
 | Time | 3 hours |
-| Cost ceiling | $0 offline (default). Live mode: under $1 with a small model for 46 questions × 3 strategies; check current prices first |
+| Cost ceiling | $0 offline (default). Live mode: typical run about $0.02 with `claude-haiku-5-5` for 46 questions × 3 strategies at the list prices in `report.py`; the `--max-usd` guard is the hard limit (default $1.00). Both figures are modelled with a mock (`labs/verify-illustrations/mock-live-runs/`), not measured, until one real run. Check current prices first |
 | Requires | Python 3.11+ and pytest (`pip install -e ".[dev]"`). Live mode only: `pip install -e ".[live]"` and Claude API credentials |
 
 ## Brief
@@ -101,7 +101,7 @@ cd starter
 python -m ctx.report --data ../data --live claude-haiku-5-5 >> ../evidence/context-strategies.md
 ```
 
-Compare "answer reaches the model" with "answer contains the expected phrase". The gap between them is the generation side of the problem. Live mode uses titled chunks at top-3 for the `bm25` row, and counts refusals, truncated answers and API errors separately.
+Compare "answer reaches the model" with "answer contains the expected phrase". The gap between them is the generation side of the problem. Live mode uses titled chunks at top-3 for the `bm25` row, and counts refusals, truncated answers and API errors separately. It prices each call at the model's own input and output prices (`LIVE_PRICES` in `report.py`) and prints the spend. The `--max-usd` guard (default $1.00) checks every call before making it: a call whose worst-case cost would take spend past the ceiling is not made, and is counted as stopped by the budget. The offline table's context cost stays at a large model's input price ($4 per million tokens), the expensive case for `full`.
 
 ## Expected evidence
 

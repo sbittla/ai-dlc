@@ -146,6 +146,7 @@ class ClaudeModel:
     price_in_per_mtok: float
     price_out_per_mtok: float
     effort: str = "low"  # classification rarely benefits from higher effort; measure it
+    max_tokens: int = 1024  # the most output (thinking included) one call can be billed for
     _client: object = field(default=None, init=False, repr=False)
 
     def complete(self, system: str, user: str, ticket_id: str, run: int) -> Completion:
@@ -157,7 +158,7 @@ class ClaudeModel:
         try:
             response = self._client.messages.create(
                 model=self.name,
-                max_tokens=1024,
+                max_tokens=self.max_tokens,
                 system=system,
                 messages=[{"role": "user", "content": user}],
                 output_config={
@@ -191,3 +192,63 @@ def live_model(model_id: str) -> ClaudeModel:
         raise ValueError(f"add a price for {model_id} to LIVE_PRICES first")
     p_in, p_out = LIVE_PRICES[model_id]
     return ClaudeModel(name=model_id, price_in_per_mtok=p_in, price_out_per_mtok=p_out)
+
+
+# ------------------------------------------------------------------ spend guard
+
+CHARS_PER_TOKEN_PESSIMISTIC = 2  # real tokenizers average 3-4 characters per token; assume fewer
+
+
+def worst_case_call_usd(system: str, user: str, price_in_per_mtok: float, price_out_per_mtok: float,
+                        max_tokens: int) -> float:
+    """The most one call can cost: input (prompt and schema) at one token per 2 characters, and
+    every output token up to max_tokens billed. Deliberately pessimistic, so a guard built on it
+    stops before the ceiling instead of after it."""
+    chars = len(system) + len(user) + len(json.dumps(TRIAGE_SCHEMA))
+    input_tokens = math.ceil(chars / CHARS_PER_TOKEN_PESSIMISTIC)
+    return input_tokens / 1_000_000 * price_in_per_mtok + max_tokens / 1_000_000 * price_out_per_mtok
+
+
+@dataclass
+class BudgetGuard:
+    """Wraps a live client and refuses any call whose worst-case cost would take spend past max_usd.
+
+    The check runs before the call, so spend never passes the ceiling (as long as the worst-case
+    estimate holds). A refused call makes no request and is returned with stop_reason
+    "budget_exceeded", so the runner records it as a failure of kind "budget" instead of losing it.
+    """
+
+    inner: ClaudeModel
+    max_usd: float
+    spent_usd: float = 0.0
+    refused: int = 0
+
+    @property
+    def name(self) -> str:
+        return self.inner.name
+
+    @property
+    def price_in_per_mtok(self) -> float:
+        return self.inner.price_in_per_mtok
+
+    @property
+    def price_out_per_mtok(self) -> float:
+        return self.inner.price_out_per_mtok
+
+    def complete(self, system: str, user: str, ticket_id: str, run: int) -> Completion:
+        worst = worst_case_call_usd(system, user, self.price_in_per_mtok, self.price_out_per_mtok,
+                                    self.inner.max_tokens)
+        if self.spent_usd + worst > self.max_usd:
+            self.refused += 1
+            return Completion("", 0, 0, 0.0, stop_reason="budget_exceeded")
+        c = self.inner.complete(system, user, ticket_id, run)
+        self.spent_usd += (c.input_tokens * self.price_in_per_mtok
+                           + c.output_tokens * self.price_out_per_mtok) / 1_000_000
+        return c
+
+
+def guarded_live_models(model_ids: list[str], max_usd: float) -> list[BudgetGuard]:
+    """One guard per model, each with an equal share of max_usd, so the first model cannot use
+    the whole budget and leave nothing for the second."""
+    share = max_usd / len(model_ids)
+    return [BudgetGuard(live_model(m), share) for m in model_ids]

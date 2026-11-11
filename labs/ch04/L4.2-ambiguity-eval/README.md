@@ -5,7 +5,7 @@
 | Chapter | 4 — Discovery and Requirements with AI |
 | Type | Stretch (Builder, Platform) |
 | Time | 2 hours |
-| Cost ceiling | $0 offline (default). Live mode: the `--max-usd` ceiling, $1.00 by default; one held-out run of 48 statements is estimated at under $0.25 with `claude-opus-5-5` and under $0.01 with `claude-haiku-5-5` at the list prices in `models.py`. Check current prices and set a spend limit first |
+| Cost ceiling | $0 offline (default). Live mode: typical held-out run of 48 statements about $0.20 with `claude-opus-5-5` and about $0.005 with `claude-haiku-5-5` at the list prices in `models.py`; the `--max-usd` guard is the hard limit (default $1.00; the command below uses $0.50), and the last call can pass it by at most one call's cost. Both figures are modelled with a mock (`labs/verify-illustrations/mock-live-runs/`), not measured, until one real run; thinking tokens vary. Check current prices and set a spend limit first |
 | Requires | Python 3.11+ and pytest (`pip install -e ".[dev]"`). Live mode only: `pip install -e ".[live]"`, which installs the Anthropic SDK within a pinned version range (`anthropic>=2.6,<3`, as in Lab 2.1), and Claude API credentials |
 
 ## Brief
