@@ -18,7 +18,7 @@ dead-letter state, and every attempt traced.
 
 You have **Relay 4.30.0** in `relay-repo/`: canonical 4.28.0 plus `src/relay/agentops/` (the agent job queue,
 the effect ledger, breakers, the sandbox, the registry's shared state and the service's agent gateway),
-ADR-049 to ADR-052, and 93 new tests.
+ADR-049 to ADR-052, and 104 new tests.
 
 **About the data.** Everything in `data/` is **generated** by `scripts/generate_data.py` and **configured**,
 not measured: the pilot's tickets and deliveries (a composite incident), the escape attempts and the drills
@@ -39,7 +39,7 @@ start real processes on your machine and are inert (each only tries to read, con
 
 ```
 L18.1-durable-sandboxed-workers/
-├── relay-repo/                 ← Relay 4.30.0 (Chapter 18 branch): canonical 4.28.0 + relay.agentops; 981 tests
+├── relay-repo/                 ← Relay 4.30.0 (Chapter 18 branch): canonical 4.28.0 + relay.agentops; 992 tests
 │   ├── src/relay/agentops/     ← jobs, effects, resilience, worker, sandbox, sandbox_child, tools, registry_state, gateway
 │   └── docs/adr/               ← ADR-049 to ADR-052
 ├── data/                       ← GENERATED: pilot/tickets.jsonl, pilot/deliveries.jsonl, escapes.json, drills.json, manifest.json
@@ -146,8 +146,9 @@ Fill in `templates/production-readiness-review.md` for the helper as a queue wor
 **The local sandbox is a policy check and a no-secrets environment, not a security boundary.** It is an isolated
 interpreter, an empty environment, a throwaway directory, an audit-hook policy and, on POSIX, resource limits. An audit
 hook runs inside the process it watches: code that reaches native memory by a path the policy does not list gets past
-it, and some actions raise no event at all (E19 learns which paths exist outside the directory). Five attempts in
-`data/escapes.json` (E14 to E18) got past an earlier version of it. Run agent code with it only in a credential-free
+it, and some actions raise no event at all (E19 learns which paths exist outside the directory). Six attempts in
+`data/escapes.json` (E14 to E18, E20) got past earlier versions of it, and E21 gets past the current one: code in
+the same process can reach and change the hook's own state. The hook is a tripwire, not a boundary. Run agent code with it only in a credential-free
 dev container or CI runner, never on a machine with your own credentials. The boundary in the cloud is ADR-050's
 sandbox runner, its own task with no role and no outbound network; it is designed, not built (owner sam.o, by
 2027-05-31). SQLite is refused inside the sandbox, because it opens files below the hook's view.

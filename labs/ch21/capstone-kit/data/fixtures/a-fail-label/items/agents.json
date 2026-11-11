@@ -1,0 +1,14 @@
+{
+  "agents": [
+    {
+      "agent_id": "sla-summarizer",
+      "owner": "k.bo",
+      "issuer": "fixture-issuer",
+      "scopes": [
+        "tasks:read"
+      ],
+      "max_ttl_seconds": 900,
+      "github_app": null
+    }
+  ]
+}

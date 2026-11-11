@@ -1,0 +1,59 @@
+[
+  {
+    "cost_usd": 0.03,
+    "estimate_usd": 0.02,
+    "expect": "awaiting_approval:budget:usd",
+    "id": "B01",
+    "items": 8,
+    "max_usd": 0.1,
+    "what": "a campaign runs out of money halfway"
+  },
+  {
+    "cost_usd": 0.03,
+    "estimate_usd": 0.02,
+    "expect": "finished",
+    "id": "B02",
+    "items": 8,
+    "max_usd": 0.1,
+    "raise_to": 0.3,
+    "raised_by": "sam.o",
+    "what": "another person raises the budget and the campaign finishes"
+  },
+  {
+    "cost_usd": 0.015,
+    "crash_after": 3,
+    "estimate_usd": 0.02,
+    "expect": "finished",
+    "id": "B03",
+    "items": 8,
+    "max_usd": 1.0,
+    "what": "the worker crashes after three items and another resumes"
+  },
+  {
+    "cancel_at": 2,
+    "cost_usd": 0.01,
+    "estimate_usd": 0.02,
+    "expect": "stopped:cancelled",
+    "id": "B04",
+    "items": 8,
+    "max_usd": 1.0,
+    "what": "a person cancels while the second item runs"
+  },
+  {
+    "cost_usd": 0.01,
+    "estimate_usd": 0.02,
+    "expect": "handed_back:repeated_hand_back",
+    "hand_back": true,
+    "id": "B05",
+    "items": 8,
+    "max_usd": 1.0,
+    "what": "every item is handed back"
+  },
+  {
+    "expect": "stopped:budget:usd",
+    "id": "B06",
+    "max_usd": 0.05,
+    "steps": 40,
+    "what": "one agent step meets its own dollar limit"
+  }
+]

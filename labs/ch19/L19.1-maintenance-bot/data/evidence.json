@@ -1,0 +1,17 @@
+{
+  "as_of": "2027-07-09",
+  "coverage_gate": "pass",
+  "coverage_gate_source": "relay-coverage-gate-v2 on 4.29.0 (Chapter 15): PASS, every counted control deployed",
+  "killswitch_drill": null,
+  "killswitch_drill_note": "No kill-switch drill has run on a deployed bot: Relay's test of the trip is code-level evidence, not a drill on the running system, so A5 fails closed",
+  "live_attack_measurement": null,
+  "live_attack_measurement_due": "2027-05-31 (Chapter 12; owner aisha.r): overdue at 2027-07-09",
+  "live_attack_measurement_note": "Chapter 12's live red-team measurement (owner aisha.r): no result is recorded in the snapshot, so the criterion fails closed",
+  "rollback_drill": null,
+  "rollback_drill_note": "The 29 June rollback is Lab 19.1's replay with a configured canary, not a deployed drill, so A6 fails closed",
+  "scan_catch_rate": [
+    83,
+    100
+  ],
+  "scan_catch_rate_source": "Lab 13.1: relay-security-gates-v1 caught 83 of 100 seeded issues"
+}

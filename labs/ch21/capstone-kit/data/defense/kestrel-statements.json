@@ -1,0 +1,100 @@
+{
+  "team": "kestrel",
+  "track": "A",
+  "members": [
+    "k.ade",
+    "k.bo",
+    "k.cy"
+  ],
+  "parts": [
+    {
+      "id": "P01",
+      "title": "the at-risk detector in the worker",
+      "authors": [
+        "k.ade"
+      ],
+      "ai_assisted": true,
+      "change_requests": [
+        "escalations must skip people who are on leave",
+        "a task with no deadline is never at risk"
+      ]
+    },
+    {
+      "id": "P02",
+      "title": "the AI summary step and its fallback",
+      "authors": [
+        "k.bo"
+      ],
+      "ai_assisted": true,
+      "change_requests": [
+        "fall back after 5 s instead of 10 s"
+      ]
+    },
+    {
+      "id": "P03",
+      "title": "the recipient binding in the notifier",
+      "authors": [
+        "k.cy"
+      ],
+      "ai_assisted": true,
+      "change_requests": [
+        "webhook recipients come from the customer's directory too"
+      ]
+    },
+    {
+      "id": "P04",
+      "title": "the legacy notifier's characterization tests",
+      "authors": [
+        "k.ade",
+        "k.bo"
+      ],
+      "ai_assisted": true,
+      "change_requests": [
+        "add a case for a muted security notice"
+      ]
+    },
+    {
+      "id": "P05",
+      "title": "the SLO and burn-rate alert",
+      "authors": [
+        "k.cy"
+      ],
+      "ai_assisted": false,
+      "change_requests": [
+        "page at a 6x burn over 1 hour as well"
+      ]
+    },
+    {
+      "id": "P06",
+      "title": "ADR-001 and the threat model",
+      "authors": [
+        "k.ade",
+        "k.cy"
+      ],
+      "ai_assisted": false,
+      "change_requests": [
+        "add a boundary for the webhook"
+      ]
+    },
+    {
+      "id": "P07",
+      "title": "the release workflow and admission check",
+      "authors": [
+        "k.bo"
+      ],
+      "ai_assisted": true,
+      "change_requests": [
+        "refuse images built on a laptop"
+      ]
+    }
+  ],
+  "criteria": [
+    "A-AC01",
+    "A-AC02",
+    "A-AC03",
+    "A-AC04",
+    "A-AC05",
+    "A-AC06"
+  ],
+  "frozen_sha256": "ba787c26c5199358b35a7b81954a13d89f0fc42c1459c21f9f8f5217ca3ba41f"
+}

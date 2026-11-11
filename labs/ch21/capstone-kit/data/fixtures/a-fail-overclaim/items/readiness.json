@@ -1,0 +1,38 @@
+{
+  "date": "2027-08-13",
+  "reviewers": [
+    {
+      "name": "instructor",
+      "security": false
+    },
+    {
+      "name": "security reviewer",
+      "security": true
+    }
+  ],
+  "rows": [
+    {
+      "n": 1,
+      "status": "met",
+      "evidence": "items/tests.json"
+    },
+    {
+      "n": 2,
+      "status": "met",
+      "evidence": "items/coverage.json"
+    },
+    {
+      "n": 3,
+      "status": "met",
+      "evidence": "items/redteam-log.json"
+    }
+  ],
+  "decision": "ready with conditions",
+  "conditions": [
+    {
+      "what": "medium finding RT-02 fixed",
+      "owner": "k.ade",
+      "due": "2027-08-20"
+    }
+  ]
+}

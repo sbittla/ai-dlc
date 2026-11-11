@@ -1,0 +1,6 @@
+# Allowlisted hosts that serve content anyone can publish (ADR-035). Tunnels to these are decrypted,
+# and each request must match a prefix in content-urls.txt. Every name here is also in allowlist.txt.
+# Reviewed by @relay/security.
+github.com
+api.github.com
+codeload.github.com

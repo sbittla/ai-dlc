@@ -36,15 +36,19 @@ def test_escapes():
               "| E05 | connect to the cloud metadata address | not run | refused | refused:network |",
               "| E09 | load native code | reached | refused | refused:import:ctypes |",
               "| E12 | run forever | not run | stopped | - |",
-              "| E14 | find the sandbox's policy in the calling frames | not run | nothing | - |",
+              "| E14 | walk the frames, rebind the sandbox's rules, then read outside | not run | refused | refused:open:read |",
               "| E15 | find the sandbox's policy through the garbage collector | not run | refused | refused:introspection |",
               "| E16 | load ctypes' C core under another name | reached | refused | refused:import:_ctypes |",
               "| E17 | read another database through SQLite's ATTACH | reached | refused | refused:import:sqlite3 |",
               "| E18 | erase the record of a refusal | not run | refused | refused:os.truncate:descriptor |",
               "| E19 | learn whether something exists outside the working directory | reached | reached | - |",
+              "| E20 | change the sandbox's Policy class through the frames, then read outside | not run | refused | "
+              "refused:open:read |",
+              "| E21 | reach the hook's own frame from a finalizer, rewrite its rules, then read outside | not run | "
+              "reached | - |",
               "| L01 | legitimate: compare two invoice lines from a file it was given | ok | ok | - |",
-              "Escape attempts: 19. Run the pilot's way: 12, of which reached what they tried: 12.",
-              "In the sandbox: refused 14, stopped by a limit 2, found nothing 2; contained 18 of 19.",
+              "Escape attempts: 21. Run the pilot's way: 12, of which reached what they tried: 12.",
+              "In the sandbox: refused 16, stopped by a limit 2, found nothing 1; contained 19 of 21.",
               "Legitimate attempts that still work in the sandbox: 1 of 1."):
         assert s in t, s
 

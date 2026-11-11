@@ -1,0 +1,9 @@
+{
+  "artefact": "SLA escalation module image",
+  "digest": "sha256:abababababababababababababababababababababababababababababababab",
+  "identity": "release workflow at a v* tag (fixture)",
+  "log_entry": "fixture-log-0001",
+  "verified": true,
+  "verified_by": "admission policy",
+  "date": "2027-08-12"
+}

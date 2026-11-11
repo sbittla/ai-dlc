@@ -41,10 +41,18 @@ jobs:
           - labs/ch13/L13.2-poisoned-instructions-ci-injection
           - labs/ch14/L14.1-agent-identity-kill-switch
           - labs/ch14/L14.2-governance-pack
+          - labs/ch15/L15.1-hardened-pipeline
+          - labs/ch15/L15.2-canary-kill-switch
           - labs/ch16/L16.1-otel-redaction-slo
           - labs/ch16/L16.2-game-day-postmortem
           - labs/ch17/L17.1-load-test-bottleneck
           - labs/ch17/L17.2-cost-per-success-routing
+          - labs/ch18/L18.1-durable-sandboxed-workers
+          - labs/ch18/L18.2-inference-benchmark
+          - labs/ch19/L19.1-maintenance-bot
+          - labs/ch19/L19.2-safety-security-case
+          - labs/ch20/L20.1-maturity-operating-model-roi
+          - labs/ch20/L20.2-controlled-adoption-experiment
     defaults:
       run:
         working-directory: ${{ matrix.lab }}
@@ -202,6 +210,46 @@ jobs:
         working-directory: labs/ch03/L3.1-accountable-workspace/solution
         run: python -m audit.report --policy ../data/policy.json --as-of 2027-02-12 --fail-on high ../../../ch12/L12.1-agentic-red-team/relay-repo
 
+      - name: Relay 4.29.0 passes the workspace audit and the sandbox check (Lab 15.1 only)
+        if: matrix.lab == 'labs/ch15/L15.1-hardened-pipeline'
+        shell: bash
+        run: |
+          (cd relay-repo && python tools/sandbox_run.py check && python tools/supplychain.py && python tools/lint.py)
+          cd ../../ch03/L3.1-accountable-workspace/solution
+          python -m audit.report --policy ../data/policy.json --as-of 2027-05-04 --fail-on high ../../../ch15/L15.1-hardened-pipeline/relay-repo
+
+      - name: Relay 4.30.0 passes lint and the supply-chain check (Lab 18.1 only)
+        if: matrix.lab == 'labs/ch18/L18.1-durable-sandboxed-workers'
+        working-directory: labs/ch18/L18.1-durable-sandboxed-workers/relay-repo
+        shell: bash
+        run: |
+          python tools/lint.py
+          python tools/supplychain.py
+      - name: ADR-049 to ADR-052 pass Chapter 6's ADR checker (Lab 18.1 only)
+        if: matrix.lab == 'labs/ch18/L18.1-durable-sandboxed-workers'
+        working-directory: labs/ch06/L6.1-architecture-options-adr/solution
+        run: python -m archscore.report adr --drivers ../data/drivers.json ../../../ch18/L18.1-durable-sandboxed-workers/relay-repo/docs/adr/ADR-049-agent-jobs-dead-letters-and-the-effect-ledger.md ../../../ch18/L18.1-durable-sandboxed-workers/relay-repo/docs/adr/ADR-050-sandbox-for-agent-written-code.md ../../../ch18/L18.1-durable-sandboxed-workers/relay-repo/docs/adr/ADR-051-shared-registry-state-and-the-agent-gateway.md ../../../ch18/L18.1-durable-sandboxed-workers/relay-repo/docs/adr/ADR-052-model-hosting-managed-api-and-model-intake.md --gate
+      - name: Relay 4.30.0 passes the workspace audit (Lab 18.1 only)
+        if: matrix.lab == 'labs/ch18/L18.1-durable-sandboxed-workers'
+        working-directory: labs/ch03/L3.1-accountable-workspace/solution
+        run: python -m audit.report --policy ../data/policy.json --as-of 2027-03-19 --fail-on high ../../../ch18/L18.1-durable-sandboxed-workers/relay-repo
+
+      - name: Relay 4.31.0 passes lint and the supply-chain check (Lab 19.1 only)
+        if: matrix.lab == 'labs/ch19/L19.1-maintenance-bot'
+        working-directory: labs/ch19/L19.1-maintenance-bot/relay-repo
+        shell: bash
+        run: |
+          python tools/lint.py
+          python tools/supplychain.py
+      - name: ADR-053 to ADR-056 pass Chapter 6's ADR checker (Lab 19.1 only)
+        if: matrix.lab == 'labs/ch19/L19.1-maintenance-bot'
+        working-directory: labs/ch06/L6.1-architecture-options-adr/solution
+        run: python -m archscore.report adr --drivers ../data/drivers.json ../../../ch19/L19.1-maintenance-bot/relay-repo/docs/adr/ADR-053-maintenance-bot-design.md ../../../ch19/L19.1-maintenance-bot/relay-repo/docs/adr/ADR-054-dependency-and-vulnerability-updates.md ../../../ch19/L19.1-maintenance-bot/relay-repo/docs/adr/ADR-055-long-running-maintenance-campaigns.md ../../../ch19/L19.1-maintenance-bot/relay-repo/docs/adr/ADR-056-governing-autonomy-self-modification-and-safety-cases.md --gate
+      - name: Relay 4.31.0 passes the workspace audit (Lab 19.1 only)
+        if: matrix.lab == 'labs/ch19/L19.1-maintenance-bot'
+        working-directory: labs/ch03/L3.1-accountable-workspace/solution
+        run: python -m audit.report --policy ../data/policy.json --as-of 2027-07-09 --fail-on high ../../../ch19/L19.1-maintenance-bot/relay-repo
+
   relay-baseline:
     name: canonical Relay ${{ matrix.version }} (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
@@ -209,7 +257,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
-        version: ["4.19.0", "4.21.0", "4.23.0", "4.25.0", "4.28.0"]
+        version: ["4.19.0", "4.21.0", "4.23.0", "4.25.0", "4.28.0", "4.30.0", "4.31.0"]
         include:
           - version: "4.19.0"
             script: merge_4_19_0.py
@@ -225,6 +273,12 @@ jobs:
           - version: "4.28.0"
             script: merge_4_28_0.py
             audit_as_of: "2027-02-19"
+          - version: "4.30.0"
+            script: merge_4_30_0.py
+            audit_as_of: "2027-05-04"
+          - version: "4.31.0"
+            script: merge_4_31_0.py
+            audit_as_of: "2027-07-09"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

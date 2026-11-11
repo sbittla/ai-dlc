@@ -1,0 +1,76 @@
+{
+  "track": "A",
+  "team": "kestrel",
+  "pack": "data/fixtures/a-pass",
+  "limitations_found_by_panel": 1,
+  "gates": {
+    "security": "pass",
+    "reproducibility": "pass",
+    "disclosure": "pass",
+    "hygiene": "pass"
+  },
+  "members": [
+    {
+      "id": "k.ade",
+      "explain": "pass"
+    },
+    {
+      "id": "k.bo",
+      "explain": "pass"
+    },
+    {
+      "id": "k.cy",
+      "explain": "fail"
+    }
+  ],
+  "dimensions": {
+    "correctness": {
+      "score": 92,
+      "evidence": [
+        "A01",
+        "A07",
+        "A17"
+      ]
+    },
+    "security": {
+      "score": 88,
+      "evidence": [
+        "A03",
+        "A05",
+        "A06",
+        "A11"
+      ]
+    },
+    "verification": {
+      "score": 90,
+      "evidence": [
+        "A04",
+        "A05",
+        "A07"
+      ]
+    },
+    "operations": {
+      "score": 85,
+      "evidence": [
+        "A12",
+        "A13",
+        "A15"
+      ]
+    },
+    "reliability": {
+      "score": 94,
+      "evidence": [
+        "A04",
+        "A14"
+      ]
+    },
+    "traceability": {
+      "score": 96,
+      "evidence": [
+        "A01",
+        "A02",
+        "A16"
+      ]
+    }
+  }
+}

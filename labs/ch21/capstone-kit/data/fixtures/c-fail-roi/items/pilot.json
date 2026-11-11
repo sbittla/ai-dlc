@@ -1,0 +1,16 @@
+{
+  "pre_registration": {
+    "ref": "pack:items/pre-registration.md",
+    "sha256": "0f7eb0316fda78038cfc4589eca5efbc512e0713a9400714aacb778fabaf5c41"
+  },
+  "primary": {
+    "measure": "lead-time ratio",
+    "estimate": 1.03,
+    "interval": [
+      0.91,
+      1.17
+    ],
+    "null": 1.0,
+    "wording": "No clear change in lead time."
+  }
+}

@@ -1,0 +1,100 @@
+{
+  "date": "2027-03-19",
+  "agent": "spec-to-pr-helper",
+  "release": "4.30.0",
+  "template": "labs/ch18/L18.1-durable-sandboxed-workers/templates/production-readiness-review.md",
+  "reviewers": [
+    {
+      "name": "sam.o",
+      "security": false
+    },
+    {
+      "name": "aisha.r",
+      "security": true
+    }
+  ],
+  "rows": [
+    {
+      "n": 1,
+      "status": "met",
+      "evidence": "Lab 18.1 drill F2"
+    },
+    {
+      "n": 2,
+      "status": "met",
+      "evidence": "Lab 18.1 drill F1"
+    },
+    {
+      "n": 3,
+      "status": "met",
+      "evidence": "Lab 18.1 drill F2"
+    },
+    {
+      "n": 5,
+      "status": "met",
+      "evidence": "Lab 18.1 drills F3, F4"
+    },
+    {
+      "n": 6,
+      "status": "met",
+      "evidence": "Lab 18.1 drill F7"
+    },
+    {
+      "n": 10,
+      "status": "met",
+      "evidence": "Lab 18.1 drill F6"
+    },
+    {
+      "n": 11,
+      "status": "met",
+      "evidence": "relay.agentops.tools"
+    },
+    {
+      "n": 13,
+      "status": "met",
+      "evidence": "Lab 18.1 trace F0"
+    },
+    {
+      "n": 15,
+      "status": "met",
+      "evidence": "ADR-027, ADR-049"
+    },
+    {
+      "n": 4,
+      "status": "not met",
+      "evidence": "nothing alerts on the dead-letter state"
+    },
+    {
+      "n": 7,
+      "status": "not met",
+      "evidence": "the local sandbox is a check, not containment"
+    },
+    {
+      "n": 8,
+      "status": "not met",
+      "evidence": "the cloud sandbox runner is not built"
+    },
+    {
+      "n": 9,
+      "status": "not met",
+      "evidence": "the person a job acts for is not verified"
+    },
+    {
+      "n": 12,
+      "status": "not met",
+      "evidence": "Chapter 12's counted controls are not deployed"
+    },
+    {
+      "n": 14,
+      "status": "not met",
+      "evidence": "the helper has no daily spend quota"
+    },
+    {
+      "n": 16,
+      "status": "not met",
+      "evidence": "no release through the hardened pipeline yet"
+    }
+  ],
+  "decision": "not ready",
+  "note": "Transcribed from Chapter 18's worked example. Rows 12 and 16 were met later (Chapter 15: deployment evidence by 2027-04-30, first release through the pipeline 2027-05-04), but no later review is recorded."
+}

@@ -1,0 +1,9 @@
+# Domains a background agent session may reach over HTTPS (ADR-013).
+# One per line; a leading dot also allows subdomains. Reviewed by @relay/security.
+# The approved model is reached through the VPC endpoint, not through this proxy.
+# From 4.25.0 (ADR-028) packages come only from Relay's mirror: pypi.org and
+# files.pythonhosted.org are no longer reachable from a session.
+github.com
+api.github.com
+codeload.github.com
+pypi-mirror.relay.example

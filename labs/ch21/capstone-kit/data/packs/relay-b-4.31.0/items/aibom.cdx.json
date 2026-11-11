@@ -1,0 +1,369 @@
+{
+  "bomFormat": "CycloneDX",
+  "components": [
+    {
+      "bom-ref": "model:triage-model",
+      "modelCard": {
+        "considerations": {
+          "useCases": [
+            "relay.worker (triage); agent sandboxes"
+          ]
+        }
+      },
+      "name": "triage-model",
+      "properties": [
+        {
+          "name": "relay:kind",
+          "value": "model"
+        },
+        {
+          "name": "relay:reference",
+          "value": "var.triage_model_arn"
+        },
+        {
+          "name": "relay:file-format",
+          "value": "hosted"
+        },
+        {
+          "name": "relay:owner",
+          "value": "sam.o"
+        }
+      ],
+      "supplier": {
+        "name": "Amazon Bedrock (hosted)"
+      },
+      "type": "machine-learning-model",
+      "version": "set per environment from the evaluation that approved it (Chapter 7)"
+    },
+    {
+      "bom-ref": "model:sim-large",
+      "modelCard": {
+        "considerations": {
+          "useCases": [
+            "relay.worker in tests and local runs"
+          ]
+        }
+      },
+      "name": "sim-large",
+      "properties": [
+        {
+          "name": "relay:kind",
+          "value": "model"
+        },
+        {
+          "name": "relay:reference",
+          "value": "relay.worker.triage"
+        },
+        {
+          "name": "relay:file-format",
+          "value": "hosted"
+        },
+        {
+          "name": "relay:owner",
+          "value": "sam.o"
+        }
+      ],
+      "supplier": {
+        "name": "Relay (simulated, tests and labs only)"
+      },
+      "type": "machine-learning-model",
+      "version": "4.25.0"
+    },
+    {
+      "bom-ref": "prompt:triage-v3.1",
+      "data": [
+        {
+          "description": "Chapter 7's adopted triage prompt",
+          "name": "triage-v3.1",
+          "type": "configuration"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "27177e6327030304b566c1a0febe412dc61646347adc379abff36cdd089e148e"
+        }
+      ],
+      "name": "triage-v3.1",
+      "properties": [
+        {
+          "name": "relay:kind",
+          "value": "prompt"
+        },
+        {
+          "name": "relay:used-by",
+          "value": "relay.worker.triage"
+        },
+        {
+          "name": "relay:owner",
+          "value": "tomas.b"
+        }
+      ],
+      "type": "data"
+    },
+    {
+      "bom-ref": "dataset:relay-triage-eval@2026.11.1",
+      "data": [
+        {
+          "classification": "Internal",
+          "description": "300 records; evaluation (100 dev, 200 held-out)",
+          "name": "relay-triage-eval",
+          "type": "dataset"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b997166b41e0c4e1cd95073d66677a8e6ea74dfad15f9d5397d993b08fb00dc4"
+        }
+      ],
+      "name": "relay-triage-eval",
+      "properties": [
+        {
+          "name": "relay:kind",
+          "value": "dataset"
+        },
+        {
+          "name": "relay:owner",
+          "value": "tomas.b"
+        }
+      ],
+      "type": "data",
+      "version": "2026.11.1"
+    },
+    {
+      "bom-ref": "evaluation:triage-gate-v1",
+      "data": [
+        {
+          "name": "triage-gate-v1",
+          "type": "definition"
+        }
+      ],
+      "name": "triage-gate-v1",
+      "properties": [
+        {
+          "name": "relay:kind",
+          "value": "evaluation-gate"
+        },
+        {
+          "name": "relay:status-check",
+          "value": "triage-eval"
+        },
+        {
+          "name": "relay:owner",
+          "value": "sam.o"
+        }
+      ],
+      "type": "data"
+    }
+  ],
+  "metadata": {
+    "component": {
+      "bom-ref": "relay-image",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "dba8d07acc7d054e394a7d62a9737c12cc35d2a9c2086903dcfbd4d003824d74"
+        }
+      ],
+      "name": "relay",
+      "type": "container",
+      "version": "4.31.0"
+    },
+    "timestamp": "2027-07-09T00:00:00Z",
+    "tools": {
+      "components": [
+        {
+          "name": "relay-tools-sbom",
+          "type": "application",
+          "version": "4.31.0"
+        }
+      ]
+    }
+  },
+  "serialNumber": "urn:uuid:a5229fc2-3c6a-5238-9cef-247cc531a620",
+  "services": [
+    {
+      "bom-ref": "tool:relay-db-readonly",
+      "description": "Lab 3.2's relaymcp 1.0.0, vendored and reviewed",
+      "name": "relay-db-readonly",
+      "properties": [
+        {
+          "name": "relay:kind",
+          "value": "tool-server"
+        },
+        {
+          "name": "relay:protocol",
+          "value": "MCP (stdio)"
+        },
+        {
+          "name": "relay:launch",
+          "value": "python -m relaymcp.server --db data/relay-test.sql --audit evidence/mcp-audit.jsonl"
+        },
+        {
+          "name": "relay:sha256",
+          "value": "8d0542d4933a0b4e3a1a58cf88f242eed4723318fa50d051d2a648071131a654"
+        },
+        {
+          "name": "relay:reviewed-by",
+          "value": "aisha.r"
+        }
+      ],
+      "version": "1.0.0"
+    },
+    {
+      "authenticated": true,
+      "bom-ref": "agent:analytics-sync",
+      "name": "analytics-sync",
+      "properties": [
+        {
+          "name": "relay:kind",
+          "value": "agent"
+        },
+        {
+          "name": "relay:owner",
+          "value": "lena.k"
+        },
+        {
+          "name": "relay:scopes",
+          "value": "tasks:export:analytics"
+        }
+      ]
+    },
+    {
+      "authenticated": true,
+      "bom-ref": "agent:ci-failure-triage",
+      "name": "ci-failure-triage",
+      "properties": [
+        {
+          "name": "relay:kind",
+          "value": "agent"
+        },
+        {
+          "name": "relay:owner",
+          "value": "priya.n"
+        },
+        {
+          "name": "relay:scopes",
+          "value": "tasks:create:platform"
+        }
+      ]
+    },
+    {
+      "authenticated": true,
+      "bom-ref": "agent:coding-session",
+      "name": "coding-session",
+      "properties": [
+        {
+          "name": "relay:kind",
+          "value": "agent"
+        },
+        {
+          "name": "relay:owner",
+          "value": "sam.o"
+        },
+        {
+          "name": "relay:scopes",
+          "value": "tasks:read:platform,testdb:query"
+        }
+      ]
+    },
+    {
+      "authenticated": true,
+      "bom-ref": "agent:dataset-refresh",
+      "name": "dataset-refresh",
+      "properties": [
+        {
+          "name": "relay:kind",
+          "value": "agent"
+        },
+        {
+          "name": "relay:owner",
+          "value": "tomas.b"
+        },
+        {
+          "name": "relay:scopes",
+          "value": "tickets:read:support"
+        }
+      ]
+    },
+    {
+      "authenticated": true,
+      "bom-ref": "agent:eval-harvester",
+      "name": "eval-harvester",
+      "properties": [
+        {
+          "name": "relay:kind",
+          "value": "agent"
+        },
+        {
+          "name": "relay:owner",
+          "value": "tomas.b"
+        },
+        {
+          "name": "relay:scopes",
+          "value": "tickets:read:support"
+        }
+      ]
+    },
+    {
+      "authenticated": true,
+      "bom-ref": "agent:maintenance-bot",
+      "name": "maintenance-bot",
+      "properties": [
+        {
+          "name": "relay:kind",
+          "value": "agent"
+        },
+        {
+          "name": "relay:owner",
+          "value": "priya.n"
+        },
+        {
+          "name": "relay:scopes",
+          "value": "tasks:read:platform,tasks:create:platform"
+        }
+      ]
+    },
+    {
+      "authenticated": true,
+      "bom-ref": "agent:spec-to-pr-helper",
+      "name": "spec-to-pr-helper",
+      "properties": [
+        {
+          "name": "relay:kind",
+          "value": "agent"
+        },
+        {
+          "name": "relay:owner",
+          "value": "sam.o"
+        },
+        {
+          "name": "relay:scopes",
+          "value": "tasks:read:platform"
+        }
+      ]
+    },
+    {
+      "authenticated": true,
+      "bom-ref": "agent:triage-worker",
+      "name": "triage-worker",
+      "properties": [
+        {
+          "name": "relay:kind",
+          "value": "agent"
+        },
+        {
+          "name": "relay:owner",
+          "value": "sam.o"
+        },
+        {
+          "name": "relay:scopes",
+          "value": "tickets:read:triage-queue,triage:suggest"
+        }
+      ]
+    }
+  ],
+  "specVersion": "1.6",
+  "version": 1
+}

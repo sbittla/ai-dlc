@@ -1,0 +1,7 @@
+{
+  "verify": {
+    "audience": null,
+    "leeway": 60,
+    "require_audience": false
+  }
+}

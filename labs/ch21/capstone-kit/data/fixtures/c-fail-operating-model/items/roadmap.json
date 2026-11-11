@@ -1,0 +1,29 @@
+{
+  "stages": [
+    {
+      "id": "S1",
+      "start": "2027-10-01",
+      "share": 0.25,
+      "gate_evidence": [
+        "holdout readout",
+        "guardrails"
+      ]
+    },
+    {
+      "id": "S2",
+      "start": "2028-01-03",
+      "share": 0.6,
+      "gate_evidence": [
+        "second readout"
+      ]
+    },
+    {
+      "id": "S3",
+      "start": "2028-04-03",
+      "share": 0.8,
+      "gate_evidence": [
+        "third readout"
+      ]
+    }
+  ]
+}

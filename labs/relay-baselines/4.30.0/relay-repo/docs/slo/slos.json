@@ -1,0 +1,36 @@
+{
+  "version": "relay-slo-v1",
+  "note": "Relay's service level objectives (ADR-037). Each SLI counts events a user would call good. Period: 30 days, rolling. Burn-rate policy 'workbook' is the multi-window, multi-burn-rate table of Google's Site Reliability Workbook ('Alerting on SLOs'); 'ai-quality' is Relay's own, for SLIs whose labels arrive slowly and in small numbers. Reviewed with the budget policy (budget-policy.md) every quarter.",
+  "policies": {
+    "workbook": [
+      {"long_minutes": 60, "short_minutes": 5, "burn_rate": 14.4, "action": "page"},
+      {"long_minutes": 360, "short_minutes": 30, "burn_rate": 6.0, "action": "page"},
+      {"long_minutes": 4320, "short_minutes": 360, "burn_rate": 1.0, "action": "ticket"}
+    ],
+    "ai-quality": [
+      {"long_minutes": 10080, "short_minutes": 1440, "burn_rate": 1.5, "action": "ticket"}
+    ]
+  },
+  "slos": [
+    {"slo_id": "SLO-API-AVAIL", "title": "Relay API requests answered without a server error",
+     "sli": "share of /v1 responses with a status below 500 (401, 403, 404 and 429 count as good: the server did what it promised)",
+     "target": 0.999, "period_days": 30, "policy": "workbook", "min_events": 100, "owner": "sam.o",
+     "source": "http.server.request.duration, by http.response.status_code"},
+    {"slo_id": "SLO-API-LATENCY", "title": "Relay API requests answered within 250 ms",
+     "sli": "share of /v1 responses with status below 500 and a duration of at most 0.25 s (a bucket boundary of the duration histogram); stricter than CON-4's p95 under 1 second",
+     "target": 0.99, "period_days": 30, "policy": "workbook", "min_events": 100, "owner": "sam.o",
+     "source": "http.server.request.duration, bucket le 0.25"},
+    {"slo_id": "SLO-TRIAGE-FRESH", "title": "Triage jobs answered within 60 seconds",
+     "sli": "share of triage jobs that reach done or needs_human within 60 s of being queued",
+     "target": 0.99, "period_days": 30, "policy": "workbook", "min_events": 20, "owner": "sam.o",
+     "source": "relay.worker.passes and the queue's job times"},
+    {"slo_id": "SLO-TRIAGE-QUALITY", "title": "Triage suggestions a person accepts unchanged",
+     "sli": "share of confirmed or overridden suggestions whose category and priority the person kept (online evaluation; Chapter 7's held-out accuracy for triage-v3.1 was 86.0%)",
+     "target": 0.8, "period_days": 30, "policy": "ai-quality", "min_events": 100, "owner": "lena.k",
+     "source": "relay.triage.outcome on confirmation events"},
+    {"slo_id": "SLO-TRIAGE-SAFETY", "title": "Triage outputs that pass the output check",
+     "sli": "share of model outputs that parse as a suggestion and pass the content rules (no URL, no instruction to a person, no field outside the schema)",
+     "target": 0.995, "period_days": 30, "policy": "ai-quality", "min_events": 100, "owner": "aisha.r",
+     "source": "relay.triage.outcome on worker passes"}
+  ]
+}

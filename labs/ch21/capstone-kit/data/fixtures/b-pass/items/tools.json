@@ -1,0 +1,25 @@
+{
+  "tools": [
+    {
+      "name": "read_repo",
+      "effect": "read"
+    },
+    {
+      "name": "edit_file",
+      "effect": "write"
+    },
+    {
+      "name": "run_tests",
+      "effect": "read"
+    },
+    {
+      "name": "run_scanners",
+      "effect": "read"
+    },
+    {
+      "name": "open_pull_request",
+      "effect": "external",
+      "approval": "requester"
+    }
+  ]
+}

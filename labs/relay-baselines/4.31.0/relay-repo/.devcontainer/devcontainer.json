@@ -1,0 +1,17 @@
+{
+  "name": "relay-dev",
+  "image": "mcr.microsoft.com/devcontainers/python:3.12@sha256:7c9f64bdf92452c565d13ac6466991092873b312da9783b4b9b9812a87682d1d",
+  "remoteUser": "vscode",
+  "runArgs": [
+    "--security-opt=no-new-privileges",
+    "--cap-drop=ALL"
+  ],
+  "mounts": [],
+  "containerEnv": {
+    "RELAY_ENV": "dev",
+    "PIP_INDEX_URL": "https://pypi-mirror.relay.example/simple/",
+    "PIP_ONLY_BINARY": ":all:",
+    "PIP_REQUIRE_HASHES": "1"
+  },
+  "postCreateCommand": "python -m pip install --user --require-hashes --only-binary :all: -r requirements-dev.txt"
+}

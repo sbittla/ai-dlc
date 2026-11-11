@@ -1,0 +1,61 @@
+{
+  "system": "SLA escalation module",
+  "components": [
+    "api",
+    "worker",
+    "ai-step",
+    "notifier"
+  ],
+  "boundaries": [
+    {
+      "id": "B1",
+      "what": "task text into the AI step (context)"
+    },
+    {
+      "id": "B2",
+      "what": "AI output to the notifier (output)"
+    },
+    {
+      "id": "B3",
+      "what": "notifier to email or webhook (network)"
+    }
+  ],
+  "threats": [
+    {
+      "id": "T1",
+      "boundary": "B1",
+      "stride": "Tampering",
+      "owasp_llm": "LLM01",
+      "owasp_agentic": "T6",
+      "atlas": "AML.T0051",
+      "controls": [
+        "marking",
+        "output-constraint"
+      ]
+    },
+    {
+      "id": "T2",
+      "boundary": "B2",
+      "stride": "Information disclosure",
+      "owasp_llm": "LLM05",
+      "owasp_agentic": "T6",
+      "atlas": "AML.T0051",
+      "controls": [
+        "render",
+        "output-constraint"
+      ]
+    },
+    {
+      "id": "T3",
+      "boundary": "B3",
+      "stride": "Information disclosure",
+      "owasp_llm": "LLM02",
+      "owasp_agentic": "T2",
+      "atlas": "AML.T0051",
+      "controls": [
+        "recipient-binding",
+        "egress"
+      ]
+    }
+  ]
+}

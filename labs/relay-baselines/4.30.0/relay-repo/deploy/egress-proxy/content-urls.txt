@@ -1,0 +1,6 @@
+# Reviewed URL prefixes inside the content hosts (ADR-035): Relay's own repository and nothing else.
+# Squid url_regex, one per line, anchored. No gists, no search, no GraphQL, no other owner's repository.
+# Reviewed by @relay/security.
+^https://github\.com/relay-example/relay(\.git)?(/|$)
+^https://api\.github\.com/repos/relay-example/relay(/|$)
+^https://codeload\.github\.com/relay-example/relay/

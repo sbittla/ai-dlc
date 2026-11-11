@@ -1,0 +1,373 @@
+[
+  {
+    "input_tokens": 0,
+    "outcome": "merged",
+    "output_tokens": 0,
+    "run": "M001",
+    "task_type": "dependency-update",
+    "usd": 0.0
+  },
+  {
+    "input_tokens": 0,
+    "outcome": "merged",
+    "output_tokens": 0,
+    "run": "M002",
+    "task_type": "dependency-update",
+    "usd": 0.0
+  },
+  {
+    "input_tokens": 0,
+    "outcome": "merged",
+    "output_tokens": 0,
+    "run": "M003",
+    "task_type": "dependency-update",
+    "usd": 0.0
+  },
+  {
+    "input_tokens": 0,
+    "outcome": "merged",
+    "output_tokens": 0,
+    "run": "M004",
+    "task_type": "dependency-update",
+    "usd": 0.0
+  },
+  {
+    "input_tokens": 0,
+    "outcome": "merged",
+    "output_tokens": 0,
+    "run": "M005",
+    "task_type": "dependency-update",
+    "usd": 0.0
+  },
+  {
+    "input_tokens": 0,
+    "outcome": "merged",
+    "output_tokens": 0,
+    "run": "M006",
+    "task_type": "dependency-update",
+    "usd": 0.0
+  },
+  {
+    "input_tokens": 0,
+    "outcome": "merged",
+    "output_tokens": 0,
+    "run": "M007",
+    "task_type": "dependency-update",
+    "usd": 0.0
+  },
+  {
+    "input_tokens": 0,
+    "outcome": "merged",
+    "output_tokens": 0,
+    "run": "M008",
+    "task_type": "dependency-update",
+    "usd": 0.0
+  },
+  {
+    "input_tokens": 0,
+    "outcome": "merged",
+    "output_tokens": 0,
+    "run": "M009",
+    "task_type": "dependency-update",
+    "usd": 0.0
+  },
+  {
+    "input_tokens": 0,
+    "outcome": "merged",
+    "output_tokens": 0,
+    "run": "M010",
+    "task_type": "dependency-update",
+    "usd": 0.0
+  },
+  {
+    "input_tokens": 0,
+    "outcome": "merged",
+    "output_tokens": 0,
+    "run": "M011",
+    "task_type": "dependency-update",
+    "usd": 0.0
+  },
+  {
+    "input_tokens": 0,
+    "outcome": "merged",
+    "output_tokens": 0,
+    "run": "M012",
+    "task_type": "dependency-update",
+    "usd": 0.0
+  },
+  {
+    "input_tokens": 0,
+    "outcome": "merged",
+    "output_tokens": 0,
+    "run": "M013",
+    "task_type": "dependency-update",
+    "usd": 0.0
+  },
+  {
+    "input_tokens": 0,
+    "intervention": true,
+    "outcome": "merged",
+    "output_tokens": 0,
+    "run": "M014",
+    "task_type": "dependency-update",
+    "usd": 0.0
+  },
+  {
+    "input_tokens": 0,
+    "intervention": true,
+    "outcome": "merged",
+    "output_tokens": 0,
+    "run": "M015",
+    "task_type": "dependency-update",
+    "usd": 0.0
+  },
+  {
+    "input_tokens": 0,
+    "outcome": "merged",
+    "output_tokens": 0,
+    "rolled_back": true,
+    "run": "M016",
+    "task_type": "dependency-update",
+    "usd": 0.0
+  },
+  {
+    "input_tokens": 0,
+    "intervention": true,
+    "outcome": "handed_back",
+    "output_tokens": 0,
+    "run": "M017",
+    "task_type": "dependency-update",
+    "usd": 0.0
+  },
+  {
+    "input_tokens": 0,
+    "intervention": true,
+    "outcome": "handed_back",
+    "output_tokens": 0,
+    "run": "M018",
+    "task_type": "dependency-update",
+    "usd": 0.0
+  },
+  {
+    "input_tokens": 0,
+    "intervention": true,
+    "outcome": "handed_back",
+    "output_tokens": 0,
+    "run": "M019",
+    "task_type": "dependency-update",
+    "usd": 0.0
+  },
+  {
+    "input_tokens": 0,
+    "intervention": true,
+    "outcome": "handed_back",
+    "output_tokens": 0,
+    "run": "M020",
+    "task_type": "dependency-update",
+    "usd": 0.0
+  },
+  {
+    "input_tokens": 0,
+    "intervention": true,
+    "outcome": "denied",
+    "output_tokens": 0,
+    "run": "M021",
+    "task_type": "dependency-update",
+    "usd": 0.0
+  },
+  {
+    "input_tokens": 0,
+    "intervention": true,
+    "outcome": "denied",
+    "output_tokens": 0,
+    "run": "M022",
+    "task_type": "dependency-update",
+    "usd": 0.0
+  },
+  {
+    "input_tokens": 0,
+    "outcome": "merged",
+    "output_tokens": 0,
+    "run": "M023",
+    "task_type": "vulnerability-fix",
+    "usd": 0.0
+  },
+  {
+    "input_tokens": 0,
+    "outcome": "merged",
+    "output_tokens": 0,
+    "run": "M024",
+    "task_type": "vulnerability-fix",
+    "usd": 0.0
+  },
+  {
+    "input_tokens": 6103,
+    "outcome": "merged",
+    "output_tokens": 740,
+    "run": "M025",
+    "task_type": "docs-upkeep",
+    "usd": 0.039212
+  },
+  {
+    "input_tokens": 7691,
+    "outcome": "merged",
+    "output_tokens": 810,
+    "run": "M026",
+    "task_type": "docs-upkeep",
+    "usd": 0.046964
+  },
+  {
+    "input_tokens": 5722,
+    "outcome": "merged",
+    "output_tokens": 1137,
+    "run": "M027",
+    "task_type": "docs-upkeep",
+    "usd": 0.045628
+  },
+  {
+    "input_tokens": 6177,
+    "outcome": "merged",
+    "output_tokens": 773,
+    "run": "M028",
+    "task_type": "docs-upkeep",
+    "usd": 0.040168
+  },
+  {
+    "input_tokens": 8484,
+    "outcome": "merged",
+    "output_tokens": 1209,
+    "run": "M029",
+    "task_type": "docs-upkeep",
+    "usd": 0.058116
+  },
+  {
+    "input_tokens": 6218,
+    "outcome": "merged",
+    "output_tokens": 1009,
+    "run": "M030",
+    "task_type": "docs-upkeep",
+    "usd": 0.045052
+  },
+  {
+    "input_tokens": 7343,
+    "outcome": "merged",
+    "output_tokens": 627,
+    "run": "M031",
+    "task_type": "docs-upkeep",
+    "usd": 0.041912
+  },
+  {
+    "input_tokens": 5454,
+    "outcome": "merged",
+    "output_tokens": 808,
+    "run": "M032",
+    "task_type": "docs-upkeep",
+    "usd": 0.037976
+  },
+  {
+    "input_tokens": 6122,
+    "outcome": "merged",
+    "output_tokens": 628,
+    "run": "M033",
+    "task_type": "docs-upkeep",
+    "usd": 0.037048
+  },
+  {
+    "input_tokens": 6660,
+    "outcome": "merged",
+    "output_tokens": 1214,
+    "run": "M034",
+    "task_type": "docs-upkeep",
+    "usd": 0.05092
+  },
+  {
+    "input_tokens": 6326,
+    "outcome": "merged",
+    "output_tokens": 1276,
+    "run": "M035",
+    "task_type": "docs-upkeep",
+    "usd": 0.050824
+  },
+  {
+    "input_tokens": 7226,
+    "intervention": true,
+    "outcome": "denied",
+    "output_tokens": 616,
+    "run": "M036",
+    "task_type": "docs-upkeep",
+    "usd": 0.041224
+  },
+  {
+    "input_tokens": 6149,
+    "intervention": true,
+    "outcome": "denied",
+    "output_tokens": 1229,
+    "run": "M037",
+    "task_type": "docs-upkeep",
+    "usd": 0.049176
+  },
+  {
+    "input_tokens": 7361,
+    "intervention": true,
+    "outcome": "handed_back",
+    "output_tokens": 1093,
+    "run": "M038",
+    "task_type": "docs-upkeep",
+    "usd": 0.051304,
+    "violations": 4
+  },
+  {
+    "input_tokens": 8429,
+    "intervention": true,
+    "outcome": "draft",
+    "output_tokens": 1391,
+    "run": "M039",
+    "task_type": "bug-reproduction",
+    "usd": 0.061536
+  },
+  {
+    "input_tokens": 6611,
+    "intervention": true,
+    "outcome": "draft",
+    "output_tokens": 1295,
+    "run": "M040",
+    "task_type": "bug-reproduction",
+    "usd": 0.052344
+  },
+  {
+    "input_tokens": 7172,
+    "intervention": true,
+    "outcome": "draft",
+    "output_tokens": 985,
+    "run": "M041",
+    "task_type": "bug-reproduction",
+    "usd": 0.048388
+  },
+  {
+    "input_tokens": 7338,
+    "intervention": true,
+    "outcome": "draft",
+    "output_tokens": 959,
+    "run": "M042",
+    "task_type": "bug-reproduction",
+    "usd": 0.048532
+  },
+  {
+    "input_tokens": 8676,
+    "intervention": true,
+    "outcome": "draft",
+    "output_tokens": 1075,
+    "run": "M043",
+    "task_type": "bug-reproduction",
+    "usd": 0.056204
+  },
+  {
+    "input_tokens": 0,
+    "intervention": true,
+    "outcome": "handed_back",
+    "output_tokens": 0,
+    "run": "M044",
+    "task_type": "table-extension",
+    "usd": 0.0
+  }
+]

@@ -1,0 +1,46 @@
+{
+  "version": "agent-detection-v1",
+  "note": "Detection rules over the audit trail of agent actions (ADR-022). Each rule keeps a behavioural baseline per identity from a 28-day window and is evaluated every 5 minutes. In production the window rolls daily and leaves out activity that raised an alert until a person has reviewed it; Lab 14.1 uses one fixed window. Deploying them in the log pipeline, with paging, is Chapter 16's work; Lab 14.1 evaluates them offline.",
+  "baseline_days": 28,
+  "evaluation_interval_seconds": 300,
+  "dedup_hours": 24,
+  "rules": [
+    {
+      "id": "DR-001",
+      "title": "Export burst",
+      "kind": "count",
+      "actions": ["export.start"],
+      "window_seconds": 3600,
+      "floor": 3,
+      "factor": 3,
+      "severity": "high",
+      "response": "trip the kill switch automatically, then page the security on-call"
+    },
+    {
+      "id": "DR-002",
+      "title": "Identity seen from a network it has not used before",
+      "kind": "new_source",
+      "severity": "medium",
+      "response": "page the security on-call; trip the kill switch if the owner does not recognise the network"
+    },
+    {
+      "id": "DR-003",
+      "title": "Read volume",
+      "kind": "sum_rows",
+      "actions": ["tickets.list", "export.download", "testdb.query"],
+      "window_seconds": 3600,
+      "floor": 2000,
+      "factor": 3,
+      "severity": "high",
+      "response": "trip the kill switch automatically, then page the security on-call"
+    },
+    {
+      "id": "DR-004",
+      "title": "Break-glass session started",
+      "kind": "any",
+      "actions": ["breakglass.assume"],
+      "severity": "high",
+      "response": "page the security lead; the session is reviewed within one working day"
+    }
+  ]
+}

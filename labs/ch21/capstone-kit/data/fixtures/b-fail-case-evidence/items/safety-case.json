@@ -1,0 +1,35 @@
+{
+  "case": "stp-agent-pilot-v1",
+  "recommendation": "go with conditions",
+  "claims": [
+    {
+      "id": "C1",
+      "text": "The agent cannot merge or deploy.",
+      "argument": "no such tool; platform permissions",
+      "evidence": [
+        "B17",
+        "B11",
+        "B99"
+      ],
+      "status": "supported"
+    },
+    {
+      "id": "C2",
+      "text": "Exfiltration classes have two independent verified controls.",
+      "argument": "coverage gate",
+      "evidence": [
+        "B05"
+      ],
+      "status": "supported"
+    }
+  ],
+  "defeaters": [
+    {
+      "id": "D1",
+      "text": "the runner shares a failure domain with the test sandbox",
+      "status": "open",
+      "owner": "h.cy",
+      "due": "2027-09-30"
+    }
+  ]
+}

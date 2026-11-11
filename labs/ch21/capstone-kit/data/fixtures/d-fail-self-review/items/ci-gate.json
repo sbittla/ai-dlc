@@ -1,0 +1,9 @@
+{
+  "workflow": ".github/workflows/pr-gates.yml",
+  "context": "coverage-gate",
+  "required_contexts": [
+    "tests",
+    "coverage-gate",
+    "security-gates"
+  ]
+}

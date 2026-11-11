@@ -1,0 +1,33 @@
+{
+  "team": "lark",
+  "track": "B",
+  "members": [
+    "l.ade"
+  ],
+  "parts": [
+    {
+      "id": "P01",
+      "title": "the approval gate's binding to the diff hash",
+      "authors": [
+        "l.ade"
+      ],
+      "ai_assisted": true,
+      "change_requests": [
+        "bind the approval to the base commit too"
+      ]
+    },
+    {
+      "id": "P02",
+      "title": "the tool contracts",
+      "authors": [
+        "l.ade"
+      ],
+      "ai_assisted": true,
+      "change_requests": [
+        "add a reviewer agent that only comments"
+      ]
+    }
+  ],
+  "criteria": [],
+  "frozen_sha256": "b99ce0cc12b56ccec51afef8b7d89ca8955c37e82f467455e10a4c7c12b174e2"
+}

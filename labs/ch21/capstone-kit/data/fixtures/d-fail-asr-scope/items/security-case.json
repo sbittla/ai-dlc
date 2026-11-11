@@ -1,0 +1,33 @@
+{
+  "case": "harbor-launch-v1",
+  "recommendation": "go with conditions",
+  "claims": [
+    {
+      "id": "C1",
+      "text": "Every attack class has its required independent verified controls.",
+      "argument": "coverage gate",
+      "evidence": [
+        "D04"
+      ],
+      "status": "supported"
+    },
+    {
+      "id": "C2",
+      "text": "Detections fire on recorded attacks and in a live drill.",
+      "argument": "rule tests and drill",
+      "evidence": [
+        "D06"
+      ],
+      "status": "supported"
+    }
+  ],
+  "defeaters": [
+    {
+      "id": "DF1",
+      "text": "no live attack-success-rate measurement on the production model",
+      "status": "open",
+      "owner": "p.cy",
+      "due": "2027-09-30"
+    }
+  ]
+}

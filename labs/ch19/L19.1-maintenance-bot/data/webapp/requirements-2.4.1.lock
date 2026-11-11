@@ -1,0 +1,8 @@
+# The web application's lock (stand-in). Only from Relay's mirror, only wheels, hashes required.
+--index-url https://pypi-mirror.relay.example/simple/
+--only-binary :all:
+--require-hashes
+sessionkeel==2.4.1 \
+    --hash=sha256:991b22f859d42bd14a3c3d30cb314e5e8d158a8b8b5809f0a4bea07dfd9bbadd
+ferncache==1.8.3 \
+    --hash=sha256:a131ccd3470f43f2c29990d98cb4d1cf2109d3d50a17c41b9d078f5ca7bb3113

@@ -1,0 +1,97 @@
+{
+  "min_rules": 5,
+  "rules": [
+    {
+      "id": "HD-1",
+      "pattern_ref": "detections/HD-1.yaml",
+      "tests": [
+        {
+          "trace": "rec-1-a",
+          "expected": true,
+          "fired": true
+        },
+        {
+          "trace": "benign-1",
+          "expected": false,
+          "fired": false
+        }
+      ]
+    },
+    {
+      "id": "HD-2",
+      "pattern_ref": "detections/HD-2.yaml",
+      "tests": [
+        {
+          "trace": "rec-2-a",
+          "expected": true,
+          "fired": true
+        },
+        {
+          "trace": "benign-2",
+          "expected": false,
+          "fired": false
+        }
+      ]
+    },
+    {
+      "id": "HD-3",
+      "pattern_ref": "detections/HD-3.yaml",
+      "tests": [
+        {
+          "trace": "rec-3-a",
+          "expected": true,
+          "fired": true
+        },
+        {
+          "trace": "benign-3",
+          "expected": false,
+          "fired": false
+        }
+      ]
+    },
+    {
+      "id": "HD-4",
+      "pattern_ref": "detections/HD-4.yaml",
+      "tests": [
+        {
+          "trace": "rec-4-a",
+          "expected": true,
+          "fired": true
+        },
+        {
+          "trace": "benign-4",
+          "expected": false,
+          "fired": false
+        }
+      ]
+    },
+    {
+      "id": "HD-5",
+      "pattern_ref": "detections/HD-5.yaml",
+      "tests": [
+        {
+          "trace": "rec-5-a",
+          "expected": true,
+          "fired": true
+        },
+        {
+          "trace": "benign-5",
+          "expected": false,
+          "fired": false
+        }
+      ]
+    }
+  ],
+  "drill": {
+    "date": "2027-08-12",
+    "rules_fired": [
+      "HD-1",
+      "HD-2",
+      "HD-3",
+      "HD-4",
+      "HD-5"
+    ],
+    "time_to_contain_s": 240,
+    "target_s": 600
+  }
+}

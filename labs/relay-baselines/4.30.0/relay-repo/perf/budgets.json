@@ -1,0 +1,17 @@
+{
+  "version": "relay-perf-budgets-v1",
+  "decided_in": "ADR-040",
+  "service": {
+    "at": "test_rate_per_s in perf/workload.json: twice the busiest minute of the week of 1 February 2027",
+    "p99_ms": 50,
+    "max_error_share": 0.001,
+    "max_limiter_transactions_per_request": 0.2,
+    "constraint": "CON-4: no API request waits for the triage model; API p95 under 1 second"
+  },
+  "worker": {
+    "time_to_suggestion_p95_s": 30,
+    "workers": 2,
+    "scenarios": ["peak-hour", "outage"],
+    "set_by": "tomas.b (support lead): a suggestion should be ready when an agent opens a new ticket"
+  }
+}

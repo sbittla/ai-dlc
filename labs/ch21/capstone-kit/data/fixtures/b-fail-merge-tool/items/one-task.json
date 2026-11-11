@@ -1,0 +1,12 @@
+{
+  "clock": "real",
+  "drills": [
+    {
+      "id": "S1",
+      "fault": "none: one task end to end",
+      "expected": "draft PR after approval",
+      "observed": "draft PR after approval",
+      "verdict": "pass"
+    }
+  ]
+}

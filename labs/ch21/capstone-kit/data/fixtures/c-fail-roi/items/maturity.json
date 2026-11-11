@@ -1,0 +1,46 @@
+{
+  "model": "labs:ch20/L20.1-maturity-operating-model-roi/data/maturity/model.json",
+  "register": "labs:ch20/L20.1-maturity-operating-model-roi/data/maturity/evidence-2027-06.json",
+  "claimed": {
+    "relay": {
+      "practices": 4,
+      "platform": 3,
+      "data": 2,
+      "security": 2,
+      "culture": 3,
+      "sponsorship": 2
+    },
+    "mobile": {
+      "practices": 1,
+      "platform": 1,
+      "data": 2,
+      "security": 2,
+      "culture": 1,
+      "sponsorship": 2
+    },
+    "integrations": {
+      "practices": 3,
+      "platform": 3,
+      "data": 3,
+      "security": 3,
+      "culture": 3,
+      "sponsorship": 2
+    },
+    "analytics": {
+      "practices": 3,
+      "platform": 3,
+      "data": 3,
+      "security": 3,
+      "culture": 2,
+      "sponsorship": 2
+    },
+    "marketplace": {
+      "practices": 1,
+      "platform": 1,
+      "data": 1,
+      "security": 2,
+      "culture": 1,
+      "sponsorship": 2
+    }
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "version": "relay-alert-routing-v1",
+  "note": "Where each alert goes (ADR-038). Paging follows Relay's on-call policy: the on-call engineer at once, the secondary after 10 minutes without an acknowledgement, the engineering manager after 20. Security incidents are P1 and reach the security lead within one hour. Automation may only trip an agent's kill switch, for DR-001 and DR-003, and has its own off switch.",
+  "receivers": {
+    "platform-oncall": {"kind": "page", "escalation": [{"after_minutes": 10, "to": "secondary-oncall"},
+                                                      {"after_minutes": 20, "to": "engineering-manager"}]},
+    "security-oncall": {"kind": "page", "escalation": [{"after_minutes": 10, "to": "secondary-oncall"},
+                                                      {"after_minutes": 20, "to": "engineering-manager"}],
+                        "notify": {"security-lead": 60}},
+    "security-lead": {"kind": "page", "escalation": [{"after_minutes": 10, "to": "engineering-manager"}]},
+    "platform-tickets": {"kind": "ticket"},
+    "agent-owner-tickets": {"kind": "ticket"},
+    "killswitch": {"kind": "automation"}
+  },
+  "routes": {
+    "by_rule": {
+      "DR-001": ["killswitch", "security-oncall"],
+      "DR-002": ["security-oncall"],
+      "DR-003": ["killswitch", "security-oncall"],
+      "DR-004": ["security-lead"],
+      "AL-004": ["agent-owner-tickets"],
+      "AL-005": ["agent-owner-tickets"],
+      "TRAIL-TAMPER": ["security-oncall"]
+    },
+    "default": {
+      "reliability": {"page": ["platform-oncall"], "ticket": ["platform-tickets"]},
+      "security": {"page": ["security-oncall"], "ticket": ["security-oncall"]}
+    }
+  },
+  "grouping": {"minutes": 60, "by": "rule and receiver", "note": "a repeat alert for the same rule within an hour of its page joins that page instead of paging again"},
+  "automation": {
+    "allowed_rules": ["DR-001", "DR-003"],
+    "max_actions_per_hour": 3,
+    "fallback_receiver": "security-oncall",
+    "switch": "RELAY_AUTOMATION=off, or the SSM parameter /relay/nonprod/automation set to off, stops every automated action; the alert then pages a person instead"
+  }
+}

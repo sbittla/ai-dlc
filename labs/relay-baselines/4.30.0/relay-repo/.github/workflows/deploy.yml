@@ -1,0 +1,44 @@
+# Deploy production's desired state (ADR-046). ILLUSTRATIVE: the reconciler and admission tool are not in this
+# snapshot; Lab 15.1 and Lab 15.2 run their decisions. Action SHAs are lab stand-ins.
+#
+# How a release reaches production:
+#   1. A v<digit> tag runs pipeline.yml: build once, four gates, release.yml signs and attests, admit.
+#   2. A pull request sets deploy/gitops/production.json to the admitted digests. deploy/ is a pipeline path,
+#      so the pull request travels alone and needs two people's approval (pipeline-guard, PG001 and PG002).
+#   3. Its merge to main runs this workflow: admission again for every image in the desired state (AD001-AD009),
+#      then the reconciler rolls out by deploy/rollout/canary.json, verifies what runs and reports drift.
+# The production environment adds one required reviewer from the maintainers, with self-review prevented. The
+# second person is the desired-state pull request's second approver. The emergency path is the same path.
+name: deploy
+on:
+  push:
+    branches: [main]
+    paths: ["deploy/gitops/**"]
+permissions: {}
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+jobs:
+  production:
+    if: vars.RELAY_PIPELINE_MODE == 'deliver'
+    runs-on: ubuntu-latest
+    environment: production      # one required reviewer (maintainers), no self-review; deployments from main
+    permissions: {contents: read, id-token: write}
+    steps:
+      - uses: actions/checkout@1111111111111111111111111111111111111111  # v4, stand-in SHA
+        with: {persist-credentials: false, fetch-depth: 0}
+      # This workflow runs from main, so this check cannot be dropped by an unmerged commit (pipeline.yml's copy of
+      # it runs from the tagged commit's own file). The release's tag must name a commit on main.
+      - name: The release's tag names a commit on main
+        run: |
+          RELEASE="$(python3 -c 'import json; print(json.load(open("deploy/gitops/production.json"))["release"])')"
+          git merge-base --is-ancestor "refs/tags/v$RELEASE" origin/main
+      - uses: sigstore/cosign-installer@6666666666666666666666666666666666666666  # v3, stand-in SHA
+      - name: Admission for every image in the desired state (ILLUSTRATIVE)
+        run: python tools/admit.py --policy deploy/admission/policy.json --desired deploy/gitops/production.json
+      - uses: aws-actions/configure-aws-credentials@8888888888888888888888888888888888888888  # v4, stand-in SHA
+        with:
+          role-to-assume: ${{ vars.RELAY_PRODUCTION_DEPLOY_ROLE }}   # trusts environment:production only
+          aws-region: ${{ vars.RELAY_PRODUCTION_REGION }}
+      - name: Reconcile with the canary (ILLUSTRATIVE)
+        run: python tools/reconcile.py --desired deploy/gitops/production.json --canary deploy/rollout/canary.json

@@ -1,0 +1,247 @@
+{
+  "approvals": [],
+  "case": "maintenance-bot-t2-v1",
+  "claims": [
+    {
+      "id": "C0",
+      "text": "The maintenance bot cannot make a harmful change reach users without a person's approval, and a harmful change that is approved is rolled back."
+    },
+    {
+      "argument": "Triage reads structured fields only; the step's tools are four, reading taints the run, and code the bot did not write runs in the sandbox.",
+      "evidence": [
+        "E04",
+        "E08",
+        "E13",
+        "E14"
+      ],
+      "id": "C1",
+      "parent": "C0",
+      "text": "Untrusted input cannot steer the bot outside its task."
+    },
+    {
+      "argument": "The write list and the proposal desk refuse protected paths; the App cannot touch workflows.",
+      "evidence": [
+        "E01",
+        "E02",
+        "E03",
+        "E11"
+      ],
+      "id": "C2",
+      "parent": "C0",
+      "text": "The bot cannot change its own instructions, workflow, policy or code."
+    },
+    {
+      "argument": "No such tool exists; approvals need a person's proof and an independent owner; an approval binds the diff and the evidence.",
+      "evidence": [
+        "E05",
+        "E06",
+        "E07",
+        "E09",
+        "E10",
+        "E12",
+        "E16"
+      ],
+      "id": "C3",
+      "parent": "C0",
+      "text": "The bot never approves, merges or deploys a change."
+    },
+    {
+      "evidence": [
+        "E15",
+        "EB1",
+        "EB2",
+        "EB3",
+        "EB4",
+        "EB5",
+        "EB6"
+      ],
+      "id": "C4",
+      "parent": "C0",
+      "text": "Long-running work stops at its budget, on cancellation and on repeated failure, and escalates to a person."
+    },
+    {
+      "evidence": [
+        "ER1"
+      ],
+      "id": "C5",
+      "parent": "C0",
+      "text": "A harmful change that is approved is rolled back before it reaches all users."
+    },
+    {
+      "evidence": [
+        "EK1"
+      ],
+      "id": "C6",
+      "parent": "C0",
+      "text": "A person can stop the bot at once."
+    }
+  ],
+  "defeaters": [
+    {
+      "against": "C2",
+      "id": "D1",
+      "status": "open",
+      "text": "The write list and the desk share one process and one policy file: one failure domain."
+    },
+    {
+      "against": "C1",
+      "id": "D2",
+      "status": "open",
+      "text": "No live attack measurement exists for the bot's agent step (Chapter 12)."
+    },
+    {
+      "against": "C5",
+      "id": "D3",
+      "status": "open",
+      "text": "The guard sees only sign-in success; a regression elsewhere reaches users (U33 in Lab 19.1)."
+    }
+  ],
+  "evidence": [
+    {
+      "id": "E01",
+      "kind": "test",
+      "ref": "adv:A01",
+      "required_status": "verified"
+    },
+    {
+      "id": "E02",
+      "kind": "test",
+      "ref": "adv:A02",
+      "required_status": "verified"
+    },
+    {
+      "id": "E03",
+      "kind": "test",
+      "ref": "adv:A03",
+      "required_status": "verified"
+    },
+    {
+      "id": "E04",
+      "kind": "test",
+      "ref": "adv:A04",
+      "required_status": "verified"
+    },
+    {
+      "id": "E05",
+      "kind": "test",
+      "ref": "adv:A05",
+      "required_status": "verified"
+    },
+    {
+      "id": "E06",
+      "kind": "test",
+      "ref": "adv:A06",
+      "required_status": "verified"
+    },
+    {
+      "id": "E07",
+      "kind": "test",
+      "ref": "adv:A07",
+      "required_status": "verified"
+    },
+    {
+      "id": "E08",
+      "kind": "test",
+      "ref": "adv:A08",
+      "required_status": "verified"
+    },
+    {
+      "id": "E09",
+      "kind": "test",
+      "ref": "adv:A09",
+      "required_status": "verified"
+    },
+    {
+      "id": "E10",
+      "kind": "test",
+      "ref": "adv:A10",
+      "required_status": "verified"
+    },
+    {
+      "id": "E11",
+      "kind": "test",
+      "ref": "adv:A11",
+      "required_status": "verified"
+    },
+    {
+      "id": "E12",
+      "kind": "test",
+      "ref": "adv:A12",
+      "required_status": "verified"
+    },
+    {
+      "id": "E13",
+      "kind": "test",
+      "ref": "adv:A13",
+      "required_status": "verified"
+    },
+    {
+      "id": "E14",
+      "kind": "test",
+      "ref": "adv:A14",
+      "required_status": "verified"
+    },
+    {
+      "id": "E15",
+      "kind": "test",
+      "ref": "adv:A15",
+      "required_status": "verified"
+    },
+    {
+      "id": "E16",
+      "kind": "test",
+      "ref": "adv:A16",
+      "required_status": "verified"
+    },
+    {
+      "id": "EB1",
+      "kind": "test",
+      "ref": "budget:B01",
+      "required_status": "verified"
+    },
+    {
+      "id": "EB2",
+      "kind": "test",
+      "ref": "budget:B02",
+      "required_status": "verified"
+    },
+    {
+      "id": "EB3",
+      "kind": "test",
+      "ref": "budget:B03",
+      "required_status": "verified"
+    },
+    {
+      "id": "EB4",
+      "kind": "test",
+      "ref": "budget:B04",
+      "required_status": "verified"
+    },
+    {
+      "id": "EB5",
+      "kind": "test",
+      "ref": "budget:B05",
+      "required_status": "verified"
+    },
+    {
+      "id": "EB6",
+      "kind": "test",
+      "ref": "budget:B06",
+      "required_status": "verified"
+    },
+    {
+      "id": "ER1",
+      "kind": "drill",
+      "ref": "drill:rollback-2027-06-29",
+      "required_status": "deployed"
+    },
+    {
+      "id": "EK1",
+      "kind": "drill",
+      "ref": "drill:killswitch",
+      "required_status": "deployed"
+    }
+  ],
+  "scope": "Relay's maintenance bot at tier T2 under relay-maintenance-policy-v1 (ADR-053 to ADR-056). It does not cover any self-modifying or T4 task type: none exists, and each would need its own case.",
+  "status": "draft"
+}

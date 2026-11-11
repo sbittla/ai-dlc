@@ -1,0 +1,9 @@
+{
+  "files": {
+    "adversarial.json": "36c0792e8fdaac3f72ae72a9543edd542371cf8246fab79cd03513ab6770a16c",
+    "budget.json": "f4733c4e6ac4931e11baf7ecab4da90f0bddebf47e80e6972aed6f9cb663f793",
+    "case-draft.json": "1a0bcb9c8e9b7d652086df20f2819394553a596e3ebcd180f9aa8849b7dea1fc",
+    "drills.json": "28de112043cb8a616895bd7dc6b3c60c7f54490cef02186ad1d25f945ee0ab4b"
+  },
+  "generated_by": "scripts/generate_data.py"
+}

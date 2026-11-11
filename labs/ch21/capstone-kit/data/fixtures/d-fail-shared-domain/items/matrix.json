@@ -1,0 +1,345 @@
+{
+  "policy": {
+    "name": "relay-coverage-gate-v2",
+    "min_independent_blocking": {
+      "exfiltration": 2,
+      "unauthorised-action": 2,
+      "persistence": 2,
+      "integrity": 1
+    },
+    "end_to_end_legitimate_case_must_pass": true
+  },
+  "release": "harbor-2.3.0-hardened",
+  "controls": {
+    "kb_acl": {
+      "kind": "blocking",
+      "depends_on": [
+        "retrieval service"
+      ]
+    },
+    "output_constraint": {
+      "kind": "blocking",
+      "depends_on": [
+        "support agent output filter"
+      ]
+    },
+    "refund_cap": {
+      "kind": "blocking",
+      "depends_on": [
+        "payments service"
+      ]
+    },
+    "refund_approval": {
+      "kind": "blocking",
+      "depends_on": [
+        "approval gate"
+      ]
+    },
+    "ops_allowlist": {
+      "kind": "blocking",
+      "depends_on": [
+        "ops agent tool boundary"
+      ]
+    },
+    "ticket_approval": {
+      "kind": "blocking",
+      "depends_on": [
+        "ticketing service"
+      ]
+    },
+    "memory_review": {
+      "kind": "blocking",
+      "depends_on": [
+        "memory store"
+      ]
+    },
+    "memory_approval": {
+      "kind": "blocking",
+      "depends_on": [
+        "approval gate 2"
+      ]
+    },
+    "human_label": {
+      "kind": "blocking",
+      "depends_on": [
+        "evaluation gate"
+      ]
+    },
+    "egress": {
+      "kind": "blocking",
+      "depends_on": [
+        "retrieval service"
+      ]
+    },
+    "mcp_pin": {
+      "kind": "blocking",
+      "depends_on": [
+        "tool definition pin"
+      ]
+    },
+    "ci_isolation": {
+      "kind": "blocking",
+      "depends_on": [
+        "CI runner"
+      ]
+    },
+    "spotlighting": {
+      "kind": "mitigating",
+      "depends_on": [
+        "prompt"
+      ]
+    }
+  },
+  "classes": [
+    {
+      "id": "H1",
+      "harm": "exfiltration",
+      "cells": [
+        {
+          "control": "kb_acl",
+          "status": "verified",
+          "benign_ok": true
+        },
+        {
+          "control": "egress",
+          "status": "verified",
+          "benign_ok": true
+        },
+        {
+          "control": "spotlighting",
+          "status": "mitigating",
+          "benign_ok": true
+        }
+      ]
+    },
+    {
+      "id": "H2",
+      "harm": "exfiltration",
+      "cells": [
+        {
+          "control": "output_constraint",
+          "status": "verified",
+          "benign_ok": true
+        },
+        {
+          "control": "egress",
+          "status": "verified",
+          "benign_ok": true
+        },
+        {
+          "control": "spotlighting",
+          "status": "mitigating",
+          "benign_ok": true
+        }
+      ]
+    },
+    {
+      "id": "H3",
+      "harm": "unauthorised-action",
+      "cells": [
+        {
+          "control": "refund_cap",
+          "status": "verified",
+          "benign_ok": true
+        },
+        {
+          "control": "refund_approval",
+          "status": "verified",
+          "benign_ok": true
+        },
+        {
+          "control": "spotlighting",
+          "status": "mitigating",
+          "benign_ok": true
+        }
+      ]
+    },
+    {
+      "id": "H4",
+      "harm": "unauthorised-action",
+      "cells": [
+        {
+          "control": "ops_allowlist",
+          "status": "verified",
+          "benign_ok": true
+        },
+        {
+          "control": "ticket_approval",
+          "status": "verified",
+          "benign_ok": true
+        },
+        {
+          "control": "spotlighting",
+          "status": "mitigating",
+          "benign_ok": true
+        }
+      ]
+    },
+    {
+      "id": "H5",
+      "harm": "persistence",
+      "cells": [
+        {
+          "control": "memory_review",
+          "status": "verified",
+          "benign_ok": true
+        },
+        {
+          "control": "memory_approval",
+          "status": "verified",
+          "benign_ok": true
+        },
+        {
+          "control": "spotlighting",
+          "status": "mitigating",
+          "benign_ok": true
+        }
+      ]
+    },
+    {
+      "id": "H6",
+      "harm": "integrity",
+      "cells": [
+        {
+          "control": "human_label",
+          "status": "verified",
+          "benign_ok": true
+        },
+        {
+          "control": "spotlighting",
+          "status": "mitigating",
+          "benign_ok": true
+        }
+      ]
+    },
+    {
+      "id": "H7",
+      "harm": "exfiltration",
+      "cells": [
+        {
+          "control": "mcp_pin",
+          "status": "verified",
+          "benign_ok": true
+        },
+        {
+          "control": "egress",
+          "status": "verified",
+          "benign_ok": true
+        },
+        {
+          "control": "spotlighting",
+          "status": "mitigating",
+          "benign_ok": true
+        }
+      ]
+    },
+    {
+      "id": "H8",
+      "harm": "unauthorised-action",
+      "cells": [
+        {
+          "control": "ci_isolation",
+          "status": "verified",
+          "benign_ok": true
+        },
+        {
+          "control": "mcp_pin",
+          "status": "verified",
+          "benign_ok": true
+        },
+        {
+          "control": "spotlighting",
+          "status": "mitigating",
+          "benign_ok": true
+        }
+      ]
+    }
+  ],
+  "claimed": {
+    "gate": "FAIL",
+    "coverage": {
+      "H1": 1,
+      "H2": 2,
+      "H3": 2,
+      "H4": 2,
+      "H5": 2,
+      "H6": 1,
+      "H7": 2,
+      "H8": 2
+    }
+  },
+  "deployments": [
+    {
+      "control": "kb_acl",
+      "date": "2027-08-12",
+      "result": "pass",
+      "observed": "team sandbox"
+    },
+    {
+      "control": "output_constraint",
+      "date": "2027-08-12",
+      "result": "pass",
+      "observed": "team sandbox"
+    },
+    {
+      "control": "refund_cap",
+      "date": "2027-08-12",
+      "result": "pass",
+      "observed": "team sandbox"
+    },
+    {
+      "control": "refund_approval",
+      "date": "2027-08-12",
+      "result": "pass",
+      "observed": "team sandbox"
+    },
+    {
+      "control": "ops_allowlist",
+      "date": "2027-08-12",
+      "result": "pass",
+      "observed": "team sandbox"
+    },
+    {
+      "control": "ticket_approval",
+      "date": "2027-08-12",
+      "result": "pass",
+      "observed": "team sandbox"
+    },
+    {
+      "control": "memory_review",
+      "date": "2027-08-12",
+      "result": "pass",
+      "observed": "team sandbox"
+    },
+    {
+      "control": "memory_approval",
+      "date": "2027-08-12",
+      "result": "pass",
+      "observed": "team sandbox"
+    },
+    {
+      "control": "human_label",
+      "date": "2027-08-12",
+      "result": "pass",
+      "observed": "team sandbox"
+    },
+    {
+      "control": "egress",
+      "date": "2027-08-12",
+      "result": "pass",
+      "observed": "team sandbox"
+    },
+    {
+      "control": "mcp_pin",
+      "date": "2027-08-12",
+      "result": "pass",
+      "observed": "team sandbox"
+    },
+    {
+      "control": "ci_isolation",
+      "date": "2027-08-12",
+      "result": "pass",
+      "observed": "team sandbox"
+    }
+  ]
+}

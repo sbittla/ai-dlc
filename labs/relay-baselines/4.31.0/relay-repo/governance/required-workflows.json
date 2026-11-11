@@ -1,0 +1,22 @@
+{
+  "adr": "ADR-045",
+  "note": "Checks that must not be defined in the repository they guard. Each runs from the platform team's repository at a pinned commit, required on main by an organization ruleset, so a pull request cannot change the workflow, the guard's code or the policy it reads: the guard reads governance/pipeline-guard.json and the team lists from the base branch and the platform's API, and the pull request's head only as data (its diff). It runs on pull_request and again on merge_group, after approvals exist, because main requires the merge queue. This file records the ruleset; the platform's settings are the source of truth.",
+  "required_workflows": [
+    {
+      "check": "pipeline-guard",
+      "repository": "relay-example/platform-workflows",
+      "path": ".github/workflows/pipeline-guard.yml",
+      "ref": "cccccccccccccccccccccccccccccccccccccccc",
+      "ref_note": "stand-in SHA",
+      "events": [
+        "pull_request",
+        "merge_group"
+      ],
+      "reads_policy_from": "base",
+      "permissions": {
+        "contents": "read",
+        "pull-requests": "read"
+      }
+    }
+  ]
+}

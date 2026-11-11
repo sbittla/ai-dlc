@@ -29,10 +29,19 @@ RUN_CODE = ToolContract(
 PRODUCTION_HELPER_TOOLS = {**HELPER_TOOLS, "run_tests": RUN_TESTS_SANDBOXED}
 
 
+MAX_REFUSALS_KEPT = 20
+
+
 def summarize(result: SandboxResult) -> dict:
-    """What the model and the journal see of a sandbox run: status, a tail of the output, and the refusals."""
+    """What the model and the journal see of a sandbox run: status, a tail of the output, and the refusals.
+
+    At most MAX_REFUSALS_KEPT refusal reasons are kept, the first ones and, if there were more, the last one (which
+    records a report overflow or a closed channel); `refusal_count` says how many there were.
+    """
+    reasons = [str(r.get("reason", ""))[:80] for r in result.refusals]
+    kept = reasons if len(reasons) <= MAX_REFUSALS_KEPT else reasons[:MAX_REFUSALS_KEPT - 1] + reasons[-1:]
     return {"status": result.status, "exit_code": result.exit_code, "stdout_tail": result.stdout[-2000:],
-            "stderr_tail": result.stderr[-1000:], "refusals": [r["reason"] for r in result.refusals],
+            "stderr_tail": result.stderr[-1000:], "refusals": kept, "refusal_count": len(reasons),
             "seconds": result.seconds}
 
 

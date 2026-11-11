@@ -1,0 +1,52 @@
+{
+  "policy": "relay-pipeline-guard-v1",
+  "adr": "ADR-045",
+  "note": "The pipeline is code that decides what reaches production, so a change to it is reviewed as such. The pipeline-guard check (Lab 15.1 builds it) runs from the platform team's repository (governance/required-workflows.json) and reads this file from the base branch, never from the pull request. Team membership comes from the platform's API at check time.",
+  "pipeline_paths": [
+    ".github/",
+    "governance/",
+    "security/",
+    "supply-chain/",
+    "deploy/",
+    "infra/",
+    "evals/",
+    "docs/slo/",
+    "tools/",
+    ".pre-commit-config.yaml",
+    "requirements-dev.txt",
+    "maintenance/",
+    "src/relay/maintenance/",
+    "tests/test_maintenance_",
+    "tests/maintenance_helpers.py"
+  ],
+  "owner_team": "@relay/platform-leads",
+  "weakening_team": "@relay/security",
+  "required_checks_file": "governance/branch-protection.json",
+  "rules": {
+    "PG001": "a pull request that changes a pipeline path changes nothing else",
+    "PG002": "two approvals by people after the last push, at least one from the owner team; never the author, the agent's requester or an agent",
+    "PG003": "a gate change (GD001-GD010: any weakening the diff names, any change to a required job's commands, any change to gate configuration) also needs an approval from the weakening team and a line 'Gate change: RLY-n: <reason>' in the description",
+    "PG004": "the guard cannot read team membership or the diff: it fails (exit 2), it never passes"
+  },
+  "gate_config_paths": [
+    "security/",
+    "supply-chain/",
+    "evals/",
+    "docs/slo/",
+    "governance/pipeline-guard.json",
+    "governance/required-workflows.json",
+    "governance/branch-protection.json",
+    "deploy/admission/",
+    "deploy/rollout/",
+    "deploy/test-sandbox/",
+    "tools/admit.py",
+    "tools/reconcile.py",
+    "tools/security_gate.py",
+    "tools/lint.py",
+    "tools/supplychain.py",
+    "tools/sbom.py",
+    "tools/sandbox_run.py",
+    "maintenance/"
+  ],
+  "limits": "Tests are not a gate path: a pull request that deletes or skips a test is reviewed by the tests' code owners, not by this guard."
+}

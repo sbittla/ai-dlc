@@ -38,8 +38,13 @@ Option A.
   library, no network unless exact (host, port) pairs are allowed, a wall-clock timeout, an output cap, and on
   POSIX resource limits on CPU, memory, file size and open files. A PEP 578 audit hook refuses processes, the
   native-code paths it knows of (ctypes and cffi under any name, extension modules judged by their file, SQLite,
-  Windows file APIs), and frame and garbage-collector introspection; its policy is immutable and absent from the
-  agent's call stack, and refusals go to the parent over a pipe the code cannot take back.
+  Windows file APIs), every garbage-collector route to live objects, trace and profile functions, and traceback
+  frames. `sys._getframe` and `f_back` stay allowed (the standard library needs them). The hook holds plain copies
+  of the policy's values and of the builtins it calls, the module's globals are cleared before the agent runs, and
+  it reads only exact str, bytes and int arguments. That stops the simpler attacks; it does not make the hook's
+  state unreachable. Code in the same process can reach and change it (E21: a finalizer reaches the hook's own
+  frame through a generator and rewrites a rule). The hook is a tripwire, not a boundary. Refusals go to the parent
+  over a pipe the code cannot take back; the parent reads at most 64 KB of them and records a flood as `refused:report-overflow`.
 - **The local layer is a policy check and a no-secrets environment, not a security boundary.** It runs only where
   nothing worth stealing is reachable: Chapter 3's dev container or an ephemeral CI runner with no credentials.
 - **The cloud boundary is a sandbox runner of its own:** a task definition launched for one run and discarded,
@@ -53,9 +58,10 @@ Option A.
 
 ## Consequences
 
-- Lab 18.1: of 19 inert attempts, 14 were refused, 2 stopped by a limit and 2 found nothing; the legitimate
-  attempt still works. One was not stopped: learning whether a path exists outside the directory raises no audit
-  event (E19). Five attempts (E14-E18) got past an earlier version of this layer, through frames, the collector,
+- Lab 18.1: of 21 inert attempts, 16 were refused, 2 stopped by a limit and 1 found nothing; the legitimate
+  attempt still works. Two were not stopped: learning whether a path exists outside the directory raises no audit
+  event (E19), and code that reaches the hook's own frame rewrote its rules (E21). Six attempts (E14-E18, E20) got past earlier versions of this layer, through frames, rebound module
+  globals and a changed class, the collector,
   an aliased C module and SQLite; the tests now keep each refused. Drill F5's steered code was refused and the run
   handed back without a pull request.
 - SQLite is refused in the local sandbox, because it opens files below the hook's view (ATTACH, VACUUM INTO,

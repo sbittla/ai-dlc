@@ -1,0 +1,16 @@
+{
+  "headroom": 2.0,
+  "mix": {
+    "get_escalation": 0.108,
+    "get_task": 0.817,
+    "get_triage_job": 0.054,
+    "healthz": 0.02,
+    "post_triage_job": 0.001
+  },
+  "name": "relay-api-weekday-peak",
+  "peak_minute_rate_per_s": 65.2,
+  "source": "Lab 17.1 workload model of the week of 1 February 2027 (synthetic traffic)",
+  "test_rate_per_s": 140,
+  "tokens": 40,
+  "version": "2027.02.1"
+}

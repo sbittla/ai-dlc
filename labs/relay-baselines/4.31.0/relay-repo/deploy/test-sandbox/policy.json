@@ -1,0 +1,44 @@
+{
+  "policy": "relay-test-sandbox-v1",
+  "adr": "ADR-048",
+  "note": "How an agent's test run executes: in a container with no network, a read-only root and read-only mounts. Dependencies are installed beforehand from requirements-dev.txt with hashes into the venv mount. Checked by tools/sandbox_run.py (SB001-SB007).",
+  "image": "mcr.microsoft.com/devcontainers/python:3.12@sha256:7c9f64bdf92452c565d13ac6466991092873b312da9783b4b9b9812a87682d1d",
+  "network": "none",
+  "read_only_root": true,
+  "user": "65532:65532",
+  "cap_drop": [
+    "ALL"
+  ],
+  "no_new_privileges": true,
+  "tmpfs": [
+    "/tmp"
+  ],
+  "mounts": [
+    {
+      "source": "repo",
+      "target": "/src",
+      "mode": "ro"
+    },
+    {
+      "source": "venv",
+      "target": "/venv",
+      "mode": "ro"
+    }
+  ],
+  "env": {
+    "PATH": "/venv/bin:/usr/local/bin:/usr/bin:/bin",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PYTHONPATH": "/src/src"
+  },
+  "command": [
+    "python",
+    "-m",
+    "pytest",
+    "-q",
+    "-p",
+    "no:cacheprovider"
+  ],
+  "timeout_seconds": 600,
+  "pids_limit": 256,
+  "memory": "2g"
+}

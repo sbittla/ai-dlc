@@ -1,0 +1,8 @@
+{
+  "suite": "Relay 4.31.0, PYTHONPATH=src python -m pytest -q",
+  "passed": 1183,
+  "failed": 0,
+  "skipped": 1,
+  "commit": "canonical 4.31.0 snapshot (the teaching tree has no commit hashes)",
+  "date": "2027-07-09"
+}

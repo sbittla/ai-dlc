@@ -1,0 +1,7 @@
+{
+  "unit": "per escalation",
+  "cost_per_run": 0.0031,
+  "cost_per_success": 0.0035,
+  "prices_as_of": "2027-01-12",
+  "target": 0.01
+}

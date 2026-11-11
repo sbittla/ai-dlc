@@ -1,0 +1,4 @@
+name: release (fixture)
+on: workflow_call
+permissions: {}
+jobs: {}

@@ -1,0 +1,23 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "version": 1,
+  "metadata": {
+    "component": {
+      "type": "application",
+      "name": "Spec-to-PR agent platform",
+      "version": "stp-0.3.0"
+    }
+  },
+  "components": [
+    {
+      "type": "data",
+      "name": "summary-prompt-v2"
+    }
+  ],
+  "services": [
+    {
+      "name": "stp-agent"
+    }
+  ]
+}

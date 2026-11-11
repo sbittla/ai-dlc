@@ -1,0 +1,113 @@
+{
+  "date": "2027-06-29",
+  "guard_metric": "signin_success",
+  "note": "Configured: about a quarter of the canary's sign-ins land on hosts whose clocks run behind the issuer's, and 2.4.3 refuses a token issued in the future with no leeway.",
+  "release_starts": "15:10",
+  "windows": [
+    {
+      "canary_fail": 0,
+      "canary_ok": 35,
+      "minute": 1,
+      "stable_fail": 24,
+      "stable_ok": 748
+    },
+    {
+      "canary_fail": 10,
+      "canary_ok": 25,
+      "minute": 2,
+      "stable_fail": 24,
+      "stable_ok": 713
+    },
+    {
+      "canary_fail": 13,
+      "canary_ok": 28,
+      "minute": 3,
+      "stable_fail": 27,
+      "stable_ok": 698
+    },
+    {
+      "canary_fail": 7,
+      "canary_ok": 27,
+      "minute": 4,
+      "stable_fail": 31,
+      "stable_ok": 717
+    },
+    {
+      "canary_fail": 12,
+      "canary_ok": 27,
+      "minute": 5,
+      "stable_fail": 29,
+      "stable_ok": 739
+    },
+    {
+      "canary_fail": 7,
+      "canary_ok": 30,
+      "minute": 6,
+      "stable_fail": 25,
+      "stable_ok": 755
+    },
+    {
+      "canary_fail": 13,
+      "canary_ok": 24,
+      "minute": 7,
+      "stable_fail": 20,
+      "stable_ok": 682
+    },
+    {
+      "canary_fail": 8,
+      "canary_ok": 28,
+      "minute": 8,
+      "stable_fail": 20,
+      "stable_ok": 722
+    },
+    {
+      "canary_fail": 13,
+      "canary_ok": 25,
+      "minute": 9,
+      "stable_fail": 16,
+      "stable_ok": 717
+    },
+    {
+      "canary_fail": 9,
+      "canary_ok": 33,
+      "minute": 10,
+      "stable_fail": 21,
+      "stable_ok": 732
+    },
+    {
+      "canary_fail": 9,
+      "canary_ok": 30,
+      "minute": 11,
+      "stable_fail": 27,
+      "stable_ok": 747
+    },
+    {
+      "canary_fail": 13,
+      "canary_ok": 27,
+      "minute": 12,
+      "stable_fail": 21,
+      "stable_ok": 698
+    },
+    {
+      "canary_fail": 9,
+      "canary_ok": 25,
+      "minute": 13,
+      "stable_fail": 19,
+      "stable_ok": 724
+    },
+    {
+      "canary_fail": 19,
+      "canary_ok": 20,
+      "minute": 14,
+      "stable_fail": 18,
+      "stable_ok": 739
+    },
+    {
+      "canary_fail": 5,
+      "canary_ok": 30,
+      "minute": 15,
+      "stable_fail": 18,
+      "stable_ok": 701
+    }
+  ]
+}

@@ -1,0 +1,175 @@
+{
+  "policy": {
+    "name": "relay-coverage-gate-v2",
+    "min_independent_blocking": {
+      "exfiltration": 2,
+      "unauthorised-action": 2,
+      "persistence": 2,
+      "integrity": 1
+    },
+    "end_to_end_legitimate_case_must_pass": true
+  },
+  "release": "",
+  "controls": {
+    "render": {
+      "kind": "blocking",
+      "depends_on": [
+        "render module"
+      ]
+    },
+    "output_constraint": {
+      "kind": "blocking",
+      "depends_on": [
+        "summary constraint"
+      ]
+    },
+    "recipient_binding": {
+      "kind": "blocking",
+      "depends_on": [
+        "notifier"
+      ]
+    },
+    "egress": {
+      "kind": "blocking",
+      "depends_on": [
+        "notifier"
+      ]
+    },
+    "approval": {
+      "kind": "blocking",
+      "depends_on": [
+        "approval gate"
+      ]
+    },
+    "platform_permissions": {
+      "kind": "blocking",
+      "depends_on": [
+        "code host"
+      ]
+    },
+    "marking": {
+      "kind": "mitigating",
+      "depends_on": [
+        "prompt"
+      ]
+    }
+  },
+  "classes": [
+    {
+      "id": "K1",
+      "harm": "exfiltration",
+      "cells": [
+        {
+          "control": "render",
+          "status": "verified",
+          "benign_ok": true
+        },
+        {
+          "control": "output_constraint",
+          "status": "verified",
+          "benign_ok": true
+        },
+        {
+          "control": "marking",
+          "status": "mitigating",
+          "benign_ok": true
+        }
+      ]
+    },
+    {
+      "id": "K2",
+      "harm": "exfiltration",
+      "cells": [
+        {
+          "control": "recipient_binding",
+          "status": "verified",
+          "benign_ok": true
+        },
+        {
+          "control": "egress",
+          "status": "verified",
+          "benign_ok": true
+        },
+        {
+          "control": "marking",
+          "status": "mitigating",
+          "benign_ok": true
+        }
+      ]
+    },
+    {
+      "id": "K3",
+      "harm": "unauthorised-action",
+      "cells": [
+        {
+          "control": "approval",
+          "status": "verified",
+          "benign_ok": true
+        },
+        {
+          "control": "platform_permissions",
+          "status": "verified",
+          "benign_ok": true
+        }
+      ]
+    },
+    {
+      "id": "K4",
+      "harm": "integrity",
+      "cells": [
+        {
+          "control": "output_constraint",
+          "status": "verified",
+          "benign_ok": true
+        }
+      ]
+    }
+  ],
+  "claimed": {
+    "gate": "PASS",
+    "coverage": {
+      "K1": 2,
+      "K2": 2,
+      "K3": 2,
+      "K4": 1
+    }
+  },
+  "deployments": [
+    {
+      "control": "render",
+      "date": "2027-08-12",
+      "result": "pass",
+      "observed": "team sandbox"
+    },
+    {
+      "control": "output_constraint",
+      "date": "2027-08-12",
+      "result": "pass",
+      "observed": "team sandbox"
+    },
+    {
+      "control": "recipient_binding",
+      "date": "2027-08-12",
+      "result": "pass",
+      "observed": "team sandbox"
+    },
+    {
+      "control": "egress",
+      "date": "2027-08-12",
+      "result": "pass",
+      "observed": "team sandbox"
+    },
+    {
+      "control": "approval",
+      "date": "2027-08-12",
+      "result": "pass",
+      "observed": "team sandbox"
+    },
+    {
+      "control": "platform_permissions",
+      "date": "2027-08-12",
+      "result": "pass",
+      "observed": "team sandbox"
+    }
+  ]
+}

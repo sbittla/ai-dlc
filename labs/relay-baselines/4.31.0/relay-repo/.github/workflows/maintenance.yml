@@ -1,0 +1,40 @@
+# The maintenance bot's job (ADR-053 to ADR-056).
+# ILLUSTRATIVE: the bot's runner (`python -m maintenance_bot`) is not in this snapshot; Lab 19.1 runs the same
+# package from its own scripts. The action SHAs are lab stand-ins. What this file fixes is the shape:
+#
+#   0. it starts on a schedule or by hand, never on an issue, comment or pull-request event: reports are read
+#      as data through the code host's API, after the job has started, and never choose what the job runs;
+#   1. it runs on the agent sandbox's ephemeral runners (as spec-to-pr.yml does), so code it did not write runs
+#      with no credentials and only the egress proxy as a way out;
+#   2. its identity is the `maintenance` environment's OIDC subject (governance/agents.json, maintenance-bot),
+#      exchanged for 15-minute Relay tokens; its GitHub App, relay-maintenance, cannot touch workflows, approve,
+#      merge or push to main;
+#   3. maintenance/policy.json is read from the default branch, so a pull request cannot widen it.
+#
+# This file is a pipeline path: a change to it travels alone and needs Chapter 15's guard (PG001-PG003).
+name: maintenance
+on:
+  schedule:
+    - cron: "17 6 * * 1-5"   # 06:17 UTC on weekdays
+  workflow_dispatch:
+    inputs:
+      task_type:
+        description: One task type from maintenance/policy.json
+        required: true
+permissions: {}
+jobs:
+  bot:
+    runs-on: [self-hosted, relay-sandbox, ephemeral]
+    environment: maintenance     # OIDC subject repo:relay-example/relay:environment:maintenance (agents.json)
+    permissions: {contents: read, id-token: write}
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@1111111111111111111111111111111111111111  # v4, stand-in SHA
+        with: {persist-credentials: false, ref: main}
+      - name: The test sandbox's policy (SB001-SB007)
+        run: python3 tools/sandbox_run.py check
+      - name: Run the maintenance bot (ILLUSTRATIVE runner)
+        env:
+          TASK_TYPE: ${{ inputs.task_type }}   # passed as data, never pasted into the script
+          RELAY_MAINTENANCE_POLICY: maintenance/policy.json
+        run: python -m maintenance_bot --task-type "${TASK_TYPE:-scheduled}"

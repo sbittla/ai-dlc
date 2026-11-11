@@ -1,0 +1,43 @@
+{
+  "prs": [
+    {
+      "id": "#7",
+      "title": "Bind refunds to a cap and an approval",
+      "classes": [
+        "H3"
+      ],
+      "author": "p.ade",
+      "reviewers": [
+        "p.bo"
+      ],
+      "merged": "2027-08-09",
+      "before": {
+        "H3": 0
+      },
+      "after": {
+        "H3": 2
+      }
+    },
+    {
+      "id": "#9",
+      "title": "Pin tool definitions; isolate the CI agent",
+      "classes": [
+        "H7",
+        "H8"
+      ],
+      "author": "p.bo",
+      "reviewers": [
+        "p.cy"
+      ],
+      "merged": "2027-08-10",
+      "before": {
+        "H7": 1,
+        "H8": 0
+      },
+      "after": {
+        "H7": 2,
+        "H8": 2
+      }
+    }
+  ]
+}

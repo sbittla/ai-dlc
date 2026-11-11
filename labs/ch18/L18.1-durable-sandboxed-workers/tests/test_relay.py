@@ -28,7 +28,7 @@ MODIFIED = {
     "tests/test_telemetry_signals.py",
     "tests/test_service_http.py", "tests/test_service_wsgi.py",
 }
-SUITE = 981  # one platform-specific sandbox test is skipped on each platform: 980 passed, 1 skipped
+SUITE = 992  # one platform-specific sandbox test is skipped on each platform: 991 passed, 1 skipped
 GENERATED = {"manifest.json", "pilot/tickets.jsonl", "pilot/deliveries.jsonl", "escapes.json", "drills.json"}
 
 

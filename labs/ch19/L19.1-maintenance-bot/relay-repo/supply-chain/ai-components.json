@@ -1,0 +1,33 @@
+{
+  "policy": "relay-supply-chain-v1",
+  "adr": "ADR-030",
+  "hash_source": "lab stand-in: sha256 of 'lab-stand-in:' + kind + ':' + name. Real entries record the hash of the reviewed artefact.",
+  "note": "The AI-BOM lists every model, prompt, dataset, evaluation gate, tool server and agent a release depends on. tools/sbom.py adds the agents from governance/agents.json. A model file loaded by Relay must be in a format that cannot run code when loaded (safetensors), never pickle.",
+  "allowed_model_file_formats": ["safetensors"],
+  "models": [
+    {"name": "triage-model", "provider": "Amazon Bedrock (hosted)", "reference": "var.triage_model_arn",
+     "version": "set per environment from the evaluation that approved it (Chapter 7)", "file_format": null,
+     "used_by": "relay.worker (triage); agent sandboxes", "owner": "sam.o"},
+    {"name": "sim-large", "provider": "Relay (simulated, tests and labs only)", "reference": "relay.worker.triage",
+     "version": "4.25.0", "file_format": null, "used_by": "relay.worker in tests and local runs", "owner": "sam.o"}
+  ],
+  "prompts": [
+    {"name": "triage-v3.1", "used_by": "relay.worker.triage", "source": "Chapter 7's adopted triage prompt",
+     "sha256": "27177e6327030304b566c1a0febe412dc61646347adc379abff36cdd089e148e", "owner": "tomas.b"}
+  ],
+  "datasets": [
+    {"name": "relay-triage-eval", "version": "2026.11.1", "records": 300, "use": "evaluation (100 dev, 200 held-out)",
+     "classification": "Internal", "sha256": "b997166b41e0c4e1cd95073d66677a8e6ea74dfad15f9d5397d993b08fb00dc4",
+     "owner": "tomas.b"}
+  ],
+  "evaluations": [
+    {"name": "triage-gate-v1", "required_status_check": "triage-eval", "owner": "sam.o"}
+  ],
+  "tool_servers": [
+    {"name": "relay-db-readonly", "protocol": "MCP (stdio)", "command": "python",
+     "args": ["-m", "relaymcp.server", "--db", "data/relay-test.sql", "--audit", "evidence/mcp-audit.jsonl"],
+     "source": "Lab 3.2's relaymcp 1.0.0, vendored and reviewed", "version": "1.0.0",
+     "sha256": "8d0542d4933a0b4e3a1a58cf88f242eed4723318fa50d051d2a648071131a654",
+     "reviewed_by": "aisha.r", "reviewed_on": "2027-01-20"}
+  ]
+}

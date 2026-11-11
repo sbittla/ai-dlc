@@ -1,0 +1,12 @@
+{
+  "drill:killswitch": {
+    "note": "Relay's test_the_kill_switch_stops_the_bot_before_its_next_effect, in code only",
+    "result": "pass",
+    "status": "verified"
+  },
+  "drill:rollback-2027-06-29": {
+    "note": "Lab 19.1's configured canary of 29 June; production is outside the snapshot",
+    "result": "pass",
+    "status": "modelled"
+  }
+}

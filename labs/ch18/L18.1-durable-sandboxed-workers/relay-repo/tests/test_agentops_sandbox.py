@@ -169,12 +169,94 @@ def test_round_one_probes_are_refused(name):
 
 
 def test_the_frame_chain_holds_no_policy_or_hook():
-    code = ("import sys\nfound = []\nfor depth in range(1, 6):\n    try:\n        f = sys._getframe(depth)\n"
-            "    except ValueError:\n        break\n"
+    code = ("import sys\nfound = []\nf = sys._getframe(0)\nwhile f is not None:\n"
             "    found += [k for k, v in f.f_locals.items() if k in ('policy', 'hook', 'report_fd')\n"
-            "              or getattr(v, '__name__', '') == 'hook']\nprint(found)")
+            "              or getattr(v, '__name__', '') == 'hook']\n    f = f.f_back\nprint(found)")
     result = run_code(code, policy=FAST)
     assert (result.status, result.stdout.strip(), result.refusals) == ("ok", "[]", ())
+
+
+def test_rebinding_builtins_changes_nothing_the_hook_reads():
+    code = ("import builtins\nbuiltins.len = lambda x: 0\nbuiltins.bool = lambda x: False\n"
+            "print(open('../private/stdout').read())")
+    result = run_code(code, policy=FAST)
+    assert [r["reason"] for r in result.refusals] == ["refused:open:read"]
+
+
+def test_getframe_is_allowed_and_reaches_nothing_the_hook_reads():
+    result = run_code("import sys\nprint(sorted(sys._getframe(1).f_globals))", policy=FAST)
+    assert (result.status, result.stdout.strip(), result.refusals) == ("ok", "[]", ())
+    ordinary = run_code("import collections\nprint(collections.namedtuple('X', 'a')(1))", policy=FAST)
+    assert (ordinary.status, ordinary.stdout.strip(), ordinary.refusals) == ("ok", "X(a=1)", ())
+
+
+# Round-2 review probes (probe_r2.py, probe_r2b.py): each disabled the rules with zero refusals recorded.
+REBIND = ("import os, sys\nf = sys._getframe(0)\nwhile f is not None:\n    g = f.f_globals\n"
+          "    for name in list(g):\n        if name.isupper() or name in ('decide', 'make_policy', '_build_decide'):\n"
+          "            g[name] = frozenset() if name.isupper() else (lambda *a: None)\n    f = f.f_back\n"
+          "os.path.abspath = lambda p: os.getcwd()\nos.path.normcase = lambda p: p\n")
+ROUND_TWO = {
+    "rebind the rules through the frames, then read outside": (REBIND + "print(open('../private/stdout').read())",
+                                                               "refused:open:read"),
+    "rebind the rules, then import ctypes": (REBIND + "import ctypes", "refused:import:ctypes"),
+    "a str subclass that runs code while the hook decides": (
+        "class P(str):\n    def replace(self, *a):\n        open('../private/stdout').read()\n"
+        "        return str.replace(self, *a)\nopen(P('x.txt'), 'w')", "refused:open:path-type"),
+}
+
+
+@pytest.mark.parametrize("name", sorted(ROUND_TWO))
+def test_round_two_probes_are_refused(name):
+    code, reason = ROUND_TWO[name]
+    result = run_code(code, policy=FAST)
+    assert result.refusals and result.refusals[-1]["reason"] == reason, result.refusals
+    assert "refused:reentrant" not in [r["reason"] for r in result.refusals]
+
+
+def test_a_flood_of_forged_records_is_capped_and_recorded():
+    from relay.agentops.sandbox import MAX_REPORT_BYTES
+    from relay.agentops.tools import MAX_REFUSALS_KEPT, summarize
+    code = ("import os\nline = b'{\"event\": \"x\", \"reason\": \"refused:forged\"}' + bytes([10])\n"
+            "for _ in range(400):\n    os.write(3, line * 1000)\nprint('flooded')")
+    result = run_code(code, policy=FAST)
+    assert result.refusals[-1]["reason"] == "refused:report-overflow"
+    assert len(result.refusals) <= MAX_REPORT_BYTES // 40 + 1 and "flooded" not in result.stdout
+    summary = summarize(result)
+    assert len(summary["refusals"]) == MAX_REFUSALS_KEPT and summary["refusals"][-1] == "refused:report-overflow"
+    assert summary["refusal_count"] == len(result.refusals) and len(repr(summary)) < 5000
+
+
+# Round-3 review probe (probe_r3.py): the Policy class, reached through f_back, fed the rules. Now nothing reachable
+# does: the hook holds plain copies of the policy's values, and the sandbox module's globals are cleared.
+def test_the_sandbox_modules_globals_are_gone_before_the_agent_runs():
+    code = ("import sys\nf = sys._getframe(0)\nfound = []\nwhile f is not None:\n"
+            "    found += [k for k in ('Policy', 'decide', 'make_policy', '_build_decide', '_install')\n"
+            "              if k in f.f_globals]\n    f = f.f_back\nprint(sorted(set(found)))")
+    result = run_code(code, policy=FAST)
+    assert (result.status, result.stdout.strip(), result.refusals) == ("ok", "[]", ())
+
+
+def test_changing_a_policy_class_changes_nothing_the_hook_reads():
+    import socket
+    srv = socket.socket()
+    srv.bind(("127.0.0.1", 0))
+    srv.listen(1)
+    port = srv.getsockname()[1]
+    code = ("import sys\nf = sys._getframe(0)\nwhile f is not None:\n    P = f.f_globals.get('Policy')\n"
+            "    if P is not None:\n        P.workdir = property(lambda self: '/')\n"
+            "        P.allow_net = property(lambda self: frozenset({('127.0.0.1', PORT)}))\n    f = f.f_back\n"
+            "import socket\nsocket.create_connection(('127.0.0.1', PORT), 2)").replace("PORT", str(port))
+    try:
+        result = run_code(code, policy=FAST)
+    finally:
+        srv.close()
+    assert result.refusals and result.refusals[-1]["reason"] == "refused:network"
+
+
+@pytest.mark.parametrize("call", ["gc.get_referrers(sys)", "gc.get_referents(sys.modules)", "gc.get_objects()"])
+def test_every_garbage_collector_route_to_the_hooks_closure_is_refused(call):
+    result = run_code(f"import gc, sys\n{call}", policy=FAST)
+    assert result.refusals[-1]["reason"] == "refused:introspection"
 
 
 def test_closing_the_report_channel_ends_the_run_and_is_recorded():

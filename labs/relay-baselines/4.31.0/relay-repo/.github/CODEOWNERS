@@ -1,0 +1,70 @@
+# Every change needs review from a human owner. Agents are never code owners.
+*                    @relay/maintainers
+/AGENTS.md           @relay/platform-leads
+/.github/            @relay/platform-leads
+/governance/         @relay/platform-leads
+/src/relay/roles.py  @relay/security
+/docs/adr/          @relay/platform-leads
+/tests/test_architecture.py  @relay/platform-leads
+/specs/             @relay/product
+/src/relay/escalation/rules.py  @relay/security
+/src/relay/escalation/evaluate.py  @relay/security
+/src/relay/escalation/delivery.py  @relay/security
+/src/relay/service/escalation_routes.py  @relay/security
+/tests/escalation/test_escalation_policy.py  @relay/security
+/infra/            @relay/platform-leads
+/infra/org/        @relay/security
+/deploy/egress-proxy/  @relay/security
+/tests/escalation/  @relay/security
+/tests/notify/      @relay/security
+/tests/test_service_escalation.py  @relay/security
+/tests/test_service_rule_deletion.py  @relay/security
+/src/relay/escalation/migrations.py  @relay/security
+/src/relay/audit/  @relay/security
+/governance/agents.json  @relay/security
+/infra/agents.tf   @relay/security
+/infra/detection/  @relay/security
+/supply-chain/      @relay/security
+/security/          @relay/security
+/tools/supplychain.py  @relay/security
+/tools/sbom.py      @relay/security
+/.pre-commit-config.yaml  @relay/security
+/deploy/requirements.txt  @relay/security
+/requirements-dev.txt     @relay/security
+/infra/db/roles.sql       @relay/security
+/src/relay/agents/  @relay/security
+/tests/test_agents_boundary.py  @relay/security
+/tests/test_agents_approval.py  @relay/security
+/src/relay/render.py  @relay/security
+/src/relay/worker/untrusted.py  @relay/security
+/src/relay/delivery/  @relay/security
+/tests/test_agents_taint.py  @relay/security
+/tests/test_infra_egress_content.py  @relay/security
+/src/relay/telemetry/redact.py   @relay/security
+/src/relay/telemetry/semconv.py  @relay/security
+/src/relay/telemetry/detection.py  @relay/security
+/infra/monitoring/   @relay/security @relay/platform-leads
+/docs/slo/           @relay/platform-leads @relay/product
+/tests/test_telemetry_redact.py  @relay/security
+/src/relay/routing/quota.py  @relay/security
+/src/relay/service/sharedlimit.py  @relay/security
+/perf/              @relay/platform-leads
+/src/relay/release/  @relay/security
+/deploy/admission/  @relay/security
+/deploy/test-sandbox/  @relay/security
+/tools/sandbox_run.py  @relay/security
+/governance/pipeline-guard.json  @relay/security @relay/platform-leads
+/deploy/rollout/    @relay/platform-leads
+/deploy/gitops/     @relay/platform-leads
+/deploy/flags.json  @relay/product @relay/platform-leads
+/evals/            @relay/security
+/src/relay/agentops/sandbox.py        @relay/security
+/src/relay/agentops/sandbox_child.py  @relay/security
+/src/relay/agentops/gateway.py        @relay/security
+/src/relay/agentops/registry_state.py @relay/security
+/tests/test_agentops_sandbox.py       @relay/security
+/src/relay/maintenance/  @relay/security
+/maintenance/       @relay/security @relay/platform-leads
+/.github/workflows/maintenance.yml  @relay/platform-leads @relay/security
+/tests/test_maintenance_*  @relay/security
+/tests/maintenance_helpers.py  @relay/security

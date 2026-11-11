@@ -1,0 +1,47 @@
+{
+  "version": "relay-service-detection-v1",
+  "note": "Detection rules over the security events the service and the sign-in path emit (ADR-038): authentication failures and successes, each with the caller's network prefix (/24 or /48) and a keyed fingerprint of the presented credential. Added after the credential-stuffing incident of 2 February 2027 (Chapter 16). Evaluated every 5 minutes with a 28-day baseline, like agent-detection-v1.",
+  "baseline_days": 28,
+  "evaluation_interval_seconds": 300,
+  "dedup_hours": 1,
+  "rules": [
+    {
+      "id": "SD-001",
+      "title": "Authentication failure surge",
+      "kind": "count",
+      "group_by": "all",
+      "actions": ["auth.failure"],
+      "window_seconds": 300,
+      "floor": 200,
+      "factor": 3,
+      "severity": "page",
+      "response": "page the security on-call; check SD-002 and SD-003 for the same window"
+    },
+    {
+      "id": "SD-002",
+      "title": "Many credentials tried from one network",
+      "kind": "distinct",
+      "group_by": "source",
+      "field": "credential",
+      "actions": ["auth.failure"],
+      "window_seconds": 600,
+      "floor": 20,
+      "factor": 3,
+      "severity": "page",
+      "response": "page the security on-call; tighten the sign-in limit for the network (approval-gated)"
+    },
+    {
+      "id": "SD-003",
+      "title": "Successful sign-in from a network with many failures",
+      "kind": "after_failures",
+      "group_by": "source",
+      "failure_action": "auth.failure",
+      "actions": ["auth.success"],
+      "window_seconds": 600,
+      "floor": 20,
+      "factor": 1,
+      "severity": "page",
+      "response": "page the security on-call; the account is a possible takeover: end its sessions and force a password reset, which also revokes its personal tokens"
+    }
+  ]
+}

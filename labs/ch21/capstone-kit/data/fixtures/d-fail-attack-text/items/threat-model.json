@@ -1,0 +1,93 @@
+{
+  "system": "Harbor (course-provided, team sandbox)",
+  "components": [
+    "support agent",
+    "refunds agent",
+    "operations agent",
+    "CI agent",
+    "three MCP servers",
+    "long-term memory"
+  ],
+  "boundaries": [
+    {
+      "id": "B1",
+      "what": "knowledge base and customer text (context)"
+    },
+    {
+      "id": "B2",
+      "what": "payments and ticket tools"
+    },
+    {
+      "id": "B3",
+      "what": "memory"
+    },
+    {
+      "id": "B4",
+      "what": "tool servers"
+    },
+    {
+      "id": "B5",
+      "what": "CI triggers"
+    }
+  ],
+  "threats": [
+    {
+      "id": "T1",
+      "boundary": "B1",
+      "stride": "Information disclosure",
+      "owasp_llm": "LLM02",
+      "owasp_agentic": "T6",
+      "atlas": "AML.T0051",
+      "controls": [
+        "kb_acl",
+        "egress"
+      ]
+    },
+    {
+      "id": "T2",
+      "boundary": "B2",
+      "stride": "Elevation of privilege",
+      "owasp_llm": "LLM06",
+      "owasp_agentic": "T2",
+      "atlas": "AML.T0051",
+      "controls": [
+        "refund_cap",
+        "refund_approval"
+      ]
+    },
+    {
+      "id": "T3",
+      "boundary": "B3",
+      "stride": "Tampering",
+      "owasp_llm": "LLM04",
+      "owasp_agentic": "T1",
+      "atlas": "AML.T0051",
+      "controls": [
+        "memory_review",
+        "memory_approval"
+      ]
+    },
+    {
+      "id": "T4",
+      "boundary": "B4",
+      "stride": "Tampering",
+      "owasp_llm": "LLM03",
+      "owasp_agentic": "T2",
+      "atlas": "AML.T0051",
+      "controls": [
+        "mcp_pin"
+      ]
+    },
+    {
+      "id": "T5",
+      "boundary": "B5",
+      "stride": "Elevation of privilege",
+      "owasp_llm": "LLM06",
+      "owasp_agentic": "T2",
+      "atlas": "AML.T0051",
+      "controls": [
+        "ci_isolation"
+      ]
+    }
+  ]
+}

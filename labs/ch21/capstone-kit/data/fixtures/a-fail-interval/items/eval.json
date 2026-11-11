@@ -1,0 +1,14 @@
+{
+  "dataset": "routing-eval",
+  "version": "2027.08.1",
+  "metric": "routing accuracy",
+  "n": 120,
+  "successes": 106,
+  "runs": 3,
+  "interval": [
+    0.85,
+    0.95
+  ],
+  "threshold": 0.85,
+  "simulated": false
+}

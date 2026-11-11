@@ -1,0 +1,21 @@
+{
+  "system": "Harbor, team plover's sandbox",
+  "system_owner": "another-team",
+  "ethics_agreement": "pack:items/ethics-agreement.md",
+  "attack_set": {
+    "held_in": "course repository",
+    "version": "2027.08.1",
+    "sha256": "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd",
+    "cases": 40
+  },
+  "configuration": "harbor-2.3.0-hardened, model pinned by the course",
+  "runs": 3,
+  "attempts": 120,
+  "successes": 3,
+  "interval": [
+    0.0085,
+    0.0709
+  ],
+  "date": "2027-08-12",
+  "measured_by": "p.cy"
+}

@@ -1,0 +1,33 @@
+{
+  "policy": "relay-security-gates-v1",
+  "adr": "ADR-029",
+  "owner": "aisha.r",
+  "stages": {
+    "pre-commit": {"scanners": ["gitleaks", "semgrep", "depgate"], "where": "the agent loop and the developer's pre-commit hook"},
+    "ci": {"scanners": ["gitleaks", "semgrep", "trivy", "depgate"], "where": "the security-gates and supply-chain required status checks"}
+  },
+  "blocking": {
+    "gitleaks": "any finding",
+    "depgate": "any finding",
+    "semgrep": "security-severity 7.0 or more (high, critical)",
+    "trivy": "security-severity 7.0 or more (high, critical)"
+  },
+  "block_at_or_above": 7.0,
+  "pre_commit_budget_seconds": 20,
+  "always_block": ["gitleaks", "depgate"],
+  "bands": [[9.0, "critical"], [7.0, "high"], [4.0, "medium"], [0.1, "low"]],
+  "suppressions": {
+    "file": "security/suppressions.json",
+    "bound_to": "rule and fingerprint (the rule, the path and the normalized line)",
+    "reviewers": ["sam.o", "aisha.r", "priya.n"],
+    "never_suppressible": ["depgate"],
+    "max_days": 90
+  },
+  "fixes": {
+    "forbidden_markers": ["nosemgrep", "gitleaks:allow", "noqa: S", "trivy:ignore", "pragma: no cover"],
+    "protected_paths": ["tests/", "security/", ".github/", "supply-chain/", ".pre-commit-config.yaml"],
+    "requires": ["the same scanners find nothing new or remaining", "the tests pass", "no forbidden marker added",
+                 "no protected path changed", "no file outside the original change's files"]
+  },
+  "exit_codes": {"0": "pass", "1": "blocked", "2": "cannot check: a required scanner report is missing (fails the build)"}
+}

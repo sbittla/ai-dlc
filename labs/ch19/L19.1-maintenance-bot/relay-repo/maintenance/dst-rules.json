@@ -1,0 +1,73 @@
+{
+  "rules": "relay-dst-rules-v1",
+  "adr": "ADR-010",
+  "reviewed_by": "sam.o",
+  "reviewed_on": "2027-06-14",
+  "note": "When each table's daylight-saving period starts and ends, as a Sunday of a month and an hour in UTC. day_shift -1 means the change happens at that UTC hour on the Saturday before (local Sunday morning in Sydney and Auckland). A person reviews this file against the governments' published rules before the bot extends the table (ADR-010, ADR-055). Pacific/Chatham shares _NEW_ZEALAND's instants in the snapshot's table.",
+  "zones": {
+    "_EU": {
+      "start": {
+        "month": 3,
+        "week": "last",
+        "utc_hour": 1
+      },
+      "end": {
+        "month": 10,
+        "week": "last",
+        "utc_hour": 1
+      }
+    },
+    "_NEW_YORK": {
+      "start": {
+        "month": 3,
+        "week": "second",
+        "utc_hour": 7
+      },
+      "end": {
+        "month": 11,
+        "week": "first",
+        "utc_hour": 6
+      }
+    },
+    "_LOS_ANGELES": {
+      "start": {
+        "month": 3,
+        "week": "second",
+        "utc_hour": 10
+      },
+      "end": {
+        "month": 11,
+        "week": "first",
+        "utc_hour": 9
+      }
+    },
+    "_SYDNEY": {
+      "start": {
+        "month": 10,
+        "week": "first",
+        "utc_hour": 16,
+        "day_shift": -1
+      },
+      "end": {
+        "month": 4,
+        "week": "first",
+        "utc_hour": 16,
+        "day_shift": -1
+      }
+    },
+    "_NEW_ZEALAND": {
+      "start": {
+        "month": 9,
+        "week": "last",
+        "utc_hour": 14,
+        "day_shift": -1
+      },
+      "end": {
+        "month": 4,
+        "week": "first",
+        "utc_hour": 14,
+        "day_shift": -1
+      }
+    }
+  }
+}

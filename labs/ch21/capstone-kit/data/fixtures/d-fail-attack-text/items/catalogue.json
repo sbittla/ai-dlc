@@ -1,0 +1,190 @@
+{
+  "catalogue": "harbor-attack-classes 2027.08.1",
+  "classes": [
+    {
+      "id": "H1",
+      "harm": "exfiltration",
+      "owasp_llm": "LLM02",
+      "atlas": "AML.T0051",
+      "variants": [
+        {
+          "id": "V-H1-01",
+          "label": "[placeholder H1/01]",
+          "placeholder": true,
+          "text": "[an attack string would go here; refused]"
+        },
+        {
+          "id": "V-H1-02",
+          "label": "[placeholder H1/02]",
+          "placeholder": true
+        },
+        {
+          "id": "V-H1-03",
+          "label": "[placeholder H1/03]",
+          "placeholder": true
+        }
+      ]
+    },
+    {
+      "id": "H2",
+      "harm": "exfiltration",
+      "owasp_llm": "LLM05",
+      "atlas": "AML.T0051",
+      "variants": [
+        {
+          "id": "V-H2-01",
+          "label": "[placeholder H2/01]",
+          "placeholder": true
+        },
+        {
+          "id": "V-H2-02",
+          "label": "[placeholder H2/02]",
+          "placeholder": true
+        },
+        {
+          "id": "V-H2-03",
+          "label": "[placeholder H2/03]",
+          "placeholder": true
+        }
+      ]
+    },
+    {
+      "id": "H3",
+      "harm": "unauthorised-action",
+      "owasp_llm": "LLM06",
+      "atlas": "AML.T0051",
+      "variants": [
+        {
+          "id": "V-H3-01",
+          "label": "[placeholder H3/01]",
+          "placeholder": true
+        },
+        {
+          "id": "V-H3-02",
+          "label": "[placeholder H3/02]",
+          "placeholder": true
+        },
+        {
+          "id": "V-H3-03",
+          "label": "[placeholder H3/03]",
+          "placeholder": true
+        }
+      ]
+    },
+    {
+      "id": "H4",
+      "harm": "unauthorised-action",
+      "owasp_llm": "LLM06",
+      "atlas": "AML.T0051",
+      "variants": [
+        {
+          "id": "V-H4-01",
+          "label": "[placeholder H4/01]",
+          "placeholder": true
+        },
+        {
+          "id": "V-H4-02",
+          "label": "[placeholder H4/02]",
+          "placeholder": true
+        },
+        {
+          "id": "V-H4-03",
+          "label": "[placeholder H4/03]",
+          "placeholder": true
+        }
+      ]
+    },
+    {
+      "id": "H5",
+      "harm": "persistence",
+      "owasp_llm": "LLM04",
+      "atlas": "AML.T0051",
+      "variants": [
+        {
+          "id": "V-H5-01",
+          "label": "[placeholder H5/01]",
+          "placeholder": true
+        },
+        {
+          "id": "V-H5-02",
+          "label": "[placeholder H5/02]",
+          "placeholder": true
+        },
+        {
+          "id": "V-H5-03",
+          "label": "[placeholder H5/03]",
+          "placeholder": true
+        }
+      ]
+    },
+    {
+      "id": "H6",
+      "harm": "integrity",
+      "owasp_llm": "LLM01",
+      "atlas": "AML.T0051",
+      "variants": [
+        {
+          "id": "V-H6-01",
+          "label": "[placeholder H6/01]",
+          "placeholder": true
+        },
+        {
+          "id": "V-H6-02",
+          "label": "[placeholder H6/02]",
+          "placeholder": true
+        },
+        {
+          "id": "V-H6-03",
+          "label": "[placeholder H6/03]",
+          "placeholder": true
+        }
+      ]
+    },
+    {
+      "id": "H7",
+      "harm": "exfiltration",
+      "owasp_llm": "LLM02",
+      "atlas": "AML.T0051",
+      "variants": [
+        {
+          "id": "V-H7-01",
+          "label": "[placeholder H7/01]",
+          "placeholder": true
+        },
+        {
+          "id": "V-H7-02",
+          "label": "[placeholder H7/02]",
+          "placeholder": true
+        },
+        {
+          "id": "V-H7-03",
+          "label": "[placeholder H7/03]",
+          "placeholder": true
+        }
+      ]
+    },
+    {
+      "id": "H8",
+      "harm": "unauthorised-action",
+      "owasp_llm": "LLM06",
+      "atlas": "AML.T0051",
+      "variants": [
+        {
+          "id": "V-H8-01",
+          "label": "[placeholder H8/01]",
+          "placeholder": true
+        },
+        {
+          "id": "V-H8-02",
+          "label": "[placeholder H8/02]",
+          "placeholder": true
+        },
+        {
+          "id": "V-H8-03",
+          "label": "[placeholder H8/03]",
+          "placeholder": true
+        }
+      ]
+    }
+  ]
+}

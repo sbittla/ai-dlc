@@ -1,0 +1,563 @@
+{
+  "claimed": {
+    "coverage": {
+      "C01": 2,
+      "C02": 2,
+      "C03": 2,
+      "C04": 2,
+      "C05": 2,
+      "C06": 2,
+      "C07": 2,
+      "C08": 2,
+      "C09": 2,
+      "C10": 2,
+      "C11": 2,
+      "C12": 2,
+      "C13": 2,
+      "C14": 1
+    },
+    "gate": "PASS"
+  },
+  "classes": [
+    {
+      "cells": [
+        {
+          "benign_ok": true,
+          "control": "render",
+          "status": "verified"
+        },
+        {
+          "benign_ok": true,
+          "control": "output_constraint",
+          "status": "verified"
+        },
+        {
+          "benign_ok": true,
+          "control": "marking",
+          "status": "mitigating"
+        }
+      ],
+      "harm": "exfiltration",
+      "id": "C01"
+    },
+    {
+      "cells": [
+        {
+          "benign_ok": true,
+          "control": "render",
+          "status": "verified"
+        },
+        {
+          "benign_ok": true,
+          "control": "output_constraint",
+          "status": "verified"
+        },
+        {
+          "benign_ok": true,
+          "control": "marking",
+          "status": "mitigating"
+        }
+      ],
+      "harm": "exfiltration",
+      "id": "C02"
+    },
+    {
+      "cells": [
+        {
+          "benign_ok": true,
+          "control": "render",
+          "status": "verified"
+        },
+        {
+          "benign_ok": true,
+          "control": "output_constraint",
+          "status": "verified"
+        },
+        {
+          "benign_ok": true,
+          "control": "marking",
+          "status": "mitigating"
+        }
+      ],
+      "harm": "exfiltration",
+      "id": "C03"
+    },
+    {
+      "cells": [
+        {
+          "benign_ok": true,
+          "control": "render",
+          "status": "verified"
+        },
+        {
+          "benign_ok": true,
+          "control": "output_constraint",
+          "status": "verified"
+        },
+        {
+          "benign_ok": true,
+          "control": "marking",
+          "status": "mitigating"
+        }
+      ],
+      "harm": "exfiltration",
+      "id": "C04"
+    },
+    {
+      "cells": [
+        {
+          "benign_ok": true,
+          "control": "tool_allowlist",
+          "status": "verified"
+        },
+        {
+          "benign_ok": true,
+          "control": "approval",
+          "status": "verified"
+        },
+        {
+          "benign_ok": true,
+          "control": "platform_permissions",
+          "status": "verified"
+        },
+        {
+          "benign_ok": true,
+          "control": "run_taint",
+          "status": "latent"
+        },
+        {
+          "benign_ok": true,
+          "control": "marking",
+          "status": "mitigating"
+        }
+      ],
+      "harm": "unauthorised-action",
+      "id": "C05"
+    },
+    {
+      "cells": [
+        {
+          "benign_ok": true,
+          "control": "tool_allowlist",
+          "status": "verified"
+        },
+        {
+          "benign_ok": true,
+          "control": "approval",
+          "status": "verified"
+        },
+        {
+          "benign_ok": true,
+          "control": "platform_permissions",
+          "status": "verified"
+        },
+        {
+          "benign_ok": true,
+          "control": "run_taint",
+          "status": "latent"
+        },
+        {
+          "benign_ok": true,
+          "control": "marking",
+          "status": "mitigating"
+        }
+      ],
+      "harm": "unauthorised-action",
+      "id": "C06"
+    },
+    {
+      "cells": [
+        {
+          "benign_ok": true,
+          "control": "tool_allowlist",
+          "status": "verified"
+        },
+        {
+          "benign_ok": true,
+          "control": "approval",
+          "status": "verified"
+        },
+        {
+          "benign_ok": true,
+          "control": "platform_permissions",
+          "status": "verified"
+        },
+        {
+          "benign_ok": true,
+          "control": "run_taint",
+          "status": "latent"
+        },
+        {
+          "benign_ok": true,
+          "control": "marking",
+          "status": "mitigating"
+        }
+      ],
+      "harm": "unauthorised-action",
+      "id": "C07"
+    },
+    {
+      "cells": [
+        {
+          "benign_ok": true,
+          "control": "delivery_binding",
+          "status": "verified"
+        },
+        {
+          "benign_ok": true,
+          "control": "tool_allowlist",
+          "status": "verified"
+        },
+        {
+          "benign_ok": true,
+          "control": "run_taint",
+          "status": "latent"
+        },
+        {
+          "benign_ok": true,
+          "control": "marking",
+          "status": "mitigating"
+        }
+      ],
+      "harm": "exfiltration",
+      "id": "C08"
+    },
+    {
+      "cells": [
+        {
+          "benign_ok": true,
+          "control": "delivery_binding",
+          "status": "verified"
+        },
+        {
+          "benign_ok": true,
+          "control": "tool_allowlist",
+          "status": "verified"
+        },
+        {
+          "benign_ok": true,
+          "control": "run_taint",
+          "status": "latent"
+        },
+        {
+          "benign_ok": true,
+          "control": "marking",
+          "status": "mitigating"
+        }
+      ],
+      "harm": "exfiltration",
+      "id": "C09"
+    },
+    {
+      "cells": [
+        {
+          "benign_ok": true,
+          "control": "egress",
+          "status": "verified"
+        },
+        {
+          "benign_ok": true,
+          "control": "test_sandbox",
+          "status": "verified"
+        },
+        {
+          "benign_ok": true,
+          "control": "run_taint",
+          "status": "latent"
+        },
+        {
+          "benign_ok": true,
+          "control": "marking",
+          "status": "mitigating"
+        }
+      ],
+      "harm": "exfiltration",
+      "id": "C10"
+    },
+    {
+      "cells": [
+        {
+          "benign_ok": true,
+          "control": "egress",
+          "status": "verified"
+        },
+        {
+          "benign_ok": true,
+          "control": "test_sandbox",
+          "status": "verified"
+        },
+        {
+          "benign_ok": true,
+          "control": "run_taint",
+          "status": "latent"
+        },
+        {
+          "benign_ok": true,
+          "control": "marking",
+          "status": "mitigating"
+        }
+      ],
+      "harm": "exfiltration",
+      "id": "C11"
+    },
+    {
+      "cells": [
+        {
+          "benign_ok": true,
+          "control": "memory_review",
+          "status": "verified"
+        },
+        {
+          "benign_ok": true,
+          "control": "approval",
+          "status": "verified"
+        },
+        {
+          "benign_ok": true,
+          "control": "recall_taint",
+          "status": "latent"
+        },
+        {
+          "benign_ok": true,
+          "control": "memory_trust",
+          "status": "mitigating"
+        },
+        {
+          "benign_ok": true,
+          "control": "marking",
+          "status": "mitigating"
+        }
+      ],
+      "harm": "persistence",
+      "id": "C12"
+    },
+    {
+      "cells": [
+        {
+          "benign_ok": true,
+          "control": "memory_review",
+          "status": "verified"
+        },
+        {
+          "benign_ok": true,
+          "control": "approval",
+          "status": "verified"
+        },
+        {
+          "benign_ok": true,
+          "control": "recall_taint",
+          "status": "latent"
+        },
+        {
+          "benign_ok": true,
+          "control": "memory_trust",
+          "status": "mitigating"
+        },
+        {
+          "benign_ok": true,
+          "control": "marking",
+          "status": "mitigating"
+        }
+      ],
+      "harm": "persistence",
+      "id": "C13"
+    },
+    {
+      "cells": [
+        {
+          "benign_ok": true,
+          "control": "human_label",
+          "status": "verified"
+        },
+        {
+          "benign_ok": true,
+          "control": "judge_isolation",
+          "status": "mitigating"
+        },
+        {
+          "benign_ok": true,
+          "control": "marking",
+          "status": "mitigating"
+        }
+      ],
+      "harm": "integrity",
+      "id": "C14"
+    }
+  ],
+  "code_as_of": "2027-04-30",
+  "controls": {
+    "approval": {
+      "depends_on": [
+        "relay.agents.boundary",
+        "relay.agents.approval"
+      ],
+      "kind": "blocking"
+    },
+    "delivery_binding": {
+      "depends_on": [
+        "relay.delivery.email_smtp"
+      ],
+      "kind": "blocking"
+    },
+    "egress": {
+      "depends_on": [
+        "deploy/egress-proxy"
+      ],
+      "kind": "blocking"
+    },
+    "human_label": {
+      "depends_on": [
+        "relay.release.judged",
+        "labelling queue (tomas.b's team)"
+      ],
+      "kind": "blocking"
+    },
+    "judge_isolation": {
+      "depends_on": [
+        "redteam.judge (lab model)"
+      ],
+      "kind": "mitigating"
+    },
+    "marking": {
+      "depends_on": [
+        "relay.worker.untrusted"
+      ],
+      "kind": "mitigating"
+    },
+    "memory_review": {
+      "depends_on": [
+        "relay.agents.memory"
+      ],
+      "kind": "blocking"
+    },
+    "memory_trust": {
+      "depends_on": [
+        "relay.agents.memory"
+      ],
+      "kind": "mitigating"
+    },
+    "output_constraint": {
+      "depends_on": [
+        "relay.worker.untrusted"
+      ],
+      "kind": "blocking"
+    },
+    "platform_permissions": {
+      "depends_on": [
+        "github:relay-spec-to-pr",
+        "github:branch-protection"
+      ],
+      "kind": "blocking"
+    },
+    "recall_taint": {
+      "depends_on": [
+        "relay.agents.boundary",
+        "relay.agents.tools"
+      ],
+      "kind": "latent"
+    },
+    "render": {
+      "depends_on": [
+        "relay.render"
+      ],
+      "kind": "blocking"
+    },
+    "run_taint": {
+      "depends_on": [
+        "relay.agents.boundary",
+        "relay.agents.contracts",
+        "relay.agents.tools"
+      ],
+      "kind": "latent"
+    },
+    "test_sandbox": {
+      "depends_on": [
+        "container runtime: --network=none (test sandbox)",
+        "tools/sandbox_run.py"
+      ],
+      "kind": "blocking"
+    },
+    "tool_allowlist": {
+      "depends_on": [
+        "relay.agents.boundary",
+        "relay.agents.session",
+        "relay.audit.identity"
+      ],
+      "kind": "blocking"
+    }
+  },
+  "deployments": [
+    {
+      "control": "tool_allowlist",
+      "date": "2027-02-25",
+      "observed": "generated record (production is outside the teaching snapshot)",
+      "result": "pass"
+    },
+    {
+      "control": "approval",
+      "date": "2027-02-25",
+      "observed": "generated record (production is outside the teaching snapshot)",
+      "result": "pass"
+    },
+    {
+      "control": "platform_permissions",
+      "date": "2027-02-25",
+      "observed": "generated record (production is outside the teaching snapshot)",
+      "result": "pass"
+    },
+    {
+      "control": "render",
+      "date": "2027-03-29",
+      "observed": "generated record (production is outside the teaching snapshot)",
+      "result": "pass"
+    },
+    {
+      "control": "human_label",
+      "date": "2027-03-30",
+      "observed": "generated record (production is outside the teaching snapshot)",
+      "result": "pass"
+    },
+    {
+      "control": "output_constraint",
+      "date": "2027-03-31",
+      "observed": "generated record (production is outside the teaching snapshot)",
+      "result": "pass"
+    },
+    {
+      "control": "delivery_binding",
+      "date": "2027-03-31",
+      "observed": "generated record (production is outside the teaching snapshot)",
+      "result": "pass"
+    },
+    {
+      "control": "egress",
+      "date": "2027-04-27",
+      "observed": "generated record (production is outside the teaching snapshot)",
+      "result": "pass"
+    },
+    {
+      "control": "test_sandbox",
+      "date": "2027-04-27",
+      "observed": "generated record (production is outside the teaching snapshot)",
+      "result": "pass"
+    },
+    {
+      "control": "memory_review",
+      "date": "2027-04-30",
+      "observed": "generated record (production is outside the teaching snapshot)",
+      "result": "pass"
+    }
+  ],
+  "policy": {
+    "end_to_end_legitimate_case_must_pass": true,
+    "min_independent_blocking": {
+      "exfiltration": 2,
+      "integrity": 1,
+      "persistence": 2,
+      "unauthorised-action": 2
+    },
+    "name": "relay-coverage-gate-v2"
+  },
+  "release": "4.29.0",
+  "source": "Lab 15.1: matrix_as_of(4.29.0, 2027-04-30) and data/deployments.json"
+}

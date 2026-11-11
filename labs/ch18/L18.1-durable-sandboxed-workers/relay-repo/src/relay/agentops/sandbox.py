@@ -39,14 +39,15 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import threading
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from .sandbox_child import _norm
 
 CHILD = Path(__file__).with_name("sandbox_child.py")
 STATUSES = ("ok", "error", "timeout", "output_limit")
 TAMPERED_EXIT = 86
+MAX_REPORT_BYTES = 64_000  # more refusal records than this is flooding: the child is stopped and that is recorded
 
 
 @dataclass(frozen=True)
@@ -107,15 +108,49 @@ def _read_capped(path: Path, cap: int) -> tuple[str, bool]:
     return data[:cap].decode("utf-8", errors="replace"), len(data) > cap
 
 
-def _wait(proc: subprocess.Popen, timeout_s: float) -> tuple[bytes, bool]:
-    """Wait for the child, reading the report pipe as it goes; kill it at the timeout. Returns (report, timed_out)."""
+def _wait(proc: subprocess.Popen, timeout_s: float, cap: int = MAX_REPORT_BYTES) -> tuple[bytes, bool, bool]:
+    """Wait for the child, reading at most `cap` bytes of its report pipe; kill it at the timeout, or as soon as the
+    report passes the cap. Returns (report, timed_out, overflowed)."""
+    if proc.stdout is None:  # the unrestricted comparison run has no report pipe
+        try:
+            proc.wait(timeout=timeout_s)
+            return b"", False, False
+        except subprocess.TimeoutExpired:
+            proc.kill()
+            proc.wait()
+            return b"", True, False
+    chunks: list[bytes] = []
+    state = {"total": 0, "overflow": False}
+
+    def read() -> None:
+        while True:
+            data = proc.stdout.read1(4096)
+            if not data:
+                return
+            room = cap - state["total"]
+            if len(data) > room:
+                chunks.append(data[:max(room, 0)])
+                state["overflow"] = True
+                proc.kill()
+                return
+            chunks.append(data)
+            state["total"] += len(data)
+
+    reader = threading.Thread(target=read, daemon=True)
+    reader.start()
     try:
-        report, _ = proc.communicate(timeout=timeout_s)
-        return report or b"", False
+        proc.wait(timeout=timeout_s)
+        timed_out = False
     except subprocess.TimeoutExpired:
         proc.kill()
-        report, _ = proc.communicate()
-        return report or b"", True
+        proc.wait()
+        timed_out = True
+    reader.join(timeout=5)
+    proc.stdout.close()
+    report = b"".join(chunks)
+    if state["overflow"]:
+        report = report[:report.rfind(bytes([10])) + 1]  # drop a partial last record
+    return report, timed_out and not state["overflow"], state["overflow"]
 
 
 def _parse_report(data: bytes) -> list[dict]:
@@ -163,7 +198,7 @@ def run_code(code: str, files: dict[str, str] | None = None, policy: SandboxPoli
             child_environment = dict(os.environ if env is None else env)
             preexec = None
         else:
-            spec = {"workdir": _norm(str(work)), "allow_net": [list(p) for p in policy.allow_net]}
+            spec = {"workdir": str(work), "allow_net": [list(p) for p in policy.allow_net]}
             argv = [sys.executable, "-I", "-S", "-B", str(CHILD), json.dumps(spec), str(out_path)]
             child_environment = child_env()
             preexec = _limits(policy)
@@ -173,12 +208,12 @@ def run_code(code: str, files: dict[str, str] | None = None, policy: SandboxPoli
                 with out_path.open("wb") as out:
                     proc = subprocess.Popen(argv, cwd=str(work), env=child_environment, stdin=subprocess.DEVNULL,
                                             stdout=out, stderr=err, close_fds=True)
-                    report, timed_out = _wait(proc, policy.timeout_s)
+                    report, timed_out, overflow = _wait(proc, policy.timeout_s)
             else:
                 proc = subprocess.Popen(argv, cwd=str(work), env=child_environment, stdin=subprocess.DEVNULL,
                                         stdout=subprocess.PIPE, stderr=err, preexec_fn=preexec, close_fds=True,
                                         start_new_session=(os.name == "posix"))
-                report, timed_out = _wait(proc, policy.timeout_s)
+                report, timed_out, overflow = _wait(proc, policy.timeout_s)
         exit_code = None if timed_out else proc.returncode
         seconds = time.monotonic() - started
         stdout, over_out = _read_capped(out_path, policy.max_output_bytes) if out_path.exists() else ("", False)
@@ -186,6 +221,8 @@ def run_code(code: str, files: dict[str, str] | None = None, policy: SandboxPoli
         refusals = [] if unrestricted else _parse_report(report)
         if exit_code == TAMPERED_EXIT and not unrestricted:
             refusals.append({"event": "report-channel", "reason": "refused:report-channel"})
+        if overflow:
+            refusals.append({"event": "report-channel", "reason": "refused:report-overflow"})
         refusals = tuple(refusals)
         if timed_out:
             status = "timeout"

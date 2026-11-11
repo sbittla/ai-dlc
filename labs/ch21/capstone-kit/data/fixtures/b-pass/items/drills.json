@@ -1,0 +1,40 @@
+{
+  "clock": "real",
+  "drills": [
+    {
+      "id": "F1",
+      "fault": "restart after the PR was created",
+      "expected": "one PR",
+      "observed": "one PR",
+      "verdict": "pass"
+    },
+    {
+      "id": "F2",
+      "fault": "duplicate request",
+      "expected": "one run",
+      "observed": "one run",
+      "verdict": "pass"
+    },
+    {
+      "id": "F3",
+      "fault": "tool timeout",
+      "expected": "handed back",
+      "observed": "handed back",
+      "verdict": "pass"
+    },
+    {
+      "id": "F4",
+      "fault": "rate limit",
+      "expected": "paused, then one PR",
+      "observed": "paused, then one PR",
+      "verdict": "pass"
+    },
+    {
+      "id": "F5",
+      "fault": "kill switch during tests",
+      "expected": "next call refused",
+      "observed": "next call refused",
+      "verdict": "pass"
+    }
+  ]
+}

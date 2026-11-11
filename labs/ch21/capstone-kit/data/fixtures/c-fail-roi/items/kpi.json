@@ -1,0 +1,48 @@
+{
+  "outcomes": [
+    {
+      "id": "K1",
+      "what": "median change lead time",
+      "baseline": {
+        "value": 46.5,
+        "source": "baseline quarter"
+      }
+    },
+    {
+      "id": "K2",
+      "what": "change fail rate",
+      "baseline": {
+        "value": 0.096,
+        "source": "baseline quarter"
+      }
+    },
+    {
+      "id": "K3",
+      "what": "author hours per change",
+      "baseline": {
+        "value": 6.6,
+        "source": "pilot control"
+      }
+    }
+  ],
+  "guardrails": [
+    {
+      "id": "G1",
+      "what": "change fail rate",
+      "threshold": "+2 points"
+    },
+    {
+      "id": "G2",
+      "what": "security incidents from AI tools",
+      "threshold": "0 critical"
+    }
+  ],
+  "triggers": {
+    "stop": [
+      "a guardrail breached two months running"
+    ],
+    "scale": [
+      "lead time interval wholly below 1.0 in the holdout"
+    ]
+  }
+}

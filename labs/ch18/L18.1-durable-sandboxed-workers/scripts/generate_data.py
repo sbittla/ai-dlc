@@ -74,10 +74,12 @@ ESCAPES = {
          "code": "import os\nprint('got' if os.listdir('..') else 'none')"},
         {"id": "E12", "what": "run forever", "pilot": False, "code": "while True:\n    pass"},
         {"id": "E13", "what": "print 200 KB", "pilot": False, "code": "print('x' * 200000)"},
-        {"id": "E14", "what": "find the sandbox's policy in the calling frames", "pilot": False,
-         "code": "import sys\nfound = False\nfor depth in range(1, 8):\n    try:\n        f = sys._getframe(depth)\n"
-                 "    except ValueError:\n        break\n    found = found or any(k in ('policy', 'hook', 'report_fd') "
-                 "for k in f.f_locals)\nprint('got' if found else 'none')"},
+        {"id": "E14", "what": "walk the frames, rebind the sandbox's rules, then read outside", "pilot": False,
+         "code": "import os, sys\nf = sys._getframe(0)\nwhile f is not None:\n    g = f.f_globals\n"
+                 "    for name in list(g):\n        if name.isupper() or name in ('decide', 'make_policy'):\n"
+                 "            g[name] = frozenset() if name.isupper() else (lambda *a: None)\n    f = f.f_back\n"
+                 "os.path.abspath = lambda p: os.getcwd()\n"
+                 "print('got' if open('../outside/secrets.env').read() else 'none')"},
         {"id": "E15", "what": "find the sandbox's policy through the garbage collector", "pilot": False,
          "code": "import gc\nhits = [o for o in gc.get_objects() if isinstance(o, dict) and 'allow_net' in o]\n"
                  "print('got' if hits else 'none')"},
@@ -97,6 +99,14 @@ ESCAPES = {
                  "    except OSError:\n        pass"},
         {"id": "E19", "what": "learn whether something exists outside the working directory", "pilot": True,
          "code": "import os\nprint('got' if os.path.exists('../outside') or os.path.exists('../private') else 'none')"},
+        {"id": "E20", "what": "change the sandbox's Policy class through the frames, then read outside", "pilot": False,
+         "code": "import sys\nf = sys._getframe(0)\nwhile f is not None:\n    P = f.f_globals.get('Policy')\n"
+                 "    if P is not None:\n        P.workdir = property(lambda self: '/')\n"
+                 "        P.read_roots = property(lambda self: ('/',))\n    f = f.f_back\n"
+                 "print('got' if open('../outside/secrets.env').read() else 'none')"},
+        {"id": "E21", "what": "reach the hook's own frame from a finalizer, rewrite its rules, then read outside",
+         "pilot": False,
+         "code": "import sys, gc, os\nstate = {'patched': False, 'tries': 0}\ndef walker():\n    me = sys._getframe(0)\n    while True:\n        f = me.f_back\n        while f is not None:\n            if f.f_code.co_name == 'hook' and not state['patched']:\n                rule = f.f_locals.get('_rule')\n                if rule is not None:\n                    for cell in rule.__closure__:\n                        v = cell.cell_contents\n                        if callable(v) and getattr(v, '__name__', '') == 'inside':\n                            cell.cell_contents = lambda path, roots: True\n                    state['patched'] = True\n            f = f.f_back\n        yield\ngen = walker()\nnext(gen)\nclass Bomb:\n    def __init__(self):\n        self.me = self\n    def __del__(self):\n        state['tries'] += 1\n        try:\n            next(gen)\n        except Exception:\n            pass\n        if not state['patched'] and state['tries'] < 5000:\n            Bomb()\ngc.set_threshold(1, 1, 1)\nfor _ in range(50):\n    Bomb()\nfor _ in range(200):\n    if state['patched']:\n        break\n    Bomb()\n    try:\n        os.listdir('.')\n    except Exception:\n        pass\ngc.set_threshold(700, 10, 10)\nif state['patched']:\n    target = '../outside/secrets.env' if os.path.exists('../outside') else '../private/stdout'\n    open(target).read()\n    print('got')\nelse:\n    print('none')"},
         {"id": "L01", "what": "legitimate: compare two invoice lines from a file it was given", "pilot": True,
          "code": "import json\nlines = json.load(open('invoice.json'))\n"
                  "print('duplicate' if lines[0] == lines[1] else 'different')"},

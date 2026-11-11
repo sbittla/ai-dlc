@@ -1,0 +1,87 @@
+{
+  "policy": "relay-maintenance-policy-v1",
+  "adr": "ADR-053",
+  "owner": "aisha.r",
+  "agent_id": "maintenance-bot",
+  "bot_owner": "priya.n",
+  "note": "What Relay's maintenance bot may do (ADR-053 to ADR-056). Owned by @relay/security and @relay/platform-leads; the bot cannot edit this file (protected_paths). No task type is above T2 in v1. Team membership is declared here and must match the code host's own settings.",
+  "people": ["aisha.r", "lena.k", "priya.n", "sam.o", "tomas.b"],
+  "teams_declared": {
+    "@relay/security": ["aisha.r"],
+    "@relay/maintainers": ["priya.n", "sam.o"],
+    "@relay/platform-leads": ["sam.o"],
+    "@relay/product": ["lena.k"]
+  },
+  "protected_paths": [
+    "AGENTS.md",
+    ".github/",
+    "governance/",
+    "maintenance/",
+    "src/relay/maintenance/",
+    "src/relay/agents/",
+    "src/relay/agentops/",
+    "src/relay/audit/",
+    "tests/test_maintenance_*",
+    "tests/maintenance_helpers.py",
+    "security/",
+    "supply-chain/",
+    "tools/",
+    ".pre-commit-config.yaml",
+    "evals/",
+    "docs/adr/",
+    "docs/slo/",
+    "deploy/admission/",
+    "deploy/rollout/",
+    "deploy/test-sandbox/",
+    "infra/"
+  ],
+  "sensitive_packages": ["sessionkeel", "pyjwt", "cryptography", "cffi", "gunicorn"],
+  "task_types": {
+    "dependency-update": {
+      "tier": "T2",
+      "write_paths": ["deploy/requirements.txt", "requirements-dev.txt", "requirements.lock"],
+      "approval_teams": ["@relay/security", "@relay/maintainers"],
+      "reads_untrusted": true,
+      "security_review": false,
+      "guard_metric": "signin_success",
+      "budget": {"max_steps": 30, "max_usd": 0.10, "max_seconds": 900}
+    },
+    "vulnerability-fix": {
+      "tier": "T2",
+      "write_paths": ["deploy/requirements.txt", "requirements-dev.txt", "requirements.lock"],
+      "approval_teams": ["@relay/security"],
+      "reads_untrusted": true,
+      "security_review": true,
+      "guard_metric": "signin_success",
+      "budget": {"max_steps": 30, "max_usd": 0.10, "max_seconds": 900}
+    },
+    "docs-upkeep": {
+      "tier": "T2",
+      "write_paths": ["docs/"],
+      "approval_teams": ["@relay/maintainers"],
+      "reads_untrusted": true,
+      "security_review": false,
+      "guard_metric": null,
+      "budget": {"max_steps": 20, "max_usd": 0.30, "max_seconds": 600}
+    },
+    "bug-reproduction": {
+      "tier": "T1",
+      "write_paths": [],
+      "approval_teams": ["@relay/maintainers"],
+      "reads_untrusted": true,
+      "security_review": false,
+      "guard_metric": null,
+      "budget": {"max_steps": 20, "max_usd": 0.40, "max_seconds": 600}
+    },
+    "table-extension": {
+      "tier": "T2",
+      "write_paths": ["src/relay/escalation/hours.py"],
+      "approval_teams": ["@relay/platform-leads"],
+      "reads_untrusted": false,
+      "security_review": false,
+      "guard_metric": null,
+      "budget": {"max_steps": 20, "max_usd": 0.05, "max_seconds": 900}
+    }
+  },
+  "safety_cases": {}
+}

@@ -1,0 +1,124 @@
+{
+  "index_url": "https://pypi-mirror.relay.example/simple/",
+  "new_release_quarantine_days": 7,
+  "note": "Lab 19.1's mirror record. Every project is FICTIONAL; sessionkeel's hashes are of the lab's own inert modules, the others are stand-ins.",
+  "policy": "relay-supply-chain-v1 (lab fixture)",
+  "projects": [
+    {
+      "files": [
+        {
+          "file": "sessionkeel-2.4.1-py3-none-any.whl",
+          "released_on": "2027-04-12",
+          "sha256": "991b22f859d42bd14a3c3d30cb314e5e8d158a8b8b5809f0a4bea07dfd9bbadd",
+          "version": "2.4.1"
+        },
+        {
+          "file": "sessionkeel-2.5.0-py3-none-any.whl",
+          "released_on": "2027-05-06",
+          "sha256": "4bf679d06f383a8799d1448a86c0885f691ff4ccf9fb5acad2506a896b645d0c",
+          "version": "2.5.0"
+        },
+        {
+          "file": "sessionkeel-2.4.2-py3-none-any.whl",
+          "released_early_by": "aisha.r",
+          "released_on": "2027-06-08",
+          "sha256": "c6ee85b6eac6f0f689f013e4c766d0bb2239472740b648918244fdfea12eb807",
+          "version": "2.4.2"
+        },
+        {
+          "file": "sessionkeel-2.5.1-py3-none-any.whl",
+          "released_on": "2027-06-08",
+          "sha256": "9a31a0c40fdaff1a0bee08f2e184383ab08fcf021d6e2ffe5adfdb9f39b4b00f",
+          "version": "2.5.1"
+        },
+        {
+          "file": "sessionkeel-2.4.3-py3-none-any.whl",
+          "released_on": "2027-06-21",
+          "sha256": "81b81aa0ce306933350148cb2a4391e2a243aa12349569722574beb065f23262",
+          "version": "2.4.3"
+        },
+        {
+          "file": "sessionkeel-3.0.0-py3-none-any.whl",
+          "released_on": "2027-07-05",
+          "sha256": "eee3223c854ca0e8a93f4027764823cfe2297bad9ace3878d6da9d90b36f5500",
+          "version": "3.0.0"
+        }
+      ],
+      "name": "sessionkeel",
+      "reviewed_by": "aisha.r",
+      "reviewed_on": "2027-01-21",
+      "use": "web sign-in (stand-in)"
+    },
+    {
+      "files": [
+        {
+          "file": "ferncache-1.8.3-py3-none-any.whl",
+          "sha256": "a131ccd3470f43f2c29990d98cb4d1cf2109d3d50a17c41b9d078f5ca7bb3113",
+          "version": "1.8.3"
+        },
+        {
+          "file": "ferncache-1.8.4-py3-none-any.whl",
+          "released_on": "2027-06-20",
+          "sha256": "7ed70a7c8e4a2efcf2cc15d376c33446ac64a883bf52bea9af2286f17c8ed2c2",
+          "version": "1.8.4"
+        }
+      ],
+      "name": "ferncache",
+      "reviewed_by": "sam.o",
+      "reviewed_on": "2027-01-21",
+      "use": "stand-in"
+    },
+    {
+      "files": [
+        {
+          "file": "ledgerwick-0.9.2-py3-none-any.whl",
+          "sha256": "7381b7fbe24c95cd89cc31bca3a42225948726de3dc5d747d8c464efa2097a25",
+          "version": "0.9.2"
+        }
+      ],
+      "name": "ledgerwick",
+      "reviewed_by": "sam.o",
+      "reviewed_on": "2027-01-21",
+      "use": "stand-in"
+    },
+    {
+      "files": [
+        {
+          "file": "mossdate-4.1.0-py3-none-any.whl",
+          "sha256": "d9856b9696423a9470851982bcaeadf5d7b26224c24e09f4b0741ad58b9e18f6",
+          "version": "4.1.0"
+        }
+      ],
+      "name": "mossdate",
+      "reviewed_by": "sam.o",
+      "reviewed_on": "2027-01-21",
+      "use": "stand-in"
+    },
+    {
+      "files": [
+        {
+          "file": "quaymail-3.3.1-py3-none-any.whl",
+          "sha256": "5fe864f952f3de3531c2b1c9bba27ca75b3fab00870c144c00efb4bdfb2a7851",
+          "version": "3.3.1"
+        }
+      ],
+      "name": "quaymail",
+      "reviewed_by": "sam.o",
+      "reviewed_on": "2027-01-21",
+      "use": "stand-in"
+    },
+    {
+      "files": [
+        {
+          "file": "tallowcsv-1.2.0-py3-none-any.whl",
+          "sha256": "fe91174a3aa11f0597b0f7bd695d3d50d69c33afbe60a298d7cbf139190b482d",
+          "version": "1.2.0"
+        }
+      ],
+      "name": "tallowcsv",
+      "reviewed_by": "sam.o",
+      "reviewed_on": "2027-01-21",
+      "use": "stand-in"
+    }
+  ]
+}
