@@ -148,6 +148,18 @@ its roots at your repository, and run `check` on it. Write `evidence/first-check
 each, the owner and the date by which it will be gone. On Windows PowerShell 5.1, use
 `| Out-File -Encoding utf8 ../evidence/first-check.md` rather than `>`, which writes UTF-16.
 
+**Where Relay's own files differ from the kit.** The kit's checks are stricter than three of the files Relay's
+labs produce, so copying them into a pack as they are raises findings:
+
+- Relay's AI incident playbook uses the headings Recognise, Contain, Investigate, Notify and Recover and learn. The
+  `playbook` kind wants headings containing "detection", "containment", "kill switch", "communication" and "recovery".
+- Relay's `ToolContract` lets an external tool run without approval if its handler is idempotent. The kit
+  requires an approval rule for every external tool.
+- Lab 6.1's ADRs carry `Links` and `Revisit when`. The kit also requires `Reviewed by:` and an `accepted` status.
+
+The labs are left as they are. Start from Appendix A's templates (Sections A.2, A.3 and A.10), which satisfy
+both sides.
+
 ## Expected evidence
 
 | File | Must contain |
