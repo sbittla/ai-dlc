@@ -30,7 +30,7 @@ You will build the checks that stand between a pull request and an apply: twelve
 
 ```
 L11.1-guardrailed-cloud-environment/
-├── relay-repo/                    ← Relay 4.21.0: canonical 4.19.0 plus infra/, deploy/, ADR-012..015, two new modules, 145 tests
+├── relay-repo/                    ← Relay 4.21.0: canonical 4.19.0 plus infra/, deploy/, ADR-012..015, two new modules, 147 tests
 │   ├── infra/                     ← OpenTofu: network, endpoints, security groups, compute, IAM, data, budgets; nonprod.tfvars
 │   │   ├── org/                   ← service control policies (a separate root module, the platform team's)
 │   │   ├── db/roles.sql           ← separate database roles for the service and the worker
@@ -140,7 +140,7 @@ Read `relay-repo/infra/runbooks/teardown.md`. Which step would have prevented T1
 
 ### 10. Review and wire it into CI (35 min)
 
-Adapt `templates/infra-plan-job.yml` to Relay's workflow and name it as a required status check. Complete `templates/environment-review.md` in `evidence/`. Run `python -m pytest -q` in `relay-repo/` (145 tests) and `python tools/lint.py`.
+Adapt `templates/infra-plan-job.yml` to Relay's workflow and name it as a required status check. Complete `templates/environment-review.md` in `evidence/`. Run `python -m pytest -q` in `relay-repo/` (147 tests) and `python tools/lint.py`.
 
 ## Expected evidence
 
