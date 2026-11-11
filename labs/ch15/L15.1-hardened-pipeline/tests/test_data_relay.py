@@ -26,6 +26,7 @@ ADDED = {
     "src/relay/release/__init__.py", "src/relay/release/flags.py", "src/relay/release/judged.py",
     "tests/test_pipeline_config.py", "tests/test_release_architecture.py", "tests/test_release_flags.py",
     "tests/test_release_judged.py", "tests/test_sandbox_run.py", "tools/sandbox_run.py",
+    "tools/admit.py", "tools/security_gate.py",
 }
 MODIFIED = {
     ".github/CODEOWNERS", ".github/workflows/ci.yml", ".github/workflows/release.yml", "AGENTS.md", "governance/branch-protection.json",

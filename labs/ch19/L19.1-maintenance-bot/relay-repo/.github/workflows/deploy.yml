@@ -1,5 +1,5 @@
-# Deploy production's desired state (ADR-046). ILLUSTRATIVE: the reconciler and admission tool are not in this
-# snapshot; Lab 15.1 and Lab 15.2 run their decisions. Action SHAs are lab stand-ins.
+# Deploy production's desired state (ADR-046). ILLUSTRATIVE: the reconciler is not in this
+# snapshot (the admission tool is tools/admit.py); Lab 15.1 and Lab 15.2 run their decisions. Action SHAs are lab stand-ins.
 #
 # How a release reaches production:
 #   1. A v<digit> tag runs pipeline.yml: build once, four gates, release.yml signs and attests, admit.

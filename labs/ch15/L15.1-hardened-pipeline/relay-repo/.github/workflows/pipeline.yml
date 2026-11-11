@@ -1,6 +1,7 @@
 # Relay's delivery pipeline (ADR-044 to ADR-048). ILLUSTRATIVE in this snapshot: the action SHAs and image
-# digests are lab stand-ins in the right form, the evaluation, adversarial and gate steps name tools this
-# snapshot does not vendor, and Lab 15.1 runs the same stages in a deterministic simulator.
+# digests are lab stand-ins in the right form, the evaluation and adversarial steps name tools this snapshot
+# does not vendor (the gate and admission tools are in tools/), and Lab 15.1 runs the same stages in a
+# deterministic simulator.
 #
 # Order: build once, then four gates in parallel (test, eval, adversarial, scan), then package, sign and attest
 # (release.yml, called as a reusable workflow), then admit. Deployment is a separate step: a reviewed pull
@@ -117,7 +118,7 @@ jobs:
           docker run --rm -v "$PWD:/src"
           aquasec/trivy@sha256:5555555555555555555555555555555555555555555555555555555555555555
           image --input /src/relay.tar --format sarif --output /src/trivy-image.sarif
-      - name: Gate (ILLUSTRATIVE; the gate script is not vendored)
+      - name: Gate
         run: >-
           python tools/security_gate.py --policy security/gates.json --require-reports
           semgrep.sarif gitleaks.sarif trivy.sarif trivy-image.sarif
