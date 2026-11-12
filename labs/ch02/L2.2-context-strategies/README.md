@@ -115,6 +115,8 @@ Compare "answer reaches the model" with "answer contains the expected phrase". T
 
 > On keyword questions, BM25 top-1 puts the answer in front of the model 100% of the time for about 49 tokens of context. On paraphrased questions top-1 manages 6 of 12 with titled chunks and 5 of 12 without, a one-question difference well inside the noise. The synonym map lifts paraphrase recall at k=3 from 58% to 100%, but on the held-out set it changes nothing (90% with or without), because it was tuned on the questions it was scored on. Sending all 12 documents always includes the answer, at 1,531 tokens per question: about fourteen times plain BM25 top-3 (109 tokens on the paraphrased set). Recommendation: plain chunks at top-3, which match titled chunks on the held-out set (90%) with a better MRR@3 (0.85 against 0.80) and fewer tokens. Treat titles and the synonym map as hypotheses for a larger held-out set, alongside embedding and hybrid retrieval.
 
+Token counts in this lab are estimates at four characters a token. As of November 2026, Anthropic gives about 3.5 characters a token for older Claude models, and newer tokenizers produce about 30% more tokens (Appendix F, entry F-M07), so real counts run higher. The comparisons between strategies still hold, because every strategy uses the same estimate.
+
 ## Troubleshooting
 
 | Symptom | Likely cause |

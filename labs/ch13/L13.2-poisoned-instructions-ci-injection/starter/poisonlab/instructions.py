@@ -26,7 +26,11 @@ INSTRUCTION_FILES = ["AGENTS.md", "*/AGENTS.md", "CLAUDE.md", "*/CLAUDE.md", "GE
                      ".cursorrules", ".windsurfrules", ".cursor/rules/*", ".windsurf/rules/*",
                      ".github/copilot-instructions.md", ".github/instructions/*.instructions.md",
                      ".claude/skills/*/SKILL.md", ".claude/agents/*", ".claude/commands/*",
-                     ".clinerules", ".clinerules/*", ".github/prompts/*.prompt.md"]
+                     ".clinerules", ".clinerules/*", ".github/prompts/*.prompt.md",
+                     # added 2026-11-11 (Appendix E, Section E.3): newer agent locations
+                     "AGENTS.override.md", "*/AGENTS.override.md", "CLAUDE.local.md", "*/CLAUDE.local.md", ".claude/rules/*",
+                     ".codex/*", ".agents/skills/*/SKILL.md", ".github/agents/*.agent.md",
+                     ".github/skills/*/SKILL.md", ".github/hooks/*.json"]
 NETWORK = re.compile(r"\b(curl|wget|Invoke-WebRequest|iwr)\b|https?://", re.I)
 PACKAGE = re.compile(r"(--(extra-)?index-url|\bpypi\b|\bregistry\b|\b(use|install|add) the `?[\w.-]+`? "
                      r"(package|library)\b|\bpackage\b.*\b(for|in) every\b)", re.I)

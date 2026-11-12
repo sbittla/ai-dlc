@@ -222,6 +222,9 @@ Complete `templates/identity-review.md` in `evidence/`. Run Relay's suite and li
 - Delegation needs the person's own proof (a subject token from `person_issuer`); the launcher of a session holds
   it while the exchange happens. `restore` checks two names; until Relay's admin path authenticates both people,
   the two-person rule is a check on what the caller says. Tokens are HMAC-signed, so only the token service verifies.
+- The inventories record ECS task-role credentials at 3,600 seconds, Relay's policy maximum. That figure is the
+  lab's setting, not AWS's: ECS task-role credentials last up to six hours by default (as of November 2026, Appendix F,
+  entry F-L04), and Chapter 14's table says ECS rotates them. Read the 3,600 as the limit Relay asks for.
 - The cloud side of every drill is assumed. A live drill in your own sandbox account is the only way to measure it;
   this lab has no live mode, and the kill-switch workflow template is illustrative.
 
