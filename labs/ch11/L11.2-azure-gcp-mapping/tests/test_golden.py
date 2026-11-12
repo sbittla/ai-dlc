@@ -26,7 +26,7 @@ def test_the_mapping_passes_and_the_draft_does_not():
 
 
 def test_comparison_under_the_stated_assumptions():
-    assert totals(WORKLOAD) == {"aws": 221.9, "azure": 450.34, "gcp": 196.94}
+    assert totals(WORKLOAD) == {"aws": 221.9, "azure": 450.34, "gcp": 191.72}
     aws, azure = monthly_cost(WORKLOAD, PRICES["aws"]), monthly_cost(WORKLOAD, PRICES["azure"])
     assert (round(aws["private_endpoints"], 2), round(azure["private_endpoints"], 2)) == (73.0, 36.5)
     assert round(100 * azure["database"] / azure["total"], 1) == 58.7
@@ -34,16 +34,16 @@ def test_comparison_under_the_stated_assumptions():
 
 
 def test_without_a_standby_the_order_changes():
-    assert totals(WORKLOAD, ha=False) == {"aws": 196.24, "azure": 203.27, "gcp": 144.23}
+    assert totals(WORKLOAD, ha=False) == {"aws": 196.24, "azure": 200.57, "gcp": 139.01}
 
 
 def test_working_hours_schedule():
-    assert totals(schedule(WORKLOAD, 50)) == {"aws": 201.64, "azure": 394.96, "gcp": 156.33}
+    assert totals(schedule(WORKLOAD, 50)) == {"aws": 201.64, "azure": 394.96, "gcp": 151.11}
     saved = {p: monthly_cost(WORKLOAD, PRICES[p])["total"] - monthly_cost(schedule(WORKLOAD, 50), PRICES[p])["total"]
              for p in PRICES}
     assert {p: round(v, 2) for p, v in saved.items()} == {"aws": 20.25, "azure": 55.38, "gcp": 40.61}
     shares = {p: round(100 * saved[p] / monthly_cost(WORKLOAD, PRICES[p])["total"], 1) for p in PRICES}
-    assert shares == {"aws": 9.1, "azure": 12.3, "gcp": 20.6}
+    assert shares == {"aws": 9.1, "azure": 12.3, "gcp": 21.2}
 
 
 def test_table_11_11_by_category():
@@ -52,8 +52,8 @@ def test_table_11_11_by_category():
                            "load_balancer": 16.43, "secrets_keys": 1.4, "total": 221.9}
     assert rows["azure"] == {"containers": 112.86, "database": 264.48, "private_endpoints": 36.5, "egress": 36.5,
                              "load_balancer": 0.0, "secrets_keys": 0.0, "total": 450.34}
-    assert rows["gcp"] == {"containers": 86.72, "database": 105.42, "private_endpoints": 0.0, "egress": 4.67,
-                           "load_balancer": 0.0, "secrets_keys": 0.12, "total": 196.94}
+    assert rows["gcp"] == {"containers": 81.5, "database": 105.42, "private_endpoints": 0.0, "egress": 4.67,
+                           "load_balancer": 0.0, "secrets_keys": 0.12, "total": 191.72}
 
 
 def test_prices_are_dated_assumptions():

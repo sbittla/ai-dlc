@@ -166,7 +166,7 @@
    "differences": [
     {
      "dimension": "pricing",
-     "note": "Fargate bills per vCPU and GB for each second a task runs; Container Apps per vCPU- and GiB-second with a monthly free grant; Cloud Run per vCPU- and GiB-second at a lower rate when billed per instance. The last two scale to zero without extra setup."
+     "note": "Fargate bills per vCPU and GB for each second a task runs; Container Apps per vCPU- and GiB-second with a monthly free grant; Cloud Run per vCPU- and GiB-second at a lower rate when billed per instance, also with a monthly free grant. The last two scale to zero without extra setup."
     },
     {
      "dimension": "networking",

@@ -4,10 +4,13 @@
  "as_of": "2026-11-10",
  "status": "ASSUMPTIONS. On-demand list prices as the authors read them in November 2026, dated as of the as-of date and not yet re-checked, one region, no discounts, credits or commitments. Verify every price before relying on a comparison.",
  "containers": {
-  "billing": "per_second",
+  "billing": "per_second_with_grant",
   "service": "Cloud Run, instance-based billing",
   "vcpu_second": 1.8e-05,
-  "gib_second": 2e-06
+  "gib_second": 2e-06,
+  "free_vcpu_seconds": 240000,
+  "free_gib_seconds": 450000,
+  "note": "monthly free tier per billing account"
  },
  "database": {
   "service": "Cloud SQL for PostgreSQL, Enterprise edition",

@@ -25,7 +25,7 @@ from .redteam import validate as validate_log
 
 AC_ID = re.compile(r"\b[A-Z][A-Z0-9]*-AC\d+\b")
 OWASP_LLM = re.compile(r"^LLM(0[1-9]|10)$")
-OWASP_AGENTIC = re.compile(r"^T([1-9]|1[0-5])$")
+OWASP_AGENTIC = re.compile(r"^T([1-9]|1[0-7])$")  # T1-T17: OWASP Agentic AI Threats and Mitigations v1.1
 ATLAS = re.compile(r"^AML\.T\d{4}(\.\d{3})?$")
 FORBIDDEN_TOOL = re.compile(r"merge|deploy|approve|push", re.I)
 VARIANT_KEYS = {"id", "label", "placeholder", "shape"}

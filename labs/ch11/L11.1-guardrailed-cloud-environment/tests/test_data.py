@@ -93,6 +93,9 @@ def test_guardrails_and_policy_agree():
     assert sizes["NonProductionDatabaseSizes"]["Condition"]["StringNotLike"]["rds:DatabaseClass"] == \
         POLICY["allowed_db_classes"]
     assert len(list((INFRA / "org").glob("scp-*.json"))) == 4  # plus FullAWSAccess: within the limit of ten (five before 15 May 2026)
+    # Each SCP within 10,240 characters (5,120 before 15 May 2026); whitespace counts when the API saves the file
+    assert all(len(f.read_text(encoding="utf-8")) <= 10240 for f in (INFRA / "org").glob("scp-*.json"))
+    assert len(regions["Statement"][0]["NotAction"]) == 43  # AWS's sample region-deny list, plus account:*
 
 
 def test_every_endpoint_in_the_plan_has_a_known_policy():

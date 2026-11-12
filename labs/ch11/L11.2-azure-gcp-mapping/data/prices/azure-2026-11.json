@@ -21,7 +21,7 @@
   "note": "zone-redundant HA; burstable servers cannot use HA",
   "without_ha": {
    "class": "Burstable B1ms",
-   "class_hour": 0.0207
+   "class_hour": 0.017
   }
  },
  "private_endpoints": {

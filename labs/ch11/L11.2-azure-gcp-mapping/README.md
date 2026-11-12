@@ -106,7 +106,7 @@ Copy `data/mapping.json` and `data/prices/` to `evidence/`. Verify three service
 
 ## Sample of acceptable evidence (excerpt)
 
-> The mapping passes the checker; the agent's draft has 21 problems, including 11 missing concerns and a "partial" model-access row with no difference given. Under the tables' assumptions Relay's non-production environment costs $196.94 a month on GCP, $221.90 on AWS and $450.34 on Azure. The ranking says more about pricing models than about providers: Azure's total is 58.7% database, because its burstable tier offers no standby, and without the standby Azure costs $203.27, close to AWS's $196.24. AWS's largest category is its private endpoints, billed per zone. We would not recommend a provider on this evidence. We verified the Fargate and Container Apps rates on <date>; the Container Apps free grant matched, and we corrected one service name.
+> The mapping passes the checker; the agent's draft has 21 problems, including 11 missing concerns and a "partial" model-access row with no difference given. Under the tables' assumptions Relay's non-production environment costs $191.72 a month on GCP, $221.90 on AWS and $450.34 on Azure. The ranking says more about pricing models than about providers: Azure's total is 58.7% database, because its burstable tier offers no standby, and without the standby Azure costs $200.57, close to AWS's $196.24. AWS's largest category is its private endpoints, billed per zone. We would not recommend a provider on this evidence. We verified the Fargate and Container Apps rates on <date>; the Container Apps free grant matched, and we corrected one service name.
 
 ## Troubleshooting
 

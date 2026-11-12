@@ -414,3 +414,14 @@ def test_remains_never_invents_a_date():
     for r in rows:
         assert r["status"] == ("no date recorded" if not r["due"] else
                                "date passed, no completion recorded" if r["due"] < "2027-07-26" else "due later")
+
+
+@pytest.mark.parametrize("tid, ok", [("T1", True), ("T15", True), ("T16", True), ("T17", True),
+                                     ("T0", False), ("T18", False), ("T01", False)])
+def test_track_d_accepts_owasp_agentic_t1_to_t17_only(tmp_path, tid, ok):
+    p = tmp_path / "tm.json"
+    p.write_text(json.dumps({"system": "s", "components": ["c"], "boundaries": [{"id": "B1"}],
+                             "threats": [{"id": "X1", "boundary": "B1", "owasp_llm": "LLM01", "owasp_agentic": tid,
+                                          "atlas": "AML.T0051", "controls": ["egress"]}]}), encoding="utf-8")
+    bad, failing, _ = kinds.v_threat_model(p, {}, {"track": "D"})
+    assert bad == ([] if ok else ["X1: no OWASP Agentic threat ID"]) and failing == []

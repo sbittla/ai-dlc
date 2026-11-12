@@ -89,7 +89,7 @@ MAPPING = {
             "Cloud Run (instance-based billing)", "partial",
             ("pricing", "Fargate bills per vCPU and GB for each second a task runs; Container Apps per vCPU- and "
                         "GiB-second with a monthly free grant; Cloud Run per vCPU- and GiB-second at a lower rate "
-                        "when billed per instance. The last two scale to zero without extra setup."),
+                        "when billed per instance, also with a monthly free grant. The last two scale to zero without extra setup."),
             ("networking", "Container Apps and Cloud Run provide HTTPS ingress themselves; on ECS an internal "
                            "Application Load Balancer is a separate, hourly-billed resource.")),
         row("Managed PostgreSQL with a standby", "Amazon RDS for PostgreSQL, Multi-AZ",
@@ -188,7 +188,7 @@ PRICES = {
         "database": {"service": "Database for PostgreSQL flexible server", "class": "General Purpose D2ds_v5",
                      "class_hour": 0.178, "ha_factor": 2, "storage_gib_month": 0.115, "storage_ha_factor": 2,
                      "note": "zone-redundant HA; burstable servers cannot use HA",
-                     "without_ha": {"class": "Burstable B1ms", "class_hour": 0.0207}},
+                     "without_ha": {"class": "Burstable B1ms", "class_hour": 0.017}},
         "private_endpoints": {"billing": "per_service_hour", "rate": 0.01},
         "nat_gateway_hour": 0.045,
         "public_ipv4_hour": 0.005,
@@ -198,8 +198,10 @@ PRICES = {
     },
     "gcp": {
         "provider": "gcp", "region": "us-central1", "as_of": "2026-11-10", "status": STATUS,
-        "containers": {"billing": "per_second", "service": "Cloud Run, instance-based billing",
-                       "vcpu_second": 0.000018, "gib_second": 0.000002},
+        "containers": {"billing": "per_second_with_grant", "service": "Cloud Run, instance-based billing",
+                       "vcpu_second": 0.000018, "gib_second": 0.000002,
+                       "free_vcpu_seconds": 240000, "free_gib_seconds": 450000,
+                       "note": "monthly free tier per billing account"},
         "database": {"service": "Cloud SQL for PostgreSQL, Enterprise edition", "class": "1 vCPU, 3.75 GB",
                      "class_hour": 0.06755, "ha_factor": 2, "storage_gib_month": 0.17, "storage_ha_factor": 2,
                      "note": "regional HA"},
