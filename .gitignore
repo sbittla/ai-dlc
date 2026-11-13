@@ -12,6 +12,7 @@ labs/ch03/L3.1-accountable-workspace/data/repos/before/
 
 # print build outputs (rebuild with book/build/build_book.py)
 book/build/gen/
+book/build/gen-first/
 book/build/diagrams/
 book/build/volume*.typ
 dist/
