@@ -9,3 +9,9 @@ labs/**/evidence/*
 ~$*.docx
 # Lab 3.1: generated at run time with fake secrets (scripts/generate_data.py); never committed
 labs/ch03/L3.1-accountable-workspace/data/repos/before/
+
+# print build outputs (rebuild with book/build/build_book.py)
+book/build/gen/
+book/build/diagrams/
+book/build/volume*.typ
+dist/
