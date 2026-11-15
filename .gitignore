@@ -20,3 +20,4 @@ dist/
 
 # Windows cache files written to a literal %SystemDrive% folder by mistake
 **/%SystemDrive%/
+book/build/gen-docx-*/
