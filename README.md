@@ -1,6 +1,6 @@
-# AI-Native Software Engineering
+# Accountable Agents
 
-**Build, Verify, Secure, and Operate Production-Ready Software with AI Agents**
+**Engineering AI-Native Software from Specification to Production**
 
 Book manuscript and hands-on labs. Every AI output is a proposal until evidence proves it.
 
