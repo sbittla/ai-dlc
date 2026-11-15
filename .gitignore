@@ -13,6 +13,10 @@ labs/ch03/L3.1-accountable-workspace/data/repos/before/
 # print build outputs (rebuild with book/build/build_book.py)
 book/build/gen/
 book/build/gen-first/
+book/build/gen-condensed/
 book/build/diagrams/
 book/build/volume*.typ
 dist/
+
+# Windows cache files written to a literal %SystemDrive% folder by mistake
+**/%SystemDrive%/

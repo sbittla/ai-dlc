@@ -63,3 +63,38 @@ A release check should include everything in this chapter's list plus the public
 - *Allowlisted content:* replace github.com and pypi.org with a pull-through mirror (a package repository proxy and a read-only mirror of approved repositories), so the sandbox can fetch but never push. Bypass: a malicious package that is already in the mirror, which needs Chapter 13's dependency controls. Cost: storage and requests. Seeded case: a push from the sandbox must fail. Owner: the platform team, with Chapter 13's reviewers.
 
 Strong answers state what the control still cannot see.
+
+---
+
+## Condensed Edition only: Exercises 10 and 11 (portability)
+
+These exercises appear only in the Condensed Edition, after Section 11.5's "Reference architecture and portability". Mark the reasoning, not product names: service names change, so an answer that names a service must date it and cite the provider's documentation (Appendix D).
+
+**10. Azure.** A full answer:
+- Maps the six concerns using Appendix D:
+  - accounts → management groups and subscriptions;
+  - network and egress → a virtual network with private endpoints, and a firewall or proxy for allowlisted egress;
+  - identity → managed identities and workload identity federation for CI, with no long-lived secrets;
+  - keys and secrets → Key Vault;
+  - logging and monitoring → Azure Monitor and the activity log;
+  - cost and lifecycle → budgets, tags and resource-group teardown.
+- Gives each mapping's fit as Lab 11.2 rates it.
+- Names the rules to rewrite:
+  - POL004: private endpoints carry no endpoint policy, so the rule needs another control, such as network rules on the target resource or Azure Policy.
+  - The permissions-boundary rule: there is no direct equivalent, so scope role assignments and use Azure Policy deny effects.
+  - Any rule that reads AWS resource types.
+- Says how to keep "no route out": no public IPs, egress only through a controlled path, and a check that fails a plan which adds a public route.
+- Explains from Table 11.7 that Azure's total is the highest because of the high-availability standby database: the database line dominates. Strong answers note that dropping the standby changes the ranking only slightly, and that this is a requirement decision, not a provider defect.
+
+**11. Google Cloud.** A full answer:
+- Maps the six concerns:
+  - accounts → folders and projects, with Organization Policy constraints and IAM deny policies as the guardrails;
+  - identity → service accounts, with Workload Identity Federation for CI;
+  - keys and secrets → Cloud KMS and Secret Manager;
+  - logging and monitoring → Cloud Logging and Cloud Monitoring;
+  - cost and lifecycle → budgets and project deletion.
+- Explains that Table 11.7's private-endpoint line is $0.00 because private access to Google APIs is a subnet setting rather than an hourly endpoint resource, and checks this against current pricing.
+- Explains what a VPC Service Controls perimeter adds. It enforces at the API layer on identity and network context together, so data cannot be copied to a project outside the perimeter even with valid credentials. An AWS endpoint policy constrains only traffic through that endpoint.
+- Explains the cost to CI: a GitHub-hosted runner is outside the perimeter, so its calls are denied unless an ingress rule or access level admits them, or CI runs on a runner inside the perimeter.
+
+Both answers must date the two service names they verified.

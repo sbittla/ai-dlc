@@ -1,3 +1,4 @@
 # Generated lab data must stay byte-identical across platforms
 labs/**/data/** -text
 labs/relay-baselines/** -text
+labs/**/relay-repo/** -text
