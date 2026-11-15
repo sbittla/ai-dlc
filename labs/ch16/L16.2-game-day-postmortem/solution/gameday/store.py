@@ -8,6 +8,7 @@ the responders could have seen when it was made.
 from __future__ import annotations
 
 import json
+import math
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -57,7 +58,7 @@ class Store:
             parts = ("signin", "notify", "other")
             for p in parts:
                 self.series[f"share:db_{p}"] = {
-                    t: self.series[f"metric:db_ms_{p}"][t] / sum(self.series[f"metric:db_ms_{q}"][t] for q in parts)
+                    t: self.series[f"metric:db_ms_{p}"][t] / math.fsum(self.series[f"metric:db_ms_{q}"][t] for q in parts)
                     for t in self.series["metric:db_ms_signin"]}
         if "metric:share_db_of_request" in self.series:
             self.series["share:db_of_request"] = self.series["metric:share_db_of_request"]
@@ -79,7 +80,7 @@ class Store:
 
     def mean(self, name: str, a: str, b: str) -> float | None:
         vals = self.values(name, a, b)
-        return sum(vals) / len(vals) if vals else None
+        return math.fsum(vals) / len(vals) if vals else None  # fsum: same result on every Python version
 
     def onset(self, name: str, baseline: list[str], factor: float) -> datetime | None:
         """The first minute after the baseline window where the series reaches factor x its baseline mean."""

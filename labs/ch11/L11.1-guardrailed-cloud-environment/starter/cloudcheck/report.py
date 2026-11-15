@@ -14,6 +14,7 @@ Exit status with --gate: 0 pass, 1 a failing finding, 2 nothing failing but some
 from __future__ import annotations
 
 import argparse
+import math
 import sys
 from collections import Counter
 from datetime import date, datetime
@@ -77,7 +78,7 @@ def render_cost(plan: dict, prices: dict, title: str, hours: float | None, budge
     lines.append(f"| **total** | **{est.hourly:.4f}** | **{est.monthly:,.2f}** | 100.0% |")
     lines += ["", f"Fixed cost: {money(est.hourly)} per hour, {money(est.monthly)} per month "
                   f"({est.hours_per_month} hours), before any usage-based charges."]
-    endpoints = sum(x.hourly for x in est.lines if x.address.startswith("aws_vpc_endpoint."))
+    endpoints = math.fsum(x.hourly for x in est.lines if x.address.startswith("aws_vpc_endpoint."))
     if endpoints:
         lines.append(f"Interface endpoints: {money(endpoints)} per hour, "
                      f"{100 * endpoints / est.hourly:.1f}% of the fixed cost.")

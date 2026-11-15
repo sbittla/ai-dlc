@@ -8,6 +8,7 @@ as "usage-based, not estimated" rather than guessed. The prices are assumptions 
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, field
 
 from .plan import Resource, get, of_type, reference, resources
@@ -38,14 +39,14 @@ class Estimate:
 
     @property
     def hourly(self) -> float:
-        return sum(line.hourly for line in self.lines)
+        return math.fsum(line.hourly for line in self.lines)  # correctly rounded on every Python version
 
     @property
     def monthly(self) -> float:
         return self.hourly * self.hours_per_month
 
     def by_category(self) -> dict[str, float]:
-        return {c: sum(x.hourly for x in self.lines if x.category == c) for c in CATEGORIES}
+        return {c: math.fsum(x.hourly for x in self.lines if x.category == c) for c in CATEGORIES}
 
 
 def _task_size(rs: list[Resource], service: Resource) -> tuple[float, float, str] | None:

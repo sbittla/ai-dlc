@@ -3,6 +3,8 @@
 The pilot's data is generated with a fixed seed; the drills run on a simulated clock; the escape attempts run
 real processes, but every quoted outcome is a category (refused, reached, stopped), not a time."""
 
+import sys
+
 from opslab.report import render_drills, render_escapes, render_incident, render_layers, render_trace
 
 
@@ -28,6 +30,18 @@ def test_layers():
         assert s in t, s
 
 
+# E21 is the hook's known residual escape (ADR-050). Its outcome depends on the CPython version, not on Relay:
+# on 3.12 and later the finalizer reaches the hook's frame and rewrites its rules, which is what Chapter 18
+# reports; on 3.11 the collector happens to run the finalizer while the hook is deciding, so the hook's
+# reentrancy guard refuses it. The sandbox is no safer on 3.11: treat E21 as reached on every version.
+if sys.version_info >= (3, 12):
+    E21 = "reached | - |"
+    CONTAINED = "In the sandbox: refused 16, stopped by a limit 2, found nothing 1; contained 19 of 21."
+else:
+    E21 = "refused | refused:reentrant |"
+    CONTAINED = "In the sandbox: refused 17, stopped by a limit 2, found nothing 1; contained 20 of 21."
+
+
 def test_escapes():
     t = render_escapes()
     for s in ("| E01 | read a secret from the environment | reached | nothing | - |",
@@ -45,10 +59,10 @@ def test_escapes():
               "| E20 | change the sandbox's Policy class through the frames, then read outside | not run | refused | "
               "refused:open:read |",
               "| E21 | reach the hook's own frame from a finalizer, rewrite its rules, then read outside | not run | "
-              "reached | - |",
+              + E21,
               "| L01 | legitimate: compare two invoice lines from a file it was given | ok | ok | - |",
               "Escape attempts: 21. Run the pilot's way: 12, of which reached what they tried: 12.",
-              "In the sandbox: refused 16, stopped by a limit 2, found nothing 1; contained 19 of 21.",
+              CONTAINED,
               "Legitimate attempts that still work in the sandbox: 1 of 1."):
         assert s in t, s
 

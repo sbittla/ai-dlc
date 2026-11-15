@@ -198,15 +198,16 @@ def main() -> None:
     docs_dir = root / "docs"
     docs_dir.mkdir(parents=True, exist_ok=True)
     for name, text in DOCS.items():
-        (docs_dir / name).write_text(text, encoding="utf-8")
-    with (root / "questions.jsonl").open("w", encoding="utf-8") as f:
+        # newline="\n": the same bytes on every platform, so CI's reproducibility check passes on Linux and Windows.
+        (docs_dir / name).write_text(text, encoding="utf-8", newline="\n")
+    with (root / "questions.jsonl").open("w", encoding="utf-8", newline="\n") as f:
         for kind, items in (("keyword", QUESTIONS), ("paraphrase", PARAPHRASES), ("heldout", HELDOUT)):
             for qid, question, answer, source in items:
                 if answer not in DOCS[source]:
                     raise SystemExit(f"{qid}: answer {answer!r} not found in {source}")
                 record = {"id": qid, "type": kind, "question": question, "answer": answer, "source": source}
                 f.write(json.dumps(record) + "\n")
-    (root / "synonyms.json").write_text(json.dumps(SYNONYMS, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    (root / "synonyms.json").write_text(json.dumps(SYNONYMS, indent=2, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
     print(f"wrote {len(DOCS)} documents and {len(QUESTIONS) + len(PARAPHRASES) + len(HELDOUT)} questions to {root}")
 
 

@@ -148,7 +148,10 @@ interpreter, an empty environment, a throwaway directory, an audit-hook policy a
 hook runs inside the process it watches: code that reaches native memory by a path the policy does not list gets past
 it, and some actions raise no event at all (E19 learns which paths exist outside the directory). Six attempts in
 `data/escapes.json` (E14 to E18, E20) got past earlier versions of it, and E21 gets past the current one: code in
-the same process can reach and change the hook's own state. The hook is a tripwire, not a boundary. Run agent code with it only in a credential-free
+the same process can reach and change the hook's own state. (On Python 3.12 and later E21 reaches its target, and
+the report shows "contained 19 of 21". On 3.11, which CI uses, the collector happens to run E21's finalizer while
+the hook is deciding, so the hook refuses it as reentrant: "contained 20 of 21". That is luck of timing, not a
+defence; treat E21 as reached on every version.) The hook is a tripwire, not a boundary. Run agent code with it only in a credential-free
 dev container or CI runner, never on a machine with your own credentials. The boundary in the cloud is ADR-050's
 sandbox runner, its own task with no role and no outbound network; it is designed, not built (owner sam.o, by
 2027-05-31). SQLite is refused inside the sandbox, because it opens files below the hook's view.
